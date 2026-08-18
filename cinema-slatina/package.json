@@ -15,7 +15,8 @@
     "db:deploy": "prisma migrate deploy",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:tmdb": "tsx scripts/sync-tmdb.ts",
-    "db:trailers": "tsx scripts/fix-trailers.ts"
+    "db:trailers": "tsx scripts/fix-trailers.ts",
+    "db:reset-program": "tsx scripts/reset-program.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

@@ -239,21 +239,41 @@ export async function saveScreening(
   return { ok: true };
 }
 
-export async function deleteScreening(id: string): Promise<ActionResult> {
+/**
+ * Șterge o proiecție. Dacă are rezervări active, prima chemare nu șterge nimic
+ * și întoarce numărul lor, ca interfața să poată cere confirmarea. A doua
+ * chemare, cu `force`, șterge proiecția împreună cu rezervările ei.
+ */
+export async function deleteScreening(
+  id: string,
+  force = false,
+): Promise<ActionResult<{ reservations: number }>> {
   const user = await requireAdmin();
+
   const reservations = await db.reservation.count({
     where: { screeningId: id, status: { in: ["PENDING", "CONFIRMED", "CHECKED_IN"] } },
   });
-  if (reservations > 0) {
+
+  if (reservations > 0 && !force) {
     return {
       ok: false,
-      message: `Proiecția are ${reservations} rezervări active. Anuleaz-o în loc să o ștergi.`,
+      message: `Proiecția are ${reservations} ${reservations === 1 ? "rezervare activă" : "rezervări active"}.`,
+      data: { reservations },
     };
   }
+
+  // Rezervările au ștergere în cascadă în schemă, deci pleacă odată cu proiecția.
   await db.screening.delete({ where: { id } });
-  await audit(user.id, "delete", "screening", id);
+  await audit(
+    user.id,
+    "delete",
+    "screening",
+    id,
+    reservations > 0 ? `împreună cu ${reservations} rezervări` : undefined,
+  );
   revalidatePublic();
-  return { ok: true };
+  revalidatePath("/admin/rezervari");
+  return { ok: true, data: { reservations } };
 }
 
 export async function setScreeningCancelled(

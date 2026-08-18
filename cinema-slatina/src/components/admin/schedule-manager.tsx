@@ -18,6 +18,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -143,6 +153,11 @@ export function ScheduleManager({
   /** Câte cartonașe goale în plus arătăm, pentru fiecare zi. */
   const [extraSlots, setExtraSlots] = useState<Record<string, number>>({});
   const [draft, setDraft] = useState<Draft | null>(null);
+  /** Proiecția pentru care cerem confirmarea ștergerii rezervărilor. */
+  const [pendingDelete, setPendingDelete] = useState<{
+    screening: ScheduleScreening;
+    reservations: number;
+  } | null>(null);
 
   const byDay = useMemo(() => {
     const map = new Map<string, ScheduleScreening[]>();
@@ -237,17 +252,39 @@ export function ScheduleManager({
   }
 
   function removeScreening(s: ScheduleScreening) {
-    if (
-      !confirm(`Ștergi „${s.movieTitle}” de la ${formatTime(new Date(s.startsAt))}?`)
-    )
-      return;
     startTransition(async () => {
       const result = await deleteScreening(s.id);
+
+      // Are rezervări: cerem confirmarea, nu ștergem nimic încă.
+      if (!result.ok && result.data?.reservations) {
+        setPendingDelete({ screening: s, reservations: result.data.reservations });
+        return;
+      }
       if (!result.ok) {
         toast.error(result.message ?? "Proiecția nu a putut fi ștearsă.");
         return;
       }
       toast.success("Proiecție ștearsă.");
+      router.refresh();
+    });
+  }
+
+  /** Confirmarea: șterge proiecția împreună cu rezervările ei. */
+  function confirmDelete() {
+    const target = pendingDelete;
+    if (!target) return;
+    startTransition(async () => {
+      const result = await deleteScreening(target.screening.id, true);
+      setPendingDelete(null);
+      if (!result.ok) {
+        toast.error(result.message ?? "Proiecția nu a putut fi ștearsă.");
+        return;
+      }
+      toast.success(
+        `Am șters proiecția și ${target.reservations} ${
+          target.reservations === 1 ? "rezervarea ei" : "rezervările ei"
+        }.`,
+      );
       router.refresh();
     });
   }
@@ -394,6 +431,43 @@ export function ScheduleManager({
           <Plus />
         </Button>
       </div>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ștergi și rezervările?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete ? (
+                <>
+                  Proiecția „{pendingDelete.screening.movieTitle}” de la{" "}
+                  {formatTime(new Date(pendingDelete.screening.startsAt))} are{" "}
+                  <strong>
+                    {pendingDelete.reservations}{" "}
+                    {pendingDelete.reservations === 1
+                      ? "rezervare activă"
+                      : "rezervări active"}
+                  </strong>
+                  . Dacă mergi mai departe, se șterg și ele, definitiv. Oamenii
+                  care au rezervat nu vor fi anunțați automat.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Renunță</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={pending}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Șterge tot
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {draft ? (
         <ScreeningDialog
