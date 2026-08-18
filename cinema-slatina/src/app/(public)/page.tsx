@@ -30,32 +30,25 @@ export default async function HomePage() {
     .filter((d) => d >= today)
     .map(dayKey);
 
-  const slides: HeroSlide[] = [
-    ...comingSoon.map((m) => ({
-      slug: m.slug,
-      eyebrow: "ÎN CURÂND",
-      title: m.title,
-      synopsis: m.synopsis,
-      posterUrl: m.posterUrl,
-      backdropUrl: m.backdropUrl,
-      genres: m.genres,
-    })),
-    ...moviesThisWeek.slice(0, 3).map((m) => ({
-      slug: m.slug,
-      eyebrow: "ACUM ÎN PROGRAM",
-      title: m.title,
-      synopsis: null,
-      posterUrl: m.posterUrl,
-      backdropUrl: null,
-      genres: m.genres,
-    })),
-  ].slice(0, 4);
+  // Caruselul de sus arată doar premierele. Fără niciun film marcat
+  // „în curând”, secțiunea nu se randează deloc.
+  const slides: HeroSlide[] = comingSoon.slice(0, 4).map((m) => ({
+    slug: m.slug,
+    eyebrow: "ÎN CURÂND",
+    title: m.title,
+    synopsis: m.synopsis,
+    posterUrl: m.posterUrl,
+    backdropUrl: m.backdropUrl,
+    genres: m.genres,
+  }));
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
-      <Reveal y={16}>
-        <HeroCarousel slides={slides} />
-      </Reveal>
+      {slides.length > 0 ? (
+        <Reveal y={16}>
+          <HeroCarousel slides={slides} />
+        </Reveal>
+      ) : null}
 
       <Section id="program">
         <Reveal y={16} className="mb-6">
@@ -90,12 +83,14 @@ export default async function HomePage() {
         <MovieRail movies={moviesThisWeek} />
       </Section>
 
-      <Section>
-        <Reveal y={16}>
-          <SectionHeading title={`În curând la ${CINEMA.shortName}`} />
-        </Reveal>
-        <ComingSoonList movies={comingSoon} />
-      </Section>
+      {comingSoon.length > 0 ? (
+        <Section>
+          <Reveal y={16}>
+            <SectionHeading title={`În curând la ${CINEMA.shortName}`} />
+          </Reveal>
+          <ComingSoonList movies={comingSoon} />
+        </Section>
+      ) : null}
 
       <Section id="vizita">
         <Reveal y={16}>
