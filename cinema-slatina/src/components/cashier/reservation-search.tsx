@@ -23,7 +23,7 @@ type Row = {
   id: string;
   code: string;
   customerName: string;
-  phone: string;
+  phone: string | null;
   age: number | null;
   isAdult: boolean;
   seats: number;

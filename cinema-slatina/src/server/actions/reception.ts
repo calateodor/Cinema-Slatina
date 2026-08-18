@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { capacityForScreening } from "@/lib/capacity";
-import { formatClock } from "@/lib/dates";
+import { formatClock, formatDeskLabel } from "@/lib/dates";
 import { normalizePhone } from "@/lib/format";
 import { ADULT_AGE, ROLES } from "@/lib/constants";
 
@@ -165,6 +165,110 @@ export async function confirmCallTicket(id: string): Promise<Result<{ code: stri
 
 /* -------------------------------------------------------- rezervări */
 
+const deskSchema = z.object({
+  screeningId: z.string().min(1, "Alege proiecția."),
+  seats: z.coerce.number().int().min(1).max(20).default(1),
+  customerName: z.string().trim().max(80).optional().nullable(),
+  phone: z.string().trim().optional().nullable(),
+  age: z.coerce.number().int().min(1).max(120).optional().nullable(),
+});
+
+/**
+ * Rezervare luată la ghișeu. Când numele lipsește — cazul apelurilor multe —
+ * punem o etichetă cu ziua și ora exactă, ca operatorul să poată reveni și
+ * completa numele și telefonul după ce se uită în jurnalul de apeluri.
+ */
+export async function createDeskReservation(
+  input: z.input<typeof deskSchema>,
+): Promise<Result<{ code: string; label: string }>> {
+  const user = await requireUser(STAFF);
+  const parsed = deskSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Date invalide." };
+  }
+  const d = parsed.data;
+
+  const phone = d.phone ? normalizePhone(d.phone) : null;
+  if (d.phone && !phone) {
+    return { ok: false, message: "Numărul trebuie să fie de forma 07XXXXXXXX." };
+  }
+
+  const capacity = await capacityForScreening(d.screeningId);
+  if (!capacity) return { ok: false, message: "Proiecția nu există." };
+  const free = capacity.freeBase + capacity.freeExtra;
+  if (free < d.seats) {
+    return {
+      ok: false,
+      message:
+        free === 0
+          ? "Sala este plină, inclusiv scaunele suplimentare."
+          : `Mai sunt doar ${free} locuri libere.`,
+    };
+  }
+
+  const name = d.customerName?.trim()
+    ? d.customerName.trim()
+    : `Client - ${formatDeskLabel(new Date())}`;
+
+  const onBase = Math.min(d.seats, capacity.freeBase);
+  const reservation = await db.reservation.create({
+    data: {
+      code: code(),
+      screeningId: d.screeningId,
+      customerName: name,
+      phone,
+      age: d.age ?? null,
+      isAdult: d.age != null ? d.age >= ADULT_AGE : true,
+      seats: d.seats,
+      extraSeats: d.seats - onBase,
+      phoneVerified: false,
+      status: "CONFIRMED",
+      source: "PHONE",
+      createdById: user.id,
+    },
+  });
+
+  refresh();
+  return { ok: true, data: { code: reservation.code, label: name } };
+}
+
+const detailsSchema = z.object({
+  id: z.string().min(1),
+  customerName: z.string().trim().min(3, "Scrie numele.").max(80),
+  phone: z.string().trim().optional().nullable(),
+  age: z.coerce.number().int().min(1).max(120).optional().nullable(),
+});
+
+/** Completează datele unei rezervări luate rapid la telefon. */
+export async function updateReservationDetails(
+  input: z.input<typeof detailsSchema>,
+): Promise<Result> {
+  await requireUser(STAFF);
+  const parsed = detailsSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Date invalide." };
+  }
+  const d = parsed.data;
+
+  const phone = d.phone ? normalizePhone(d.phone) : null;
+  if (d.phone && !phone) {
+    return { ok: false, message: "Numărul trebuie să fie de forma 07XXXXXXXX." };
+  }
+
+  await db.reservation.update({
+    where: { id: d.id },
+    data: {
+      customerName: d.customerName,
+      phone,
+      age: d.age ?? undefined,
+      isAdult: d.age != null ? d.age >= ADULT_AGE : undefined,
+    },
+  });
+
+  refresh();
+  return { ok: true };
+}
+
 const manualSchema = z.object({
   screeningId: z.string().min(1, "Alege proiecția."),
   customerName: z.string().trim().min(3, "Scrie numele clientului."),
@@ -272,7 +376,7 @@ export async function searchReservations(query: string): Promise<
       id: string;
       code: string;
       customerName: string;
-      phone: string;
+      phone: string | null;
       age: number | null;
       isAdult: boolean;
       seats: number;

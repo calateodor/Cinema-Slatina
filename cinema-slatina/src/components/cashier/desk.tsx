@@ -1,404 +1,389 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Check, Glasses, PhoneCall, Trash2, UserPlus } from "lucide-react";
+import { Minus, PhoneCall, Plus, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { EmptyRow } from "@/components/staff/ui";
 import {
-  closeCallTicket,
-  confirmCallTicket,
-  createCallTicket,
-  deleteCallTicket,
-  updateCallTicket,
-} from "@/server/actions/reception";
-import { ADULT_AGE } from "@/lib/constants";
-import { formatTime } from "@/lib/dates";
+  ReservationList,
+  type ReservationRow,
+} from "@/components/staff/reservation-list";
+import { createDeskReservation } from "@/server/actions/reception";
+import { formatLongDate, formatTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export type DeskScreening = {
   id: string;
   startsAt: string;
   movieTitle: string;
+  posterUrl: string | null;
+  ageRating: string | null;
   hallName: string;
   hallColor: string;
   is3D: boolean;
   isDubbed: boolean;
-  ageRating: string | null;
   taken: number;
   base: number;
   extra: number;
+  reservationsOpen: boolean;
 };
-
-export type DeskTicket = {
-  id: string;
-  label: string;
-  customerName: string | null;
-  phone: string | null;
-  age: number | null;
-  isAdult: boolean | null;
-  seats: number;
-  screeningId: string | null;
-  note: string | null;
-  createdAt: string;
-};
-
-function time(iso: string): string {
-  return formatTime(new Date(iso));
-}
 
 export function CashierDesk({
   screenings,
-  tickets,
-  dayLabel,
+  reservations,
 }: {
   screenings: DeskScreening[];
-  tickets: DeskTicket[];
-  dayLabel: string;
+  reservations: ReservationRow[];
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [selected, setSelected] = useState<string>(screenings[0]?.id ?? "");
+  const [selected, setSelected] = useState<DeskScreening | null>(null);
 
-  function addClient() {
-    startTransition(async () => {
-      const result = await createCallTicket(selected || undefined);
-      if (!result.ok) {
-        toast.error(result.message ?? "Nu am putut adăuga clientul.");
-        return;
-      }
-      toast.success(`Bon creat: ${result.data?.label}`);
-      router.refresh();
-    });
-  }
+  const incomplete = reservations.filter(
+    (r) => !r.phone || r.customerName.startsWith("Client - "),
+  ).length;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+    <div className="mt-6 flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-semibold">Proiecțiile zilei</h2>
-          <span className="text-xs text-muted-foreground first-letter:uppercase">
-            {dayLabel}
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-semibold">
+            Apasă pe film ca să faci o rezervare
+          </h2>
+          <span className="text-sm text-muted-foreground">
+            {screenings.length} proiecții azi
           </span>
         </div>
 
         {screenings.length === 0 ? (
-          <EmptyRow>Nu există proiecții programate pentru această zi.</EmptyRow>
+          <EmptyRow>
+            Nu există proiecții programate azi. Programul se face din panoul de
+            administrare.
+          </EmptyRow>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {screenings.map((s) => {
-              const active = s.id === selected;
-              const full = s.taken >= s.base;
-              return (
-                <li key={s.id}>
-                  <Card
-                    size="sm"
-                    className={cn(
-                      "transition-shadow motion-reduce:transition-none",
-                      active ? "bg-primary/5 ring-primary" : "hover:ring-primary/40",
-                    )}
-                  >
-                    <CardContent>
-                      <button
-                        type="button"
-                        onClick={() => setSelected(s.id)}
-                        aria-pressed={active}
-                        className="w-full text-left"
-                      >
-                        <div className="flex flex-wrap items-baseline gap-2">
-                          <span className="text-lg font-semibold tabular-nums">
-                            {time(s.startsAt)}
-                          </span>
-                          <Badge
-                            variant="outline"
-                            style={{
-                              borderColor: `color-mix(in oklch, ${s.hallColor} 45%, transparent)`,
-                              backgroundColor: `color-mix(in oklch, ${s.hallColor} 12%, transparent)`,
-                              color: s.hallColor,
-                            }}
-                          >
-                            {s.hallName}
-                          </Badge>
-                          {s.is3D ? (
-                            <Badge variant="warning">
-                              <Glasses data-icon="inline-start" />
-                              3D
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">2D</Badge>
-                          )}
-                          <span className="ml-auto text-sm tabular-nums text-muted-foreground">
-                            {s.taken}/{s.base}
-                          </span>
-                        </div>
-                        <p className="mt-1 font-medium">{s.movieTitle}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {s.isDubbed ? "Dublat" : "Subtitrat"}
-                          {s.ageRating ? ` · ${s.ageRating}` : ""}
-                          {full
-                            ? ` · sala plină, ${Math.max(0, s.taken - s.base)}/${s.extra} scaune suplimentare`
-                            : ""}
-                        </p>
-                      </button>
-                    </CardContent>
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+            {screenings.map((s) => (
+              <ScreeningCard
+                key={s.id}
+                screening={s}
+                onClick={() => setSelected(s)}
+              />
+            ))}
+          </div>
         )}
       </section>
 
       <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-semibold">Clienți la telefon</h2>
-          <Button onClick={addClient} disabled={pending}>
-            {pending ? (
-              <Spinner data-icon="inline-start" />
-            ) : (
-              <UserPlus data-icon="inline-start" />
-            )}
-            Adaugă client
-          </Button>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-semibold">Rezervările de azi</h2>
+          {incomplete > 0 ? (
+            <Badge variant="warning">
+              {incomplete}{" "}
+              {incomplete === 1 ? "de completat" : "de completat"}
+            </Badge>
+          ) : null}
         </div>
-
-        <p className="text-xs text-muted-foreground">
-          Butonul creează un bon cu ora exactă a apelului. Completezi numele și
-          numărul după ce închizi telefonul, apoi confirmi rezervarea.
-        </p>
-
-        {tickets.length === 0 ? (
-          <EmptyRow>
-            Niciun client în așteptare. Apasă „Adaugă client” când sună
-            telefonul.
-          </EmptyRow>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {tickets.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                ticket={ticket}
-                screenings={screenings}
-                defaultScreeningId={selected}
-              />
-            ))}
-          </ul>
-        )}
+        <ReservationList reservations={reservations} compact />
       </section>
+
+      {selected ? (
+        <ReservationDialog
+          screening={selected}
+          onClose={() => setSelected(null)}
+        />
+      ) : null}
     </div>
   );
 }
 
-function TicketCard({
-  ticket,
-  screenings,
-  defaultScreeningId,
+function ScreeningCard({
+  screening,
+  onClick,
 }: {
-  ticket: DeskTicket;
-  screenings: DeskScreening[];
-  defaultScreeningId: string;
+  screening: DeskScreening;
+  onClick: () => void;
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
-  const [name, setName] = useState(ticket.customerName ?? "");
-  const [phone, setPhone] = useState(ticket.phone ?? "");
-  const [age, setAge] = useState(ticket.age ? String(ticket.age) : "");
-  const [seats, setSeats] = useState(String(ticket.seats));
-  const [screeningId, setScreeningId] = useState(
-    ticket.screeningId ?? defaultScreeningId,
+  const full = screening.taken >= screening.base;
+  const percent = Math.min(
+    100,
+    Math.round((Math.min(screening.taken, screening.base) / screening.base) * 100),
   );
 
-  const isAdult = age ? Number(age) >= ADULT_AGE : null;
+  return (
+    <article className="group flex flex-col">
+      <div className="relative z-10 -mb-3 flex justify-center">
+        <span className="ticket rounded-lg bg-brand-yellow px-3 py-0.5 text-2xl leading-tight text-brand-ink shadow-sm">
+          {formatTime(new Date(screening.startsAt))}
+        </span>
+      </div>
 
-  function persist() {
-    startTransition(async () => {
-      await updateCallTicket({
-        id: ticket.id,
-        customerName: name,
-        phone,
-        age: age || null,
-        seats,
-        screeningId,
-      });
-    });
-  }
+      <button
+        type="button"
+        onClick={onClick}
+        className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-secondary ring-1 ring-border transition-shadow hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
+        aria-label={`Rezervă la ${screening.movieTitle}, ora ${formatTime(new Date(screening.startsAt))}`}
+      >
+        {screening.posterUrl ? (
+          <Image
+            src={screening.posterUrl}
+            alt=""
+            fill
+            sizes="260px"
+            className="object-cover"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center p-3 text-center text-sm font-medium">
+            {screening.movieTitle}
+          </span>
+        )}
+        {screening.is3D ? (
+          <Badge variant="brand" className="ticket absolute right-2 top-2 text-sm">
+            3D
+          </Badge>
+        ) : null}
+        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-2 text-center text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
+          Rezervă aici
+        </span>
+      </button>
 
-  function confirm() {
+      <div className="mt-2 flex min-w-0 flex-col gap-1.5">
+        <p className="truncate text-sm font-medium">{screening.movieTitle}</p>
+        <div className="flex flex-wrap items-center gap-1">
+          <Badge
+            variant="outline"
+            style={{
+              borderColor: `color-mix(in oklch, ${screening.hallColor} 45%, transparent)`,
+              color: screening.hallColor,
+            }}
+          >
+            {screening.hallName}
+          </Badge>
+          <Badge variant="secondary">
+            {screening.isDubbed ? "Dublat" : "Subtitrat"}
+          </Badge>
+          {screening.ageRating ? (
+            <Badge variant="outline">{screening.ageRating}</Badge>
+          ) : null}
+        </div>
+        <div>
+          <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+            <span>Locuri</span>
+            <span className="ticket text-sm tabular-nums text-foreground">
+              {Math.min(screening.taken, screening.base)}
+              <span className="text-muted-foreground">/{screening.base}</span>
+            </span>
+          </div>
+          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn(
+                "h-full rounded-full",
+                full
+                  ? "bg-destructive"
+                  : percent >= 80
+                    ? "bg-brand-orange"
+                    : "bg-success",
+              )}
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+          {screening.taken > screening.base ? (
+            <p className="mt-1 text-[0.7rem] text-warning">
+              Scaune suplimentare: {screening.taken - screening.base}/{screening.extra}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ReservationDialog({
+  screening,
+  onClose,
+}: {
+  screening: DeskScreening;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [mode, setMode] = useState<"rapid" | "complet">("rapid");
+  const [seats, setSeats] = useState(1);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [age, setAge] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  const start = new Date(screening.startsAt);
+  const free = Math.max(0, screening.base + screening.extra - screening.taken);
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
     startTransition(async () => {
-      await updateCallTicket({
-        id: ticket.id,
-        customerName: name,
-        phone,
-        age: age || null,
+      const result = await createDeskReservation({
+        screeningId: screening.id,
         seats,
-        screeningId,
+        customerName: mode === "complet" ? name : null,
+        phone: mode === "complet" ? phone || null : null,
+        age: mode === "complet" ? age || null : null,
       });
-      const result = await confirmCallTicket(ticket.id);
       if (!result.ok) {
         toast.error(result.message ?? "Rezervarea nu a putut fi creată.");
         return;
       }
-      toast.success(`Rezervare confirmată · cod ${result.data?.code}`);
-      router.refresh();
-    });
-  }
-
-  function dismiss() {
-    startTransition(async () => {
-      await closeCallTicket(ticket.id);
-      router.refresh();
-    });
-  }
-
-  function remove() {
-    startTransition(async () => {
-      await deleteCallTicket(ticket.id);
+      toast.success(
+        mode === "rapid"
+          ? `Rezervat: ${result.data?.label} · cod ${result.data?.code}`
+          : `Rezervare pentru ${name} · cod ${result.data?.code}`,
+      );
+      onClose();
       router.refresh();
     });
   }
 
   return (
-    <li>
-      <Card>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <PhoneCall className="size-4 text-primary" aria-hidden="true" />
-            <p className="font-semibold">{ticket.label}</p>
-            {isAdult !== null ? (
-              <Badge
-                variant={isAdult ? "success" : "warning"}
-                className="ml-auto"
-              >
-                {isAdult ? "Adult" : "Minor"}
-              </Badge>
-            ) : null}
-          </div>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{screening.movieTitle}</DialogTitle>
+          <DialogDescription className="first-letter:uppercase">
+            {formatLongDate(start)}, ora {formatTime(start)} · {screening.hallName}{" "}
+            · {screening.is3D ? "3D" : "2D"} ·{" "}
+            {screening.isDubbed ? "dublat" : "subtitrat"}
+            {screening.ageRating ? ` · ${screening.ageRating}` : ""}
+          </DialogDescription>
+        </DialogHeader>
 
+        <form onSubmit={submit} className="flex flex-col gap-5">
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor={`name-${ticket.id}`}>Nume client</FieldLabel>
-              <Input
-                id={`name-${ticket.id}`}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onBlur={persist}
-                placeholder="Nume și prenume"
-              />
-            </Field>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor={`phone-${ticket.id}`}>Telefon</FieldLabel>
-                <Input
-                  id={`phone-${ticket.id}`}
-                  type="tel"
-                  inputMode="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onBlur={persist}
-                  placeholder="07XX XXX XXX"
-                />
-              </Field>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field>
-                  <FieldLabel htmlFor={`age-${ticket.id}`}>Vârsta</FieldLabel>
-                  <Input
-                    id={`age-${ticket.id}`}
-                    inputMode="numeric"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value.replace(/\D/g, ""))}
-                    onBlur={persist}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor={`seats-${ticket.id}`}>Locuri</FieldLabel>
-                  <Input
-                    id={`seats-${ticket.id}`}
-                    inputMode="numeric"
-                    value={seats}
-                    onChange={(e) =>
-                      setSeats(e.target.value.replace(/\D/g, "") || "1")
-                    }
-                    onBlur={persist}
-                  />
-                </Field>
-              </div>
-            </div>
-
-            <Field>
-              <FieldLabel htmlFor={`screening-${ticket.id}`}>
-                Proiecția
-              </FieldLabel>
-              <Select
-                value={screeningId}
-                onValueChange={(v) => {
-                  setScreeningId(v);
-                  startTransition(async () => {
-                    await updateCallTicket({ id: ticket.id, screeningId: v });
-                  });
-                }}
-              >
-                <SelectTrigger
-                  id={`screening-${ticket.id}`}
-                  className="w-full"
+              <FieldLabel>Număr de locuri</FieldLabel>
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSeats((s) => Math.max(1, s - 1))}
+                  disabled={seats <= 1}
+                  aria-label="Un loc mai puțin"
                 >
-                  <SelectValue placeholder="Alege proiecția" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {screenings.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {time(s.startsAt)} · {s.movieTitle} · {s.hallName}
-                        {s.is3D ? " · 3D" : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                  <Minus />
+                </Button>
+                <span className="ticket min-w-16 text-center text-4xl tabular-nums">
+                  {seats}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSeats((s) => Math.min(free, s + 1))}
+                  disabled={seats >= free}
+                  aria-label="Încă un loc"
+                >
+                  <Plus />
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {free} locuri libere
+                </span>
+              </div>
             </Field>
+
+            <ToggleGroup
+              type="single"
+              value={mode}
+              onValueChange={(v) => v && setMode(v as "rapid" | "complet")}
+              variant="outline"
+              className="w-full"
+            >
+              <ToggleGroupItem value="rapid" className="flex-1">
+                <Zap data-icon="inline-start" />
+                Rapid
+              </ToggleGroupItem>
+              <ToggleGroupItem value="complet" className="flex-1">
+                <PhoneCall data-icon="inline-start" />
+                Cu date complete
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {mode === "rapid" ? (
+              <FieldDescription>
+                Se salvează pe loc, sub un nume de forma{" "}
+                <span className="font-mono">Client - zi/oră/minut/secundă</span>.
+                Locurile sunt reținute imediat, iar numele și telefonul le
+                completezi mai jos, din lista rezervărilor, când ai timp.
+              </FieldDescription>
+            ) : (
+              <>
+                <Field>
+                  <FieldLabel htmlFor="cn">Nume client</FieldLabel>
+                  <Input
+                    id="cn"
+                    required
+                    autoFocus
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nume și prenume"
+                  />
+                </Field>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="cp">Telefon</FieldLabel>
+                    <Input
+                      id="cp"
+                      type="tel"
+                      inputMode="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="07XX XXX XXX"
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="ca">Vârsta</FieldLabel>
+                    <Input
+                      id="ca"
+                      inputMode="numeric"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value.replace(/\D/g, ""))}
+                    />
+                  </Field>
+                </div>
+              </>
+            )}
           </FieldGroup>
 
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={confirm} disabled={pending}>
-              {pending ? (
-                <Spinner data-icon="inline-start" />
-              ) : (
-                <Check data-icon="inline-start" />
-              )}
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={pending}
+            >
+              Renunță
+            </Button>
+            <Button type="submit" disabled={pending || free < seats}>
+              {pending ? <Spinner data-icon="inline-start" /> : null}
               Confirmă rezervarea
             </Button>
-            <Button variant="ghost" onClick={dismiss} disabled={pending}>
-              Închide bonul
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={remove}
-              disabled={pending}
-              aria-label="Șterge bonul"
-              className="ml-auto text-destructive"
-            >
-              <Trash2 />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </li>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

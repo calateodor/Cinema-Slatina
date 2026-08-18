@@ -1,9 +1,6 @@
-import {
-  CashierDesk,
-  type DeskScreening,
-  type DeskTicket,
-} from "@/components/cashier/desk";
+import { CashierDesk, type DeskScreening } from "@/components/cashier/desk";
 import { PageTitle } from "@/components/staff/ui";
+import type { ReservationRow } from "@/components/staff/reservation-list";
 import { db } from "@/lib/db";
 import { seatsTakenByScreening } from "@/lib/capacity";
 import { addDays, formatLongDate, todayStart } from "@/lib/dates";
@@ -16,8 +13,10 @@ export default async function CashierDeskPage() {
   const rows = await db.screening.findMany({
     where: { startsAt: { gte: from, lt: to }, isCancelled: false },
     include: {
-      movie: { select: { title: true, ageRating: true } },
-      hall: { select: { name: true, colorHex: true, baseCapacity: true, extraCapacity: true } },
+      movie: { select: { title: true, posterUrl: true, ageRating: true } },
+      hall: {
+        select: { name: true, colorHex: true, baseCapacity: true, extraCapacity: true },
+      },
     },
     orderBy: { startsAt: "asc" },
   });
@@ -28,48 +27,61 @@ export default async function CashierDeskPage() {
     id: s.id,
     startsAt: s.startsAt.toISOString(),
     movieTitle: s.movie.title,
+    posterUrl: s.movie.posterUrl,
+    ageRating: s.movie.ageRating,
     hallName: s.hall.name,
     hallColor: s.hall.colorHex,
     is3D: s.is3D,
     isDubbed: s.isDubbed,
-    ageRating: s.movie.ageRating,
     taken: taken.get(s.id) ?? 0,
     base: s.capacityOverride ?? s.hall.baseCapacity,
     extra: s.allowExtraSeats ? s.hall.extraCapacity : 0,
+    reservationsOpen: s.reservationsOpen,
   }));
 
-  const ticketRows = await db.callTicket.findMany({
-    where: { status: "OPEN" },
-    orderBy: { createdAt: "desc" },
-    take: 40,
+  const reservationRows = await db.reservation.findMany({
+    where: {
+      screening: { startsAt: { gte: from, lt: to } },
+      status: { in: ["PENDING", "CONFIRMED", "CHECKED_IN"] },
+    },
+    include: {
+      screening: {
+        include: {
+          movie: { select: { title: true, ageRating: true } },
+          hall: { select: { name: true, colorHex: true } },
+        },
+      },
+    },
+    orderBy: [{ createdAt: "desc" }],
   });
 
-  const tickets: DeskTicket[] = ticketRows.map((t) => ({
-    id: t.id,
-    label: t.label,
-    customerName: t.customerName,
-    phone: t.phone,
-    age: t.age,
-    isAdult: t.isAdult,
-    seats: t.seats,
-    screeningId: t.screeningId,
-    note: t.note,
-    createdAt: t.createdAt.toISOString(),
+  const reservations: ReservationRow[] = reservationRows.map((r) => ({
+    id: r.id,
+    code: r.code,
+    customerName: r.customerName,
+    phone: r.phone,
+    age: r.age,
+    isAdult: r.isAdult,
+    seats: r.seats,
+    extraSeats: r.extraSeats,
+    status: r.status,
+    source: r.source,
+    movieTitle: r.screening.movie.title,
+    hallName: r.screening.hall.name,
+    hallColor: r.screening.hall.colorHex,
+    startsAt: r.screening.startsAt.toISOString(),
+    is3D: r.screening.is3D,
+    isDubbed: r.screening.isDubbed,
+    ageRating: r.screening.movie.ageRating,
   }));
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageTitle
         title="Ghișeu"
-        description={`Rezervări telefonice · ${CINEMA.phone}`}
+        description={`${formatLongDate(from)} · rezervări telefonice la ${CINEMA.phone}`}
       />
-      <div className="mt-6">
-        <CashierDesk
-          screenings={screenings}
-          tickets={tickets}
-          dayLabel={formatLongDate(from)}
-        />
-      </div>
+      <CashierDesk screenings={screenings} reservations={reservations} />
     </div>
   );
 }

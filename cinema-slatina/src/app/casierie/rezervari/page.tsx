@@ -18,7 +18,7 @@ export default async function CashierReservationsPage() {
     include: {
       screening: {
         include: {
-          movie: { select: { title: true } },
+          movie: { select: { title: true, ageRating: true } },
           hall: { select: { name: true, colorHex: true } },
         },
       },
@@ -45,6 +45,9 @@ export default async function CashierReservationsPage() {
       hallName: r.screening.hall.name,
       hallColor: r.screening.hall.colorHex,
       startsAt: r.screening.startsAt.toISOString(),
+      is3D: r.screening.is3D,
+      isDubbed: r.screening.isDubbed,
+      ageRating: r.screening.movie.ageRating,
     });
     grouped.set(key, list);
   }

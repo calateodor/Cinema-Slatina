@@ -82,6 +82,11 @@ export function formatClock(date: Date): string {
   return fmt(date, "HH:mm:ss");
 }
 
+/** "18/21/45/07" — ziua și ora apelului, pentru rezervările fără nume. */
+export function formatDeskLabel(date: Date): string {
+  return fmt(date, "dd/HH/mm/ss");
+}
+
 /** "marți, 18 aug, 19:00" — pentru listele din panourile interne. */
 export function formatDateTimeShort(date: Date): string {
   return fmt(date, "EEE, d MMM, HH:mm");

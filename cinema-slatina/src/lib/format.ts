@@ -6,8 +6,9 @@ export function formatPrice(bani: number): string {
   })} lei`;
 }
 
-/** "0784010929" -> "0784 010 929" */
-export function formatPhone(phone: string): string {
+/** "0784010929" -> "0784 010 929". Gol când numărul lipsește. */
+export function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return "fără telefon";
   const digits = phone.replace(/\D/g, "");
   if (digits.length === 10) {
     return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;

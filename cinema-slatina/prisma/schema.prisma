@@ -120,7 +120,8 @@ model Reservation {
   screeningId String
 
   customerName  String
-  phone         String
+  /// Poate lipsi la rezervările rapide luate telefonic, completate ulterior.
+  phone         String?
   age           Int?
   isAdult       Boolean @default(true)
   seats         Int     @default(1)
