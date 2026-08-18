@@ -159,6 +159,8 @@ export type ConfirmState = {
   message?: string;
   reservationCode?: string;
   usedExtraSeat?: boolean;
+  /** Fals când nu există furnizor SMS și codul a fost doar afișat pe ecran. */
+  smsSent?: boolean;
 };
 
 /** Pasul 2: validează codul primit prin SMS și creează rezervarea. */
@@ -233,7 +235,7 @@ export async function confirmReservation(
     data: { consumedAt: new Date() },
   });
 
-  await sendSms(
+  const confirmSms = await sendSms(
     otp.phone,
     `Rezervare confirmată la Cinema Slatina. Cod: ${created.code}. Te așteptăm!`,
   );
@@ -241,5 +243,10 @@ export async function confirmReservation(
   revalidatePath("/");
   revalidatePath("/program");
 
-  return { ok: true, reservationCode: created.code, usedExtraSeat: onExtra > 0 };
+  return {
+    ok: true,
+    reservationCode: created.code,
+    usedExtraSeat: onExtra > 0,
+    smsSent: confirmSms.provider !== "console",
+  };
 }

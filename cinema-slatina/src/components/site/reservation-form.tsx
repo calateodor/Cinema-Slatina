@@ -111,8 +111,9 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
             Rezervare confirmată
           </CardTitle>
           <CardDescription>
-            Ți-am trimis confirmarea prin SMS. Prezintă codul la casierie, cu cel
-            puțin 10 minute înainte de începerea filmului.
+            {devCode
+              ? "Notează codul de mai jos și prezintă-l la casierie, cu cel puțin 10 minute înainte de începerea filmului."
+              : "Ți-am trimis confirmarea prin SMS. Prezintă codul la casierie, cu cel puțin 10 minute înainte de începerea filmului."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
