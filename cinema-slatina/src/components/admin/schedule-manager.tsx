@@ -13,6 +13,7 @@ import {
   EyeOff,
   Minus,
   Plus,
+  RefreshCw,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -60,6 +61,7 @@ export type ScheduleMovie = {
   id: string;
   title: string;
   posterUrl: string | null;
+  imdbUrl: string | null;
 };
 
 export type ScheduleScreening = {
@@ -540,27 +542,70 @@ function ScreeningDialog({
   const [fetched, setFetched] = useState<Fetched>(undefined);
   const [loading, setLoading] = useState(false);
   const [pending, startTransition] = useTransition();
+  /** Linkul folosit pentru a reimprospata datele unui film deja existent. */
+  const [refreshUrl, setRefreshUrl] = useState("");
 
   const useExisting = Boolean(form.id) || mode === "existent";
+  const selected = movies.find((m) => m.id === form.movieId);
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
     setForm((p) => ({ ...p, [key]: value }));
   }
 
-  async function importImdb() {
-    if (!imdbUrl.trim()) {
-      toast.error("Lipsește linkul de IMDb.");
-      return;
+  /** Preia datele filmului si le intoarce, ca sa putem salva imediat. */
+  async function importLink(url: string, quiet = false): Promise<Fetched> {
+    if (!url.trim()) {
+      if (!quiet) toast.error("Lipsește linkul filmului.");
+      return undefined;
     }
     setLoading(true);
-    const result = await fetchImdbMetadata(imdbUrl);
+    const result = await fetchImdbMetadata(url);
     setLoading(false);
     if (!result.ok || !result.data) {
       toast.error(result.message ?? "Nu am putut prelua datele.");
-      return;
+      return undefined;
     }
     setFetched(result.data);
-    toast.success(`Am găsit „${result.data.title}”.`);
+    if (!quiet) toast.success(`Am găsit „${result.data.title}”.`);
+    return result.data;
+  }
+
+  /** Reimprospateaza un film existent de pe linkul dat. */
+  function refreshMovie() {
+    const url = refreshUrl.trim() || selected?.imdbUrl || "";
+    if (!url) {
+      toast.error("Adaugă linkul filmului ca să pot lua datele.");
+      return;
+    }
+    startTransition(async () => {
+      const data = await importLink(url, true);
+      if (!data) return;
+      const saved = await saveMovie({
+        id: form.movieId,
+        title: data.title,
+        originalTitle: data.originalTitle,
+        imdbUrl: url,
+        imdbId: data.imdbId,
+        tmdbId: data.tmdbId,
+        synopsis: data.synopsis,
+        posterUrl: data.posterUrl,
+        backdropUrl: data.backdropUrl,
+        trailerUrl: data.trailerUrl,
+        genres: data.genres,
+        runtimeMin: data.runtimeMin,
+        releaseYear: data.releaseYear,
+        imdbRating: data.imdbRating,
+        director: data.director,
+        cast: data.cast,
+        comingSoon: false,
+      });
+      if (!saved.ok) {
+        toast.error(saved.message ?? "Filmul nu a putut fi actualizat.");
+        return;
+      }
+      toast.success(`„${data.title}” a fost actualizat.`);
+      onSaved();
+    });
   }
 
   function submit(event: React.FormEvent) {
@@ -569,24 +614,25 @@ function ScreeningDialog({
       let movieId = form.movieId;
 
       if (!useExisting) {
-        if (!fetched) {
-          toast.error("Apasă întâi „Preia datele”.");
-          return;
-        }
+        // Daca utilizatorul a lipit doar linkul, preluam datele acum.
+        const data = fetched ?? (await importLink(imdbUrl));
+        if (!data) return;
         const saved = await saveMovie({
-          title: fetched.title,
-          originalTitle: fetched.originalTitle,
+          title: data.title,
+          originalTitle: data.originalTitle,
           imdbUrl,
-          synopsis: fetched.synopsis,
-          posterUrl: fetched.posterUrl,
-          backdropUrl: fetched.backdropUrl,
-          trailerUrl: fetched.trailerUrl,
-          genres: fetched.genres,
-          runtimeMin: fetched.runtimeMin,
-          releaseYear: fetched.releaseYear,
-          imdbRating: fetched.imdbRating,
-          director: fetched.director,
-          cast: fetched.cast,
+          imdbId: data.imdbId,
+          tmdbId: data.tmdbId,
+          synopsis: data.synopsis,
+          posterUrl: data.posterUrl,
+          backdropUrl: data.backdropUrl,
+          trailerUrl: data.trailerUrl,
+          genres: data.genres,
+          runtimeMin: data.runtimeMin,
+          releaseYear: data.releaseYear,
+          imdbRating: data.imdbRating,
+          director: data.director,
+          cast: data.cast,
           comingSoon: false,
         });
         if (!saved.ok || !saved.data) {
@@ -669,21 +715,53 @@ function ScreeningDialog({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                {form.movieId ? (
+                  <div className="mt-2 flex flex-col gap-2 rounded-lg border border-border p-3">
+                    <FieldLabel htmlFor="refresh" className="text-xs">
+                      Actualizează datele filmului (poster, descriere, trailer)
+                    </FieldLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        id="refresh"
+                        value={refreshUrl || selected?.imdbUrl || ""}
+                        onChange={(e) => setRefreshUrl(e.target.value)}
+                        placeholder="Link IMDb sau TMDB"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={refreshMovie}
+                        disabled={loading || pending}
+                        className="shrink-0"
+                      >
+                        {loading ? (
+                          <Spinner data-icon="inline-start" />
+                        ) : (
+                          <RefreshCw data-icon="inline-start" />
+                        )}
+                        Preia
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
               </Field>
             ) : (
               <Field>
-                <FieldLabel htmlFor="imdb">Link IMDb</FieldLabel>
+                <FieldLabel htmlFor="imdb">Link IMDb sau TMDB</FieldLabel>
                 <div className="flex gap-2">
                   <Input
                     id="imdb"
                     value={imdbUrl}
                     onChange={(e) => setImdbUrl(e.target.value)}
-                    placeholder="https://www.imdb.com/title/tt9603212/"
+                    onBlur={() => {
+                      if (imdbUrl.trim() && !fetched) void importLink(imdbUrl, true);
+                    }}
+                    placeholder="imdb.com/title/tt9603212 sau themoviedb.org/movie/575264"
                   />
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={importImdb}
+                    onClick={() => importLink(imdbUrl)}
                     disabled={loading}
                     className="shrink-0"
                   >
@@ -699,7 +777,11 @@ function ScreeningDialog({
                   <FieldDescription className="text-warning">
                     Lipsește cheia TMDB din configurare.
                   </FieldDescription>
-                ) : null}
+                ) : (
+                  <FieldDescription>
+                    Lipești linkul și apesi Salvează — datele se preiau singure.
+                  </FieldDescription>
+                )}
                 {fetched ? (
                   <div className="mt-2 flex items-center gap-3 rounded-lg border border-border p-2">
                     {fetched.posterUrl ? (

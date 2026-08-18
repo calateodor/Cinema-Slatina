@@ -66,3 +66,20 @@ export function extractImdbId(input: string): string | null {
   const m = input.match(/tt\d{7,9}/);
   return m ? m[0] : null;
 }
+
+/** Extrage ID-ul TMDB dintr-un link de themoviedb.org. */
+export function extractTmdbId(input: string): number | null {
+  const m = input.match(/themoviedb\.org\/movie\/(\d+)/i);
+  return m ? Number(m[1]) : null;
+}
+
+/** Ce fel de link de film a introdus utilizatorul. */
+export function detectMovieLink(
+  input: string,
+): { source: "imdb"; id: string } | { source: "tmdb"; id: number } | null {
+  const imdb = extractImdbId(input);
+  if (imdb) return { source: "imdb", id: imdb };
+  const tmdb = extractTmdbId(input);
+  if (tmdb) return { source: "tmdb", id: tmdb };
+  return null;
+}

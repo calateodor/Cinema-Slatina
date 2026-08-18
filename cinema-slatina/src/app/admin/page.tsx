@@ -55,9 +55,9 @@ export default async function AdminDashboard() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={Film}
-          label="Filme active"
+          label="Filme în catalog"
           value={String(movieCount)}
-          href="/admin/filme"
+          href="/admin/program"
         />
         <StatCard
           icon={CalendarDays}

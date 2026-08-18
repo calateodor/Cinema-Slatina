@@ -6,7 +6,6 @@ import { useState, type ComponentType } from "react";
 import {
   CalendarDays,
   Coffee,
-  Film,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -37,7 +36,6 @@ const NAVS: Record<StaffVariant, NavItem[]> = {
   admin: [
     { href: "/admin", label: "Panou", icon: LayoutDashboard, exact: true },
     { href: "/admin/program", label: "Program", icon: CalendarDays },
-    { href: "/admin/filme", label: "Filme", icon: Film },
     { href: "/admin/rezervari", label: "Rezervări", icon: Ticket },
     { href: "/admin/meniu", label: "Bar", icon: Coffee },
     { href: "/admin/anunturi", label: "Anunțuri", icon: Megaphone },

@@ -1,11 +1,11 @@
 import "server-only";
-import { extractImdbId } from "@/lib/format";
+import { detectMovieLink } from "@/lib/format";
 
 const TMDB = "https://api.themoviedb.org/3";
 const IMAGE = "https://image.tmdb.org/t/p";
 
 export type MovieMetadata = {
-  imdbId: string;
+  imdbId: string | null;
   tmdbId: number;
   title: string;
   originalTitle: string | null;
@@ -47,24 +47,32 @@ async function tmdbFetch<T>(path: string, params: Record<string, string> = {}) {
  * se face fallback pe engleza.
  */
 export async function fetchMovieByImdb(input: string): Promise<MovieMetadata> {
-  const imdbId = extractImdbId(input);
-  if (!imdbId) {
+  const link = detectMovieLink(input);
+  if (!link) {
     throw new Error(
-      "Link-ul nu conține un ID de IMDb valid (ex. https://www.imdb.com/title/tt1234567/)",
+      "Lipsește un link valid. Acceptăm IMDb (imdb.com/title/tt1234567) sau TMDB (themoviedb.org/movie/12345).",
     );
   }
 
-  const found = await tmdbFetch<{ movie_results: { id: number }[] }>(
-    `/find/${imdbId}`,
-    { external_source: "imdb_id" },
-  );
-  const hit = found.movie_results?.[0];
-  if (!hit) {
-    throw new Error(`Filmul ${imdbId} nu a fost găsit în baza TMDB.`);
+  let tmdbId: number;
+  if (link.source === "tmdb") {
+    tmdbId = link.id;
+  } else {
+    const found = await tmdbFetch<{ movie_results: { id: number }[] }>(
+      `/find/${link.id}`,
+      { external_source: "imdb_id" },
+    );
+    const hit = found.movie_results?.[0];
+    if (!hit) {
+      throw new Error(`Filmul ${link.id} nu a fost găsit în baza TMDB.`);
+    }
+    tmdbId = hit.id;
   }
+  const hit = { id: tmdbId };
 
   type Detail = {
     id: number;
+    imdb_id?: string | null;
     title: string;
     original_title: string;
     overview: string;
@@ -118,7 +126,7 @@ export async function fetchMovieByImdb(input: string): Promise<MovieMetadata> {
     .join(", ");
 
   return {
-    imdbId,
+    imdbId: link.source === "imdb" ? link.id : (ro.imdb_id ?? null),
     tmdbId: ro.id,
     title: ro.title || en?.title || ro.original_title,
     originalTitle: ro.original_title ?? null,

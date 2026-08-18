@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, hashPassword } from "@/lib/auth";
 import { fetchMovieByImdb, isTmdbConfigured } from "@/lib/tmdb";
-import { extractImdbId, slugify } from "@/lib/format";
+import { detectMovieLink, extractImdbId, slugify } from "@/lib/format";
 import { cinemaDateTime, formatTime, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
 
@@ -46,10 +46,11 @@ export async function fetchImdbMetadata(
         "Preluarea automată necesită o cheie TMDB. Adaug-o în fișierul .env (TMDB_API_KEY) și repornește serverul.",
     };
   }
-  if (!extractImdbId(imdbInput)) {
+  if (!detectMovieLink(imdbInput)) {
     return {
       ok: false,
-      message: "Lipsește ID-ul IMDb (ex. https://www.imdb.com/title/tt9603212/).",
+      message:
+        "Link nerecunoscut. Acceptăm IMDb (imdb.com/title/tt9603212) sau TMDB (themoviedb.org/movie/575264).",
     };
   }
 
@@ -66,6 +67,8 @@ const movieSchema = z.object({
   title: z.string().trim().min(1, "Titlul este obligatoriu."),
   originalTitle: z.string().trim().optional().nullable(),
   imdbUrl: z.string().trim().optional().nullable(),
+  imdbId: z.string().trim().optional().nullable(),
+  tmdbId: z.coerce.number().int().optional().nullable(),
   synopsis: z.string().trim().optional().nullable(),
   posterUrl: z.string().trim().optional().nullable(),
   backdropUrl: z.string().trim().optional().nullable(),
@@ -90,12 +93,13 @@ export async function saveMovie(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Date invalide." };
   }
   const d = parsed.data;
-  const imdbId = d.imdbUrl ? extractImdbId(d.imdbUrl) : null;
+  const imdbId = d.imdbId || (d.imdbUrl ? extractImdbId(d.imdbUrl) : null);
 
   const data = {
     title: d.title,
     originalTitle: d.originalTitle || null,
     imdbId,
+    tmdbId: d.tmdbId ?? null,
     imdbUrl: d.imdbUrl || null,
     synopsis: d.synopsis || null,
     posterUrl: d.posterUrl || null,

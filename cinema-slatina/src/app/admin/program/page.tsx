@@ -45,7 +45,7 @@ export default async function AdminSchedulePage(
     db.movie.findMany({
       where: { isArchived: false },
       orderBy: { title: "asc" },
-      select: { id: true, title: true, posterUrl: true },
+      select: { id: true, title: true, posterUrl: true, imdbUrl: true },
     }),
     db.hall.findMany({
       orderBy: { sortOrder: "asc" },
