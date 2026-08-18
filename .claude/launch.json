@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cinema-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "cinema-slatina", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

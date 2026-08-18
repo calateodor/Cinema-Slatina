@@ -1,0 +1,41 @@
+# dependințe
+node_modules/
+.pnp
+.pnp.*
+
+# build
+cinema-slatina/.next/
+cinema-slatina/out/
+cinema-slatina/build/
+next-env.d.ts
+
+# secrete și baza de date locală
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+cinema-slatina/prisma/dev.db*
+
+# client Prisma generat
+cinema-slatina/src/generated/
+
+# capturi de ecran (se regenerează cu `npm run shots`)
+cinema-slatina/screenshots/
+
+# skill-uri terțe, clonate local sau instalate de unelte
+# (vezi scripts/install-skills.sh)
+**/.claude/skills/
+**/.claude/design-registry/
+**/.claude/settings.local.json
+**/.agents/
+**/.windsurf/
+
+# materiale sursă mari
+*.mp4
+
+# unelte
+.vercel
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

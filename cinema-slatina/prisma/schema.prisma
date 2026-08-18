@@ -1,0 +1,235 @@
+// Cinema "Eugen Ionescu" Slatina — schema bazei de date
+// Provider: SQLite (local). Se poate muta pe PostgreSQL fara schimbari de model.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Roluri: "ADMIN" | "CASHIER"
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  fullName     String
+  role         String   @default("CASHIER")
+  isActive     Boolean  @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reservations Reservation[] @relation("ReservationCreatedBy")
+  callTickets  CallTicket[]
+  auditLogs    AuditLog[]
+}
+
+model Hall {
+  id            String @id @default(cuid())
+  slug          String @unique // "rosie" | "albastra"
+  name          String // "Sala Roșie"
+  colorHex      String // culoarea de accent a salii
+  baseCapacity  Int    @default(100)
+  extraCapacity Int    @default(20) // scaune mobile suplimentare
+  sortOrder     Int    @default(0)
+
+  screenings Screening[]
+}
+
+model Movie {
+  id            String  @id @default(cuid())
+  slug          String  @unique
+  title         String // titlu in romana
+  originalTitle String?
+  imdbId        String? @unique // tt0000000
+  imdbUrl       String?
+  tmdbId        Int?
+  synopsis      String? // descriere tradusa
+  posterUrl     String?
+  backdropUrl   String?
+  trailerUrl    String? // link YouTube
+  genres        String? // "Animație, Familie"
+  runtimeMin    Int?
+  releaseYear   Int?
+  ageRating     String? @default("AG") // AG, IM-12, N-15, IM-18
+  imdbRating    Float?
+  director      String?
+  cast          String?
+  metadataSyncedAt DateTime?
+
+  isArchived     Boolean   @default(false)
+  comingSoon     Boolean   @default(false)
+  comingSoonFrom DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  screenings Screening[]
+}
+
+/// O saptamana de program (luni 00:00 -> duminica 23:59).
+model WeekSchedule {
+  id          String    @id @default(cuid())
+  weekStart   DateTime  @unique // luni, 00:00, ora locala
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  note        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  screenings Screening[]
+}
+
+model Screening {
+  id        String @id @default(cuid())
+  movieId   String
+  hallId    String
+  weekId    String
+
+  startsAt         DateTime
+  is3D             Boolean @default(false)
+  isDubbed         Boolean @default(false) // true = Dublat, false = Subtitrat
+  reservationsOpen Boolean @default(true)
+  capacityOverride Int? // suprascrie Hall.baseCapacity daca e setat
+  allowExtraSeats  Boolean @default(true)
+  isCancelled      Boolean @default(false)
+  note             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movie        Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  hall         Hall         @relation(fields: [hallId], references: [id], onDelete: Restrict)
+  week         WeekSchedule @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+  callTickets  CallTicket[]
+
+  @@index([startsAt])
+  @@index([weekId])
+}
+
+/// status: "PENDING" | "CONFIRMED" | "CANCELLED" | "CHECKED_IN" | "NO_SHOW"
+/// source: "ONLINE" | "PHONE" | "DESK"
+model Reservation {
+  id          String @id @default(cuid())
+  code        String @unique // cod scurt afisat clientului, ex. "SLT-4KQ9"
+  screeningId String
+
+  customerName  String
+  phone         String
+  age           Int?
+  isAdult       Boolean @default(true)
+  seats         Int     @default(1)
+  extraSeats    Int     @default(0) // din cele 20 scaune mobile
+  phoneVerified Boolean @default(false)
+
+  status String @default("PENDING")
+  source String @default("ONLINE")
+  note   String?
+
+  createdById String?
+  checkedInAt DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  screening Screening @relation(fields: [screeningId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("ReservationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([screeningId, status])
+  @@index([phone])
+}
+
+/// Cod SMS pentru confirmarea numarului de telefon.
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  purpose    String    @default("RESERVATION")
+  payload    String? // JSON cu datele rezervarii in asteptare
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, purpose])
+}
+
+/// "Adaugă client" din panoul de casierie: eticheta cu ora apasarii butonului.
+/// status: "OPEN" | "LINKED" | "CLOSED"
+model CallTicket {
+  id           String  @id @default(cuid())
+  label        String // "Client - 14:32:07"
+  phone        String?
+  customerName String?
+  age          Int?
+  isAdult      Boolean?
+  seats        Int     @default(1)
+  screeningId  String?
+  note         String?
+  status       String  @default("OPEN")
+  reservationId String?
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  screening Screening? @relation(fields: [screeningId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
+
+/// Zile in care cinematograful este inchis, cu mesaj afisat publicului.
+model ClosureNotice {
+  id        String   @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime
+  reason    String // motiv scurt, ex. "Lucrări de mentenanță"
+  message   String // mesajul complet afisat pe site
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, startDate])
+}
+
+/// Meniul barului (preturi in bani, ca sa evitam erorile de virgula mobila).
+model MenuItem {
+  id          String  @id @default(cuid())
+  category    String // "Ochelari 3D", "Băuturi", "Snacks"
+  name        String
+  description String?
+  priceBani   Int     @default(0)
+  isAvailable Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Setari generale (cheie/valoare), ex. rezervari activate global, texte, program.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
