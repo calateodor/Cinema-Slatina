@@ -7,9 +7,15 @@ municipal din Slatina. Rezervările sunt gratuite și se confirmă prin cod SMS.
 
 ```bash
 npm install
-npm run db:reset   # creează baza de date și o populează cu date de test
+npx create-db --env .env   # bază PostgreSQL temporară, gratuită, fără cont
+npm run db:deploy          # creează tabelele
+npm run db:seed            # date de test
 npm run dev
 ```
+
+Dacă ai deja un PostgreSQL, sari peste `create-db` și pune `DATABASE_URL` în
+`.env` (vezi `.env.example`). Pentru punerea online, vezi
+[DEPLOY.md](../DEPLOY.md).
 
 Site: <http://localhost:3000> · Autentificare personal: `/autentificare`
 
@@ -27,7 +33,7 @@ Conturi din datele de test:
 
 | Variabilă       | Rol                                                                             |
 | --------------- | ------------------------------------------------------------------------------- |
-| `DATABASE_URL`  | Baza SQLite locală (`file:./prisma/dev.db`).                                     |
+| `DATABASE_URL`  | Șirul de conexiune PostgreSQL.                                                   |
 | `AUTH_SECRET`   | Secretul cu care se semnează sesiunile. Minim 32 de caractere.                   |
 | `TMDB_API_KEY`  | Cheie gratuită TMDB, pentru preluarea automată după link de IMDb.                |
 | `SMS_PROVIDER`  | `console` (codul apare în terminal și pe ecran) sau `smso` (SMS real).           |
@@ -95,7 +101,9 @@ src/server/actions          acțiunile de server (mutații)
 | `npm run dev`       | Pornește serverul de dezvoltare.                   |
 | `npm run build`     | Construiește versiunea de producție.               |
 | `npm run db:seed`   | Repopulează baza cu datele de test.                |
+| `npm run db:deploy` | Aplică migrările pe baza configurată.              |
 | `npm run db:reset`  | Șterge și reconstruiește baza, apoi o populează.   |
+| `npm run shots`     | Capturi de ecran pentru toate paginile.            |
 | `npm run db:studio` | Deschide Prisma Studio pentru inspectarea datelor. |
 
 ## Identitate vizuală
