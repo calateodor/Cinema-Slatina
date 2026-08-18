@@ -908,6 +908,7 @@ function ScreeningDialog({
                   id="time"
                   type="time"
                   required
+                  step={300}
                   value={form.time}
                   onChange={(e) => set("time", e.target.value)}
                 />
@@ -931,6 +932,30 @@ function ScreeningDialog({
                 </Select>
               </Field>
             </div>
+
+            <Field>
+              <FieldLabel>Ore obișnuite</FieldLabel>
+              <div className="flex flex-wrap gap-2">
+                {DEFAULT_TIMES.map((t) => (
+                  <Button
+                    key={t}
+                    type="button"
+                    size="sm"
+                    variant={form.time === t ? "default" : "outline"}
+                    onClick={() => set("time", t)}
+                    className="ticket text-base"
+                  >
+                    {t}
+                  </Button>
+                ))}
+              </div>
+              <FieldDescription>
+                Proiecția începe la{" "}
+                <strong className="text-foreground">{form.time}</strong>, ora
+                României. Pe telefon, selectorul de oră poate afișa AM/PM —
+                folosește butoanele de mai sus ca să fii sigur.
+              </FieldDescription>
+            </Field>
 
             <div className="flex flex-col gap-3 rounded-xl border border-border p-4">
               <div className="flex items-center justify-between gap-4">
