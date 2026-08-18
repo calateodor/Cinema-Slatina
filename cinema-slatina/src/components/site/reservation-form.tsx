@@ -80,7 +80,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
       setSentTo(result.maskedPhone ?? phone);
       setDevCode(result.devCode ?? null);
       setStep("code");
-      toast.success("Ți-am trimis un cod prin SMS.");
+      toast.success("Introdu codul de confirmare.");
     });
   }
 
@@ -144,8 +144,9 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
             Confirmă numărul de telefon
           </CardTitle>
           <CardDescription>
-            Am trimis un cod de 6 cifre la {maskPhone(sentTo)}. Introdu-l mai jos
-            ca să finalizăm rezervarea.
+            {devCode
+              ? `Codul pentru numărul ${maskPhone(sentTo)} este afișat mai jos. Introdu-l ca să finalizăm rezervarea.`
+              : `Am trimis un cod de 6 cifre prin SMS la ${maskPhone(sentTo)}. Introdu-l mai jos ca să finalizăm rezervarea.`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -153,11 +154,14 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
             {error ? <FormError message={error} /> : null}
             {devCode ? (
               <Alert variant="brand">
-                <AlertTitle>Mod de test, fără contract SMS</AlertTitle>
-                <AlertDescription>
-                  Codul tău este{" "}
-                  <span className="ticket text-base tracking-widest">
+                <AlertTitle>Codul tău de confirmare</AlertTitle>
+                <AlertDescription className="flex flex-col gap-1">
+                  <span className="ticket text-3xl tracking-[0.3em] text-brand-yellow">
                     {devCode}
+                  </span>
+                  <span>
+                    Cinematograful nu are încă un contract de SMS, așa că îți
+                    arătăm codul aici, pe ecran — nu îl aștepta pe telefon.
                   </span>
                 </AlertDescription>
               </Alert>
@@ -323,7 +327,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
             className="w-full rounded-full font-semibold sm:w-fit"
           >
             {pending ? <Spinner data-icon="inline-start" /> : null}
-            Trimite codul prin SMS
+            Continuă spre confirmare
           </Button>
         </form>
       </CardContent>

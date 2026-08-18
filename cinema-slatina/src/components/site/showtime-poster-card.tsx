@@ -20,14 +20,23 @@ export function ShowtimePosterCard({
 }) {
   const { movie, capacity } = screening;
   const full = capacity.soldOut;
-  const canReserve = reservationsEnabled && screening.reservationsOpen && !full;
+  const canReserve =
+    reservationsEnabled &&
+    screening.reservationsOpen &&
+    !full &&
+    !screening.hasStarted;
   const percent = Math.min(
     100,
     Math.round((capacity.takenBase / capacity.base) * 100),
   );
 
   return (
-    <article className="group flex flex-col">
+    <article
+      className={cn(
+        "group flex flex-col",
+        screening.hasStarted && "opacity-55",
+      )}
+    >
       {/* Ora, ca pe afiș: mare, galbenă, așezată peste marginea posterului. */}
       <div className="relative z-10 -mb-3 flex justify-center">
         <span className="ticket rounded-lg bg-brand-yellow px-3 py-0.5 text-2xl leading-tight text-brand-ink shadow-[0_6px_16px_-6px_rgba(0,0,0,0.8)] sm:text-3xl">
@@ -128,7 +137,11 @@ export function ShowtimePosterCard({
               variant="secondary"
               className="w-full rounded-full font-semibold"
             >
-              {full ? "Sala este plină" : "Rezervări închise"}
+              {screening.hasStarted
+                ? "A început"
+                : full
+                  ? "Sala este plină"
+                  : "Rezervări închise"}
             </Button>
           )}
         </div>

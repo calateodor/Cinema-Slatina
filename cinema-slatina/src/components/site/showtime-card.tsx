@@ -45,7 +45,11 @@ export function ShowtimeCard({
 }) {
   const { movie, capacity } = screening;
   const full = capacity.soldOut;
-  const canReserve = reservationsEnabled && screening.reservationsOpen && !full;
+  const canReserve =
+    reservationsEnabled &&
+    screening.reservationsOpen &&
+    !full &&
+    !screening.hasStarted;
 
   return (
     <Card className="group transition-shadow duration-300 hover:ring-brand-orange/40 motion-reduce:transition-none">
@@ -122,7 +126,11 @@ export function ShowtimeCard({
                 variant="secondary"
                 className="rounded-full font-semibold"
               >
-                {full ? "Sala este plină" : "Rezervări închise"}
+                {screening.hasStarted
+                  ? "A început"
+                  : full
+                    ? "Sala este plină"
+                    : "Rezervări închise"}
               </Button>
             )}
           </div>

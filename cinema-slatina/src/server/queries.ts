@@ -23,6 +23,8 @@ export type ScreeningView = {
     ageRating: string | null;
   };
   capacity: Capacity;
+  /** Calculat pe server, ca să nu difere între server și browser. */
+  hasStarted: boolean;
 };
 
 const screeningInclude = {
@@ -71,6 +73,7 @@ function toView(
       colorHex: s.hall.colorHex,
     },
     movie: s.movie,
+    hasStarted: s.startsAt.getTime() <= Date.now(),
     capacity: buildCapacity(
       s.capacityOverride ?? s.hall.baseCapacity,
       s.allowExtraSeats ? s.hall.extraCapacity : 0,
