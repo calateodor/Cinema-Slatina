@@ -16,6 +16,7 @@ import {
   RESERVATION_SOURCE_LABEL,
   RESERVATION_STATUS_LABEL,
 } from "@/lib/constants";
+import { formatDateTimeShort } from "@/lib/dates";
 import { formatPhone } from "@/lib/format";
 
 export type ReservationRow = {
@@ -120,13 +121,7 @@ export function ReservationList({
                       {" · "}
                       <span style={{ color: row.hallColor }}>{row.hallName}</span>
                       {" · "}
-                      {start.toLocaleString("ro-RO", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+{formatDateTimeShort(start)}
                       {" · "}
                       {RESERVATION_SOURCE_LABEL[row.source] ?? row.source}
                     </p>

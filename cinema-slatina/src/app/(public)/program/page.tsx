@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { WeekSchedule } from "@/components/site/week-schedule";
 import { Reveal } from "@/components/motion/reveal";
 import { SectionHeading } from "@/components/site/sections";
-import { dayKey, formatWeekRange, startOfDay, weekDays } from "@/lib/dates";
+import { dayKey, formatWeekRange, todayStart, weekDays } from "@/lib/dates";
 import { areReservationsEnabled, getPublicSchedule } from "@/server/queries";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export default async function ProgramPage() {
     areReservationsEnabled(),
   ]);
 
-  const today = startOfDay(new Date());
+  const today = todayStart();
   const days = weekDays(schedule.thisWeekStart)
     .filter((d) => d >= today)
     .map(dayKey);

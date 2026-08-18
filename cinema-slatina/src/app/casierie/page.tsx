@@ -6,11 +6,11 @@ import {
 import { PageTitle } from "@/components/staff/ui";
 import { db } from "@/lib/db";
 import { seatsTakenByScreening } from "@/lib/capacity";
-import { addDays, formatLongDate, startOfDay } from "@/lib/dates";
+import { addDays, formatLongDate, todayStart } from "@/lib/dates";
 import { CINEMA } from "@/lib/constants";
 
 export default async function CashierDeskPage() {
-  const from = startOfDay(new Date());
+  const from = todayStart();
   const to = addDays(from, 1);
 
   const rows = await db.screening.findMany({

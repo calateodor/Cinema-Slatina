@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { requireAdmin, hashPassword } from "@/lib/auth";
 import { fetchMovieByImdb, isTmdbConfigured } from "@/lib/tmdb";
 import { extractImdbId, slugify } from "@/lib/format";
-import { weekStartOf } from "@/lib/dates";
+import { cinemaDateTime, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
 
 export type ActionResult<T = undefined> = {
@@ -205,7 +205,7 @@ export async function saveScreening(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Date invalide." };
   }
   const d = parsed.data;
-  const startsAt = new Date(`${d.date}T${d.time}:00`);
+  const startsAt = cinemaDateTime(d.date, d.time);
   if (Number.isNaN(startsAt.getTime())) {
     return { ok: false, message: "Data sau ora nu este validă." };
   }
@@ -405,8 +405,8 @@ export async function saveClosure(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Date invalide." };
   }
   const d = parsed.data;
-  const start = new Date(`${d.startDate}T00:00:00`);
-  const end = new Date(`${d.endDate}T23:59:59`);
+  const start = cinemaDateTime(d.startDate, "00:00");
+  const end = cinemaDateTime(d.endDate, "23:59");
   if (end < start) {
     return { ok: false, message: "Data de final este înaintea celei de început." };
   }

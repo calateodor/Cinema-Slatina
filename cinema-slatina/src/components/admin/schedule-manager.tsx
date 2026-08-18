@@ -45,7 +45,7 @@ import {
   publishWeek,
   saveScreening,
 } from "@/server/actions/admin";
-import { formatWeekRange } from "@/lib/dates";
+import { dayKey, formatTime, formatWeekRange } from "@/lib/dates";
 
 export type ScheduleScreening = {
   id: string;
@@ -533,15 +533,11 @@ function ToggleRow({
   );
 }
 
+/** Data și ora se editează în ora României, oricare ar fi fusul serverului. */
 function toDateInput(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return dayKey(date);
 }
 
 function toTimeInput(date: Date): string {
-  return `${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes(),
-  ).padStart(2, "0")}`;
+  return formatTime(date);
 }

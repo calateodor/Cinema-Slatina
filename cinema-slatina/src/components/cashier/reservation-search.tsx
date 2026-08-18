@@ -16,6 +16,7 @@ import {
   setReservationStatus,
 } from "@/server/actions/reception";
 import { RESERVATION_STATUS_LABEL } from "@/lib/constants";
+import { formatDateTimeShort } from "@/lib/dates";
 import { formatPhone } from "@/lib/format";
 
 type Row = {
@@ -128,13 +129,7 @@ export function ReservationSearch() {
                     </p>
                     <p className="text-sm">
                       {row.movieTitle} · {row.hallName} ·{" "}
-                      {new Date(row.startsAt).toLocaleString("ro-RO", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+{formatDateTimeShort(new Date(row.startsAt))}
                     </p>
                   </div>
 

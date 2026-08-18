@@ -4,10 +4,10 @@ import {
   type ReservationRow,
 } from "@/components/staff/reservation-list";
 import { db } from "@/lib/db";
-import { addDays, formatLongDate, formatTime, startOfDay } from "@/lib/dates";
+import { addDays, formatLongDate, formatTime, todayStart } from "@/lib/dates";
 
 export default async function CashierReservationsPage() {
-  const from = startOfDay(new Date());
+  const from = todayStart();
   const to = addDays(from, 1);
 
   const rows = await db.reservation.findMany({

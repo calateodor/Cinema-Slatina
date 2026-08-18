@@ -6,7 +6,7 @@ import { ComingSoonList } from "@/components/site/coming-soon-list";
 import { Section, SectionHeading, VisitInfo } from "@/components/site/sections";
 import { Reveal } from "@/components/motion/reveal";
 import { CityCrest } from "@/components/site/brand";
-import { dayKey, startOfDay, weekDays } from "@/lib/dates";
+import { dayKey, todayStart, weekDays } from "@/lib/dates";
 import {
   areReservationsEnabled,
   getComingSoon,
@@ -24,7 +24,7 @@ export default async function HomePage() {
       areReservationsEnabled(),
     ]);
 
-  const today = startOfDay(new Date());
+  const today = todayStart();
   const days = weekDays(schedule.thisWeekStart)
     .filter((d) => d >= today)
     .map(dayKey);

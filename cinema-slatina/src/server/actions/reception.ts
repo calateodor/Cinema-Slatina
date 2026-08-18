@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { capacityForScreening } from "@/lib/capacity";
+import { formatClock } from "@/lib/dates";
 import { normalizePhone } from "@/lib/format";
 import { ADULT_AGE, ROLES } from "@/lib/constants";
 
@@ -38,9 +39,7 @@ export async function createCallTicket(
 ): Promise<Result<{ id: string; label: string }>> {
   const user = await requireUser(STAFF);
   const now = new Date();
-  const label = `Client - ${String(now.getHours()).padStart(2, "0")}:${String(
-    now.getMinutes(),
-  ).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+  const label = `Client - ${formatClock(now)}`;
 
   const ticket = await db.callTicket.create({
     data: {

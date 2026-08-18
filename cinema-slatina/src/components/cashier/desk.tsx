@@ -27,6 +27,7 @@ import {
   updateCallTicket,
 } from "@/server/actions/reception";
 import { ADULT_AGE } from "@/lib/constants";
+import { formatTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 export type DeskScreening = {
@@ -57,8 +58,7 @@ export type DeskTicket = {
 };
 
 function time(iso: string): string {
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return formatTime(new Date(iso));
 }
 
 export function CashierDesk({

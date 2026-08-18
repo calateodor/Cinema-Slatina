@@ -7,20 +7,62 @@ const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
 });
 
-function weekStartOf(date = new Date()): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const day = (d.getDay() + 6) % 7; // luni = 0
-  d.setDate(d.getDate() - day);
-  return d;
+/**
+ * Datele sunt calculate în ora României, la fel ca în aplicație, ca programul
+ * populat aici să corespundă cu ce caută site-ul chiar dacă serverul e pe UTC.
+ */
+const CINEMA_TZ = "Europe/Bucharest";
+
+/** yyyy-MM-dd al unui moment, în ora României. */
+function dayKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: CINEMA_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
-function at(weekStart: Date, dayOffset: number, time: string): Date {
-  const [h, m] = time.split(":").map(Number);
-  const d = new Date(weekStart);
-  d.setDate(d.getDate() + dayOffset);
-  d.setHours(h, m, 0, 0);
-  return d;
+/** Decalajul fusului românesc, în minute, la momentul dat. */
+function offsetMinutes(date: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: CINEMA_TZ,
+    timeZoneName: "longOffset",
+  }).formatToParts(date);
+  const name = parts.find((p) => p.type === "timeZoneName")?.value ?? "GMT+0";
+  const m = name.match(/GMT([+-])(\d{1,2}):?(\d{2})?/);
+  if (!m) return 0;
+  const sign = m[1] === "-" ? -1 : 1;
+  return sign * (Number(m[2]) * 60 + Number(m[3] ?? 0));
+}
+
+/** O zi și o oră românești devin momentul real corespunzător. */
+function cinemaDateTime(day: string, time: string): Date {
+  const naive = new Date(`${day}T${time}:00Z`);
+  const guess = new Date(naive.getTime() - offsetMinutes(naive) * 60_000);
+  return new Date(naive.getTime() - offsetMinutes(guess) * 60_000);
+}
+
+/** Adaugă zile calendaristice unei date yyyy-MM-dd. */
+function addDayKey(day: string, days: number): string {
+  const d = new Date(`${day}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Luni-ul săptămânii curente, ca yyyy-MM-dd în ora României. */
+function mondayKey(date = new Date()): string {
+  const key = dayKey(date);
+  const weekday = new Date(`${key}T12:00:00Z`).getUTCDay(); // 0 = duminică
+  return addDayKey(key, -((weekday + 6) % 7));
+}
+
+function weekStartOf(date = new Date()): Date {
+  return cinemaDateTime(mondayKey(date), "00:00");
+}
+
+function at(weekStartKey: string, dayOffset: number, time: string): Date {
+  return cinemaDateTime(addDayKey(weekStartKey, dayOffset), time);
 }
 
 let codeCounter = 0;
@@ -227,6 +269,8 @@ async function main() {
 
   console.log("→ Filme…");
   const movies = new Map<string, string>();
+  const thisWeekKey = mondayKey();
+  const nextWeekKey = addDayKey(thisWeekKey, 7);
   const thisWeekStart = weekStartOf();
   for (const m of MOVIES) {
     const isComingSoon = m.slug === "misiune-imposibila-rafuiala-mortala";
@@ -234,15 +278,14 @@ async function main() {
       data: {
         ...m,
         comingSoon: isComingSoon,
-        comingSoonFrom: isComingSoon ? at(thisWeekStart, 7, "15:00") : null,
+        comingSoonFrom: isComingSoon ? at(thisWeekKey, 7, "15:00") : null,
       },
     });
     movies.set(m.slug, created.id);
   }
 
   console.log("→ Program…");
-  const nextWeekStart = new Date(thisWeekStart);
-  nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+  const nextWeekStart = cinemaDateTime(nextWeekKey, "00:00");
 
   const thisWeek = await db.weekSchedule.create({
     data: {
@@ -274,7 +317,7 @@ async function main() {
           movieId: movies.get(row.slug)!,
           hallId: row.hall,
           weekId: thisWeek.id,
-          startsAt: at(thisWeekStart, day, row.time),
+          startsAt: at(thisWeekKey, day, row.time),
           is3D: row.is3D,
           isDubbed: row.dubbed,
         },
@@ -295,7 +338,7 @@ async function main() {
           movieId: movies.get(slug)!,
           hallId: row.hall,
           weekId: nextWeek.id,
-          startsAt: at(nextWeekStart, day, row.time),
+          startsAt: at(nextWeekKey, day, row.time),
           is3D: row.is3D,
           isDubbed: row.dubbed,
         },
