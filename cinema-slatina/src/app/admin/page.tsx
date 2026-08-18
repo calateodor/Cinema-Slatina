@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
           icon={Film}
           label="Filme în catalog"
           value={String(movieCount)}
-          href="/admin/program"
+          href="/admin/filme"
         />
         <StatCard
           icon={CalendarDays}
