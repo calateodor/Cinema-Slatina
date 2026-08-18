@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CalendarClock, Clock3 } from "lucide-react";
-import { ShowtimeCard } from "@/components/site/showtime-card";
+import { ShowtimePosterCard } from "@/components/site/showtime-poster-card";
 import {
   Empty,
   EmptyDescription,
@@ -114,9 +114,9 @@ export function WeekSchedule({
           description="Alege o altă zi din program sau vezi toate proiecțiile săptămânii."
         />
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
           {visible.map((screening) => (
-            <ShowtimeCard
+            <ShowtimePosterCard
               key={screening.id}
               screening={screening}
               reservationsEnabled={reservationsEnabled}

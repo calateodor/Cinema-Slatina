@@ -26,7 +26,7 @@ export default async function LoginPage() {
       </Link>
 
       <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-7 shadow-[var(--shadow-card)]">
-        <BrandLogo href={null} />
+        <BrandLogo href={null} size="lg" />
         <h1 className="display mt-5 text-2xl">Acces personal</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Zona de administrare și casierie a cinematografului.

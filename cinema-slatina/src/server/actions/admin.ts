@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { requireAdmin, hashPassword } from "@/lib/auth";
 import { fetchMovieByImdb, isTmdbConfigured } from "@/lib/tmdb";
 import { extractImdbId, slugify } from "@/lib/format";
-import { cinemaDateTime, weekStartOf } from "@/lib/dates";
+import { cinemaDateTime, formatTime, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
 
 export type ActionResult<T = undefined> = {
@@ -328,6 +328,61 @@ export async function copyWeek(
   await audit(user.id, "copy", "week", target.id, `${from.toISOString()} → ${to.toISOString()}`);
   revalidatePublic();
   return { ok: true, data: { copied: source.screenings.length } };
+}
+
+/** Copiază toate proiecțiile dintr-o zi în celelalte zile alese. */
+export async function copyDayToDays(
+  sourceDay: string,
+  targetDays: string[],
+): Promise<ActionResult<{ copied: number }>> {
+  const user = await requireAdmin();
+  const days = targetDays.filter((d) => d !== sourceDay);
+  if (days.length === 0) {
+    return { ok: false, message: "Alege cel puțin o zi diferită de sursă." };
+  }
+
+  const from = cinemaDateTime(sourceDay, "00:00");
+  const to = cinemaDateTime(sourceDay, "23:59");
+  const source = await db.screening.findMany({
+    where: { startsAt: { gte: from, lte: to }, isCancelled: false },
+    orderBy: { startsAt: "asc" },
+  });
+  if (source.length === 0) {
+    return { ok: false, message: "Ziua sursă nu are proiecții." };
+  }
+
+  let copied = 0;
+  for (const day of days) {
+    for (const s of source) {
+      const time = formatTime(s.startsAt);
+      const startsAt = cinemaDateTime(day, time);
+      // Nu dublăm o proiecție deja existentă la aceeași oră, în aceeași sală.
+      const exists = await db.screening.findFirst({
+        where: { hallId: s.hallId, startsAt },
+      });
+      if (exists) continue;
+
+      await db.screening.create({
+        data: {
+          movieId: s.movieId,
+          hallId: s.hallId,
+          weekId: await weekIdFor(startsAt),
+          startsAt,
+          is3D: s.is3D,
+          isDubbed: s.isDubbed,
+          reservationsOpen: s.reservationsOpen,
+          allowExtraSeats: s.allowExtraSeats,
+          capacityOverride: s.capacityOverride,
+          note: s.note,
+        },
+      });
+      copied += 1;
+    }
+  }
+
+  await audit(user.id, "copy", "day", sourceDay, `→ ${days.join(", ")}`);
+  revalidatePublic();
+  return { ok: true, data: { copied } };
 }
 
 /* ---------------------------------------------------------------- meniu */

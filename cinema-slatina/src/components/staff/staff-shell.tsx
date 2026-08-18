@@ -73,12 +73,7 @@ export function StaffShell({ variant, title, user, children }: Props) {
       {/* Bara laterală, pe ecrane mari */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="border-b border-border px-5 py-4">
-          <Link href="/" className="block">
-            <span className="ticket text-xl italic tracking-wide">
-              <span className="text-brand-orange-deep">CINEMA</span>{" "}
-              <span className="text-foreground">SLATINA</span>
-            </span>
-          </Link>
+          <BrandLogo size="sm" onLight />
           <p className="mt-0.5 text-xs text-muted-foreground">{title}</p>
         </div>
 
@@ -145,7 +140,7 @@ export function StaffShell({ variant, title, user, children }: Props) {
         {open ? (
           <div className="border-b border-border bg-sidebar p-3 lg:hidden">
             <div className="mb-2 flex items-center justify-between px-1">
-              <BrandLogo href="/" size="sm" />
+              <BrandLogo href="/" size="sm" onLight />
               <Button
                 variant="ghost"
                 size="icon"

@@ -13,7 +13,8 @@
     "shots": "node scripts/screenshots.mjs",
     "postinstall": "prisma generate",
     "db:deploy": "prisma migrate deploy",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "db:tmdb": "tsx scripts/sync-tmdb.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

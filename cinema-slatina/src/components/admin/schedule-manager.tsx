@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  CalendarPlus,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -40,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyRow } from "@/components/staff/ui";
 import {
+  copyDayToDays,
   copyWeek,
   deleteScreening,
   publishWeek,
@@ -197,6 +199,25 @@ export function ScheduleManager({
     });
   }
 
+  function spreadDay(dayKeyValue: string) {
+    const others = days.map((d) => d.key).filter((d) => d !== dayKeyValue);
+    if (
+      !confirm(
+        `Copiezi toate proiecțiile din această zi în celelalte ${others.length} zile ale săptămânii?`,
+      )
+    )
+      return;
+    startTransition(async () => {
+      const result = await copyDayToDays(dayKeyValue, others);
+      if (!result.ok) {
+        toast.error(result.message ?? "Nu am putut copia ziua.");
+        return;
+      }
+      toast.success(`Am adăugat ${result.data?.copied ?? 0} proiecții.`);
+      router.refresh();
+    });
+  }
+
   function duplicatePreviousWeek() {
     startTransition(async () => {
       const result = await copyWeek(prevWeekIso, weekStartIso);
@@ -287,16 +308,37 @@ export function ScheduleManager({
           return (
             <section key={day.key} className="rounded-xl border border-border bg-card">
               <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
-                <h2 className="text-sm font-semibold first-letter:uppercase">{day.label}</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openNew(day.key)}
-                  className="gap-1.5"
-                >
-                  <Plus data-icon="inline-start" />
-                  Adaugă
-                </Button>
+                <h2 className="text-sm font-semibold first-letter:uppercase">
+                  {day.label}
+                  {list.length > 0 ? (
+                    <span className="ml-2 font-normal text-muted-foreground">
+                      {list.length} {list.length === 1 ? "film" : "filme"}
+                    </span>
+                  ) : null}
+                </h2>
+                <div className="flex gap-1">
+                  {list.length > 0 ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => spreadDay(day.key)}
+                      disabled={pending}
+                      title="Copiază proiecțiile acestei zile în restul săptămânii"
+                    >
+                      <CalendarPlus data-icon="inline-start" />
+                      Copiază în săptămână
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openNew(day.key)}
+                    disabled={pending}
+                  >
+                    <Plus data-icon="inline-start" />
+                    Adaugă film
+                  </Button>
+                </div>
               </header>
 
               {list.length === 0 ? (
