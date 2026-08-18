@@ -6,6 +6,7 @@ import { ComingSoonList } from "@/components/site/coming-soon-list";
 import { Section, SectionHeading, VisitInfo } from "@/components/site/sections";
 import { Reveal } from "@/components/motion/reveal";
 import { CityCrest } from "@/components/site/brand";
+import { ProgramBanner } from "@/components/site/program-banner";
 import { dayKey, todayStart, weekDays } from "@/lib/dates";
 import {
   areReservationsEnabled,
@@ -57,6 +58,9 @@ export default async function HomePage() {
       </Reveal>
 
       <Section id="program">
+        <Reveal y={16} className="mb-6">
+          <ProgramBanner />
+        </Reveal>
         <Reveal y={16}>
           <SectionHeading
             title="Programul săptămânii"

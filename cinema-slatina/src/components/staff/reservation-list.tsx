@@ -28,6 +28,7 @@ import {
   RESERVATION_SOURCE_LABEL,
   RESERVATION_STATUS_LABEL,
 } from "@/lib/constants";
+import { TimeBadge } from "@/components/site/showtime-badges";
 import { formatDateTimeShort, formatTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/format";
 
@@ -123,9 +124,7 @@ export function ReservationList({
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     {/* Proiecția, cu aceleași informații ca în program. */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="ticket rounded bg-brand-yellow px-1.5 text-lg leading-tight text-brand-ink">
-                        {formatTime(start)}
-                      </span>
+                      <TimeBadge startsAt={start} size="sm" />
                       <span className="font-medium">{row.movieTitle}</span>
                       <Badge
                         variant="outline"

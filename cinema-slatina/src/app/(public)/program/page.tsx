@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { WeekSchedule } from "@/components/site/week-schedule";
 import { Reveal } from "@/components/motion/reveal";
 import { SectionHeading } from "@/components/site/sections";
+import { ProgramBanner } from "@/components/site/program-banner";
 import { dayKey, formatWeekRange, todayStart, weekDays } from "@/lib/dates";
 import { areReservationsEnabled, getPublicSchedule } from "@/server/queries";
 
@@ -24,6 +25,9 @@ export default async function ProgramPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+      <Reveal y={16} className="mb-8">
+        <ProgramBanner />
+      </Reveal>
       <Reveal y={16}>
         <SectionHeading
           title="Programul săptămânii"

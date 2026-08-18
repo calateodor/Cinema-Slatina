@@ -12,9 +12,9 @@ type LogoProps = {
 };
 
 const SIZES = {
-  sm: "h-11",
-  md: "h-14 sm:h-[4.5rem]",
-  lg: "h-24",
+  sm: "h-12",
+  md: "h-16 sm:h-24",
+  lg: "h-32",
 } as const;
 
 /**
@@ -63,9 +63,9 @@ export function CityCrest({
       <Image
         src="/brand/primaria-slatina.png"
         alt="Stema Municipiului Slatina"
-        width={44}
-        height={64}
-        className="h-11 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+        width={88}
+        height={128}
+        className="h-16 w-auto drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] sm:h-20"
       />
       {withWordmark ? (
         <Image

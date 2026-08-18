@@ -30,6 +30,7 @@ import {
   type ReservationRow,
 } from "@/components/staff/reservation-list";
 import { createDeskReservation } from "@/server/actions/reception";
+import { Badge3D, TimeBadge } from "@/components/site/showtime-badges";
 import { formatLongDate, formatTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
@@ -131,9 +132,7 @@ function ScreeningCard({
   return (
     <article className="group flex flex-col">
       <div className="relative z-10 -mb-3 flex justify-center">
-        <span className="ticket rounded-lg bg-brand-yellow px-3 py-0.5 text-2xl leading-tight text-brand-ink shadow-sm">
-          {formatTime(new Date(screening.startsAt))}
-        </span>
+        <TimeBadge startsAt={screening.startsAt} />
       </div>
 
       <button
@@ -155,11 +154,7 @@ function ScreeningCard({
             {screening.movieTitle}
           </span>
         )}
-        {screening.is3D ? (
-          <Badge variant="brand" className="ticket absolute right-2 top-2 text-sm">
-            3D
-          </Badge>
-        ) : null}
+        {screening.is3D ? <Badge3D /> : null}
         <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-2 text-center text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
           Rezervă aici
         </span>

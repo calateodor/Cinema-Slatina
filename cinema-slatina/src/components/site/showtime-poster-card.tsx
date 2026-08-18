@@ -3,6 +3,7 @@ import { Ticket } from "lucide-react";
 import { MoviePoster } from "@/components/site/movie-poster";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TimeBadge } from "@/components/site/showtime-badges";
 import { formatTime } from "@/lib/dates";
 import type { ScreeningView } from "@/server/queries";
 import { cn } from "@/lib/utils";
@@ -37,11 +38,9 @@ export function ShowtimePosterCard({
         screening.hasStarted && "opacity-55",
       )}
     >
-      {/* Ora, ca pe afiș: mare, galbenă, așezată peste marginea posterului. */}
+      {/* Ora, ca pe afiș: mare, galbenă, înclinată, peste marginea posterului. */}
       <div className="relative z-10 -mb-3 flex justify-center">
-        <span className="ticket rounded-lg bg-brand-yellow px-3 py-0.5 text-2xl leading-tight text-brand-ink shadow-[0_6px_16px_-6px_rgba(0,0,0,0.8)] sm:text-3xl">
-          {formatTime(screening.startsAt)}
-        </span>
+        <TimeBadge startsAt={screening.startsAt} />
       </div>
 
       <Link

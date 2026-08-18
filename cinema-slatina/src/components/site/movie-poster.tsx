@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
+import { Badge3D } from "@/components/site/showtime-badges";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -84,11 +84,7 @@ export function MoviePoster({
         </div>
       )}
 
-      {is3D ? (
-        <Badge variant="brand" className="ticket absolute right-2 top-2 text-sm">
-          3D
-        </Badge>
-      ) : null}
+      {is3D ? <Badge3D /> : null}
     </div>
   );
 }

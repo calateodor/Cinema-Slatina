@@ -5,7 +5,7 @@ import { SeatMeter } from "@/components/site/seat-meter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatTime } from "@/lib/dates";
+import { TimeBadge } from "@/components/site/showtime-badges";
 import type { ScreeningView } from "@/server/queries";
 
 /** Eticheta sălii, colorată cu accentul propriu al sălii. */
@@ -70,9 +70,7 @@ export function ShowtimeCard({
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="ticket text-2xl leading-none text-brand-orange">
-              {formatTime(screening.startsAt)}
-            </span>
+            <TimeBadge startsAt={screening.startsAt} size="sm" />
             {movie.runtimeMin ? (
               <span className="text-xs text-muted-foreground">
                 {movie.runtimeMin} min

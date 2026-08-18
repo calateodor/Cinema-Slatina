@@ -196,6 +196,14 @@
     font-family: var(--font-ticket), var(--font-sans), sans-serif;
     letter-spacing: 0.02em;
   }
+  /* Înclinarea etichetelor de pe afișul tipărit: orele și marcajul 3D nu stau
+     drept, ci ușor rotite, ca literele lipite manual pe un afiș de cinema. */
+  .tilt {
+    transform: rotate(-3.5deg);
+  }
+  .tilt-strong {
+    transform: rotate(-8deg);
+  }
   /* Textura discreta de "ecran de cinema" pentru fundal */
   .screen-grain {
     background-image:

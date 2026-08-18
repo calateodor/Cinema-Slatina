@@ -52,7 +52,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
           : "border-transparent bg-background/40 backdrop-blur-sm",
       )}
     >
-      <div className="mx-auto flex h-20 w-full max-w-6xl items-center gap-4 px-4 sm:h-26 sm:px-6">
+      <div className="mx-auto flex h-24 w-full max-w-6xl items-center gap-4 px-4 sm:h-32 sm:px-6">
         <BrandLogo />
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">

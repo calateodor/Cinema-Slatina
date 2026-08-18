@@ -45,6 +45,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { TimePicker } from "@/components/admin/time-picker";
 import {
   Select,
   SelectContent,
@@ -65,6 +66,7 @@ import {
   saveMovie,
   saveScreening,
 } from "@/server/actions/admin";
+import { Badge3D, TimeBadge } from "@/components/site/showtime-badges";
 import { dayKey, formatTime, formatWeekRange, parseDayKey } from "@/lib/dates";
 
 export type ScheduleMovie = {
@@ -505,9 +507,7 @@ function AdminCard({
   return (
     <article className="group flex flex-col">
       <div className="relative z-10 -mb-3 flex justify-center">
-        <span className="ticket rounded-lg bg-brand-yellow px-3 py-0.5 text-2xl leading-tight text-brand-ink shadow-sm">
-          {formatTime(new Date(screening.startsAt))}
-        </span>
+        <TimeBadge startsAt={screening.startsAt} />
       </div>
 
       <button
@@ -530,11 +530,7 @@ function AdminCard({
             {screening.movieTitle}
           </span>
         )}
-        {screening.is3D ? (
-          <Badge variant="brand" className="ticket absolute right-2 top-2 text-sm">
-            3D
-          </Badge>
-        ) : null}
+        {screening.is3D ? <Badge3D /> : null}
         <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-2 text-center text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
           Apasă pentru modificare
         </span>
@@ -904,13 +900,10 @@ function ScreeningDialog({
 
               <Field>
                 <FieldLabel htmlFor="time">Ora</FieldLabel>
-                <Input
+                <TimePicker
                   id="time"
-                  type="time"
-                  required
-                  step={300}
                   value={form.time}
-                  onChange={(e) => set("time", e.target.value)}
+                  onChange={(v) => set("time", v)}
                 />
               </Field>
 
@@ -952,8 +945,7 @@ function ScreeningDialog({
               <FieldDescription>
                 Proiecția începe la{" "}
                 <strong className="text-foreground">{form.time}</strong>, ora
-                României. Pe telefon, selectorul de oră poate afișa AM/PM —
-                folosește butoanele de mai sus ca să fii sigur.
+                României. Orele se aleg în format de 24 de ore, fără AM/PM.
               </FieldDescription>
             </Field>
 
