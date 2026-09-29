@@ -10,7 +10,11 @@ const INFO_LINKS = [
   { href: "/contact", label: "Întrebări frecvente" },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ user }: { user: { role: string } | null }) {
+  // Accesul personalului stă discret, jos de tot (ca la site-ul Olimpiadei);
+  // cine e deja autentificat ajunge direct în panoul lui.
+  const adminHref = user ? (user.role === "ADMIN" ? "/admin" : "/casierie") : "/autentificare";
+
   return (
     <footer className="mt-20 border-t border-border bg-surface-sunken">
       {/* Semnătura tipărită: sigla, sloganul, stema și „Cred în Slatina”. */}
@@ -94,24 +98,24 @@ export function SiteFooter() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href="/autentificare"
-                  className="transition-colors hover:text-foreground"
-                >
-                  Acces personal
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
 
         <div className="film-strip mt-10 h-1 w-full rounded-full opacity-30" />
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {CINEMA.name} {CINEMA.city}. Toate
-          drepturile rezervate.
-        </p>
+        <div className="mt-6 flex flex-col items-center justify-between gap-2 text-center text-xs text-muted-foreground sm:flex-row sm:text-left">
+          <p>
+            © {new Date().getFullYear()} {CINEMA.name} {CINEMA.city}. Toate
+            drepturile rezervate.
+          </p>
+          <Link
+            href={adminHref}
+            className="opacity-60 transition-[opacity,color] hover:text-brand-yellow hover:opacity-100"
+          >
+            Administrare
+          </Link>
+        </div>
       </div>
     </footer>
   );

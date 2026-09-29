@@ -457,6 +457,12 @@
      „Cred în Slatina” — insigna care se trage prin pagină și ricoșează
      (portată de pe site-ul Olimpiadei Liceelor, cu glow galben).
   ------------------------------------------------------------------ */
+  /* cât e deschis meniul lateral (Radix blochează derularea), insigna se
+     ascunde, altfel ar pluti peste meniu */
+  body[data-scroll-locked] .cred-float {
+    opacity: 0;
+    pointer-events: none;
+  }
   .cred-float {
     position: fixed;
     left: 0;

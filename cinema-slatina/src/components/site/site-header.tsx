@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChevronRight, Menu, Ticket, UserRound } from "lucide-react";
+import { ChevronRight, Menu, Ticket } from "lucide-react";
 import { BrandLogo } from "@/components/site/brand";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,7 @@ const NAV = [
   { href: "/contact", label: "Contact" },
 ];
 
-export type HeaderUser = { fullName: string; role: string } | null;
-
-export function SiteHeader({ user }: { user: HeaderUser }) {
+export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -38,12 +36,6 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const accountHref = user
-    ? user.role === "ADMIN"
-      ? "/admin"
-      : "/casierie"
-    : "/autentificare";
 
   return (
     <header
@@ -109,25 +101,6 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
             </Link>
           </Button>
 
-          <Link
-            href={accountHref}
-            className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-left transition-colors hover:border-brand-yellow/40 hover:bg-secondary xl:flex"
-          >
-            <UserRound className="size-4 text-muted-foreground" />
-            <span className="leading-tight">
-              <span className="block text-xs font-semibold">
-                {user ? user.fullName : "Autentificare"}
-              </span>
-              <span className="hidden text-[0.68rem] text-muted-foreground 2xl:block">
-                {user
-                  ? user.role === "ADMIN"
-                    ? "Administrare"
-                    : "Casierie"
-                  : "Personal cinema"}
-              </span>
-            </span>
-            <ChevronRight className="size-3.5 text-muted-foreground" />
-          </Link>
 
           {/* „Cred în Slatina” și stema Primăriei, în capătul barei, ca la CSM. */}
           <div className="flex items-center gap-1.5 sm:gap-2 xl:ml-2">
@@ -163,7 +136,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
             <SheetContent side="right" className="w-[86vw] max-w-sm">
               <SheetHeader>
                 <SheetTitle asChild>
-                  <BrandLogo href={null} size="sm" />
+                  <BrandLogo href={null} size="sm" className="self-start" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 px-4">
@@ -178,14 +151,6 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
                     <ChevronRight className="size-4 text-muted-foreground" />
                   </Link>
                 ))}
-                <Link
-                  href={accountHref}
-                  onClick={() => setOpen(false)}
-                  className="mt-2 flex items-center justify-between rounded-xl border border-border px-3 py-3 text-base font-medium"
-                >
-                  {user ? user.fullName : "Autentificare personal"}
-                  <ChevronRight className="size-4 text-muted-foreground" />
-                </Link>
               </nav>
             </SheetContent>
           </Sheet>

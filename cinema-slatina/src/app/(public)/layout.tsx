@@ -20,9 +20,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       <div className="glow-backdrop" aria-hidden="true" />
       <BorderGlowTracker />
       <CredFloat />
-      <SiteHeader
-        user={user ? { fullName: user.fullName, role: user.role } : null}
-      />
+      <SiteHeader />
       {closure ? <ClosureBanner closure={closure} /> : null}
       {announcement ? (
         <div className="border-b border-brand-orange/25 bg-brand-orange/10">
@@ -32,7 +30,9 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         </div>
       ) : null}
       <main className="flex-1">{children}</main>
-      <SiteFooter />
+      <SiteFooter
+        user={user ? { role: user.role } : null}
+      />
     </>
   );
 }
