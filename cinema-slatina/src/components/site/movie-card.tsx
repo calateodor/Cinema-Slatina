@@ -66,7 +66,7 @@ export function MovieCard({
         <Link
           href={href}
           aria-label={`${title}${times.length ? `, ora ${times.join(" și ")}` : ""}`}
-          className="relative block aspect-[2/3] overflow-hidden rounded-t-[1.05rem] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-yellow/70"
+          className="relative block aspect-[2/3] overflow-hidden rounded-t-[1.1rem] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-yellow/70"
         >
           {posterUrl ? (
             <Image

@@ -320,11 +320,18 @@
       linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
     box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9);
     /* afișul lasă să se vadă sala și fundalul prin el */
-    opacity: 0.62;
+    opacity: 0.3;
     /* elipsă ancorată jos: sus e transparent, iar colțurile de sus se topesc
-       și spre laterale, fără muchii drepte peste scaune */
-    mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%);
-    -webkit-mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%);
+       și spre laterale, fără muchii drepte peste scaune; marginile din
+       stânga și dreapta se topesc și ele, fără contur */
+    mask-image:
+      radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%),
+      linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+    mask-composite: intersect;
+    -webkit-mask-image:
+      radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%),
+      linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+    -webkit-mask-composite: source-in;
   }
 
   /* Scena din prima pagină: sala reală, cu ecranul „viu” în ea. Poziția
@@ -531,6 +538,11 @@
   .movie-card {
     transition: translate 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
+  /* cardul activ stă deasupra vecinilor, ca halo-ul să nu fie acoperit */
+  .movie-card:hover,
+  .movie-card:focus-within {
+    z-index: 10;
+  }
   @media (hover: hover) {
     .movie-card:hover {
       translate: 0 -6px;
@@ -573,16 +585,11 @@
     border-radius: var(--radius-2xl);
     isolation: isolate;
     transform: translate3d(0, 0, 0.01px);
-    border: 1px solid rgb(255 255 255 / 0.1);
+    /* fără chenar și fără umbre strânse: niciun contur subțire închis */
+    border: 0;
     background: var(--card-bg, #131316);
     overflow: visible;
-    box-shadow:
-      rgb(0 0 0 / 0.1) 0 1px 2px,
-      rgb(0 0 0 / 0.1) 0 2px 4px,
-      rgb(0 0 0 / 0.1) 0 4px 8px,
-      rgb(0 0 0 / 0.1) 0 8px 16px,
-      rgb(0 0 0 / 0.1) 0 16px 32px,
-      rgb(0 0 0 / 0.1) 0 32px 64px;
+    box-shadow: 0 28px 56px -28px rgb(0 0 0 / 0.55);
   }
   .bglow::before,
   .bglow::after,
@@ -651,7 +658,8 @@
   /* halo-ul luminos din afara cardului */
   .bglow > .bglow-edge {
     inset: calc(var(--glow-padding) * -1);
-    z-index: 1;
+    /* deasupra posterului și a textului, altfel lumina pare tăiată */
+    z-index: 2;
     mask-image: conic-gradient(
       from var(--cursor-angle) at center,
       black 2.5%,
