@@ -321,14 +321,16 @@
     box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9);
     /* elipsă ancorată jos: sus e transparent, iar colțurile de sus se topesc
        și spre laterale, fără muchii drepte peste scaune */
-    mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 66%, transparent 89%);
-    -webkit-mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 66%, transparent 89%);
+    mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%);
+    -webkit-mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%);
   }
 
   /* Scena din prima pagină: sala reală, cu ecranul „viu” în ea. Poziția
      ecranului este dată în procente din imagine, separat pentru cadrul lat
      (desktop) și cel înalt (telefon). */
   .hall-scene {
+    /* baza pozei se topește scurt în fundal, fără muchie */
+    mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
     /* raportul exact al imaginii înalte din public/hall/sala-inalt-v4.jpg */
     aspect-ratio: 1417 / 1536;
     container-type: inline-size;

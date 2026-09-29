@@ -1,6 +1,5 @@
 import { BorderGlowTracker } from "@/components/motion/border-glow";
 import { CredFloat } from "@/components/motion/cred-float";
-import { CursorGrid } from "@/components/motion/cursor-grid";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { ClosureBanner } from "@/components/site/closure-banner";
@@ -18,9 +17,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
-      <div className="glow-backdrop" aria-hidden="true">
-        <CursorGrid />
-      </div>
+      <div className="glow-backdrop" aria-hidden="true" />
       <BorderGlowTracker />
       <CredFloat />
       <SiteHeader
