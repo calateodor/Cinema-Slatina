@@ -551,6 +551,36 @@
       animation: card-shine 0.9s ease-out;
     }
   }
+  /* Glare Hover (după react-bits): dunga de lumină care traversează afișul
+     în diagonală la hover. Gradientul e de 2,5 ori mai mare decât cardul și
+     alunecă dintr-un colț în celălalt. */
+  .glare {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      -45deg,
+      transparent 60%,
+      rgb(255 248 220 / 0.5) 70%,
+      transparent 80%,
+      transparent 100%
+    );
+    background-size: 250% 250%;
+    background-repeat: no-repeat;
+    background-position: -100% -100%;
+    transition: background-position 0.65s ease;
+  }
+  .group:hover .glare,
+  .group:focus-visible .glare {
+    background-position: 100% 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glare {
+      display: none;
+    }
+  }
   .movie-card-shine {
     opacity: 0;
   }
@@ -775,7 +805,7 @@
     opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
   }
   /* Conținutul stă peste halo, dar sub inelul de pe margine. */
-  .border-glow > * {
+  .border-glow > :not(.glare) {
     position: relative;
     z-index: 0;
   }

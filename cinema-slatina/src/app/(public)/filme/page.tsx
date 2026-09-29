@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { GlowCard } from "@/components/motion/glow-card";
+import { Glare } from "@/components/motion/glare";
 import { Reveal } from "@/components/motion/reveal";
 import { PageHeader } from "@/components/site/page-header";
 import { db } from "@/lib/db";
@@ -50,7 +51,7 @@ export default async function MoviesPage() {
               className="movie-card group block rounded-[1.1rem] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-yellow/70"
             >
               <GlowCard asCard={false} background="#101014" className="h-full rounded-[1.1rem]">
-                <div className="relative aspect-[2/3] overflow-hidden rounded-t-[1.05rem]">
+                <div className="relative aspect-[2/3] overflow-hidden rounded-t-[1.1rem]">
                   {movie.posterUrl ? (
                     <Image
                       src={movie.posterUrl}
@@ -79,6 +80,7 @@ export default async function MoviesPage() {
                       </span>
                     </span>
                   ) : null}
+                  <Glare />
                 </div>
                 <div className="flex flex-col gap-1 p-3 pt-1.5">
                   <p className="display line-clamp-2 text-[0.92rem] leading-tight text-white transition-colors group-hover:text-brand-yellow motion-reduce:transition-none">

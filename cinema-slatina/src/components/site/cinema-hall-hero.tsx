@@ -21,6 +21,7 @@ import { youtubeId } from "@/lib/format";
 import { SCREEN_INSET_PX, screenBounds, type HallScene } from "@/lib/hall-scene";
 import { matrix3dForQuad, type Quad } from "@/lib/perspective";
 import type { HeroItem } from "@/server/queries";
+import { Glare } from "@/components/motion/glare";
 import { cn } from "@/lib/utils";
 
 gsap.registerPlugin(useGSAP);
@@ -425,6 +426,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
                         : "opacity-70 group-hover:opacity-100 group-focus-visible:ring-2 group-focus-visible:ring-brand-yellow",
                     )}
                   />
+                  <Glare />
                 </button>
               </li>
             ))}
@@ -488,6 +490,7 @@ function SideCard({
           sizes="(max-width: 1024px) 0px, 18vw"
           className="rounded-[0.8cqw] ring-1 ring-white/15 transition-shadow group-hover:ring-brand-yellow/60 group-focus-visible:ring-2 group-focus-visible:ring-brand-yellow motion-reduce:transition-none"
         />
+        <Glare />
         <span
           className={cn(
             "absolute top-1/2 flex size-[clamp(2rem,3cqw,3rem)] -translate-y-1/2 items-center justify-center rounded-full bg-brand-yellow text-brand-ink opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none",

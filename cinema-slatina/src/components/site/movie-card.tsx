@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock3, Ticket } from "lucide-react";
 import { GlowCard } from "@/components/motion/glow-card";
+import { Glare } from "@/components/motion/glare";
 import { cn } from "@/lib/utils";
 
 export type MovieCardProps = {
@@ -93,6 +94,7 @@ export function MovieCard({
               3D
             </span>
           ) : null}
+          <Glare />
         </Link>
 
         <div className="flex flex-1 flex-col gap-2.5 p-3 pt-2 sm:p-4 sm:pt-2.5">
