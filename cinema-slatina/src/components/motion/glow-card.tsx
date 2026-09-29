@@ -20,8 +20,8 @@ import { cn } from "@/lib/utils";
    - ::after — aceeași plasă, foarte estompată, pe interiorul de lângă margine;
    - .bglow-edge — halo-ul luminos din jurul cardului, pe partea cursorului.
    JS-ul doar măsoară cât de aproape e cursorul de margine și în ce unghi.
-   Pe ecrane tactile (fără hover), cardul face o singură „trecere” de lumină
-   când intră în ecran, ca efectul să nu lipsească pe telefon.
+   Pe ecrane tactile (fără mouse), nimic nu se animă singur: cardul face o
+   singură „trecere” de lumină doar când apeși pe el.
 --------------------------------------------------------------------------- */
 
 /** Culorile plasei: galbenul siglei, portocaliul, un alb cald. */
@@ -78,6 +78,40 @@ function animateValue({
   window.setTimeout(() => requestAnimationFrame(tick), delay);
 }
 
+/** Există mouse/trackpad adevărat (laptop, PC)? */
+export function hasFinePointer() {
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+/**
+ * O singură trecere de lumină în jurul cardului (pentru atingere): marginea se
+ * aprinde, conul face înconjurul cardului, apoi se stinge. Merge atât pe
+ * `.bglow`, cât și pe `.border-glow`, fiindcă folosesc aceleași variabile.
+ */
+export function sweepGlow(card: HTMLElement) {
+  if (card.classList.contains("sweep-active")) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const angleStart = 110;
+  const angleEnd = 465;
+  card.classList.add("sweep-active");
+  card.style.setProperty("--cursor-angle", `${angleStart}deg`);
+  const setAngle = (v: number) =>
+    card.style.setProperty("--cursor-angle", `${(angleEnd - angleStart) * (v / 100) + angleStart}deg`);
+  const setEdge = (v: number) => card.style.setProperty("--edge-proximity", String(v));
+  animateValue({ duration: 300, onUpdate: setEdge });
+  animateValue({ ease: easeInCubic, duration: 500, end: 50, onUpdate: setAngle });
+  animateValue({ ease: easeOutCubic, delay: 500, duration: 700, start: 50, end: 100, onUpdate: setAngle });
+  animateValue({
+    ease: easeInCubic,
+    delay: 900,
+    duration: 600,
+    start: 100,
+    end: 0,
+    onUpdate: setEdge,
+    onEnd: () => card.classList.remove("sweep-active"),
+  });
+}
+
 type Props = ComponentProps<"div"> & {
   /** Cât de aproape de margine începe lumina (0–100). */
   edgeSensitivity?: number;
@@ -132,40 +166,14 @@ export function GlowCard({
     [onPointerMove],
   );
 
-  // Pe ecrane tactile: o trecere de lumină în jurul cardului când apare.
+  // Pe telefon/tabletă (fără mouse) nu animăm nimic singur: lumina face o
+  // trecere în jurul cardului doar când apeși pe el.
   useEffect(() => {
     const card = ref.current;
-    if (!card) return;
-    if (window.matchMedia("(hover: hover)").matches) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        observer.disconnect();
-        const angleStart = 110;
-        const angleEnd = 465;
-        card.classList.add("sweep-active");
-        card.style.setProperty("--cursor-angle", `${angleStart}deg`);
-        const setAngle = (v: number) =>
-          card.style.setProperty("--cursor-angle", `${(angleEnd - angleStart) * (v / 100) + angleStart}deg`);
-        animateValue({ duration: 500, onUpdate: (v) => card.style.setProperty("--edge-proximity", String(v)) });
-        animateValue({ ease: easeInCubic, duration: 1500, end: 50, onUpdate: setAngle });
-        animateValue({ ease: easeOutCubic, delay: 1500, duration: 2250, start: 50, end: 100, onUpdate: setAngle });
-        animateValue({
-          ease: easeInCubic,
-          delay: 2500,
-          duration: 1500,
-          start: 100,
-          end: 0,
-          onUpdate: (v) => card.style.setProperty("--edge-proximity", String(v)),
-          onEnd: () => card.classList.remove("sweep-active"),
-        });
-      },
-      { threshold: 0.45 },
-    );
-    observer.observe(card);
-    return () => observer.disconnect();
+    if (!card || hasFinePointer()) return;
+    const tap = () => sweepGlow(card);
+    card.addEventListener("pointerdown", tap);
+    return () => card.removeEventListener("pointerdown", tap);
   }, []);
 
   return (

@@ -80,7 +80,6 @@ export default async function MoviesPage() {
                       </span>
                     </span>
                   ) : null}
-                  <Glare />
                 </div>
                 <div className="flex flex-col gap-1 p-3 pt-1.5">
                   <p className="display line-clamp-2 text-[0.92rem] leading-tight text-white transition-colors group-hover:text-brand-yellow motion-reduce:transition-none">
@@ -92,6 +91,7 @@ export default async function MoviesPage() {
                     {movie.runtimeMin ? <span>{movie.runtimeMin} min</span> : null}
                   </p>
                 </div>
+                <Glare />
               </GlowCard>
             </Link>
           );

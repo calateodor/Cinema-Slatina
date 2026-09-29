@@ -4,7 +4,6 @@ import { PosterGrid } from "@/components/site/poster-grid";
 import { ComingSoonList } from "@/components/site/coming-soon-list";
 import { Section, SectionHeading, VisitInfo } from "@/components/site/sections";
 import { Reveal } from "@/components/motion/reveal";
-import { CityBrandBand } from "@/components/site/brand";
 import { HALL_SCENE } from "@/lib/hall-scene";
 import {
   areReservationsEnabled,
@@ -41,10 +40,6 @@ export default async function HomePage() {
             />
           </Reveal>
         </Section>
-
-        <Reveal y={20} className="mt-10 sm:mt-14">
-          <CityBrandBand />
-        </Reveal>
 
         {comingSoon.length > 0 ? (
           <Section>

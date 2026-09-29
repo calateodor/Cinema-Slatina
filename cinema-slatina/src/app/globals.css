@@ -551,30 +551,73 @@
       animation: card-shine 0.9s ease-out;
     }
   }
-  /* Glare Hover (după react-bits): dunga de lumină care traversează afișul
-     în diagonală la hover. Gradientul e de 2,5 ori mai mare decât cardul și
-     alunecă dintr-un colț în celălalt. */
+  /* Dunga de lucire (preluată de pe cardurile de fotbal din site-ul CSM): o
+     reflexie diagonală de sticlă care traversează tot cardul urmărind mouse-ul
+     pe orizontală, cu o ușoară alunecare pe verticală. --lux/--luy sunt
+     fracțiuni -0,5..0,5 scrise de <Glare> chiar pe bandă; deplasarea iese din
+     transform, deci nu forțează layout.
+     Banda e de trei ori mai lată decât cardul (și 150% pe înălțime), cu dunga
+     în treimea din mijloc, ca la deplasarea maximă să nu se termine niciodată
+     cu o tăietură dreaptă în card. `.glare` taie surplusul.
+     Doar unde există hover adevărat: pe touch un tap ar lăsa dunga înțepenită. */
   .glare {
     position: absolute;
     inset: 0;
     z-index: 5;
+    overflow: hidden;
     border-radius: inherit;
     pointer-events: none;
-    background: linear-gradient(
-      -45deg,
-      transparent 60%,
-      rgb(255 248 220 / 0.5) 70%,
-      transparent 80%,
-      transparent 100%
-    );
-    background-size: 250% 250%;
-    background-repeat: no-repeat;
-    background-position: -100% -100%;
-    transition: background-position 0.65s ease;
   }
-  .group:hover .glare,
-  .group:focus-visible .glare {
-    background-position: 100% 100%;
+  .glare-band {
+    display: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .glare-band {
+      display: block;
+      position: absolute;
+      top: -25%;
+      left: -100%;
+      width: 300%;
+      height: 150%;
+      background: linear-gradient(
+        115deg,
+        transparent 45%,
+        rgb(255 255 255 / 0.05) 47.5%,
+        rgb(255 255 255 / 0.11) 50%,
+        rgb(255 255 255 / 0.05) 52.5%,
+        transparent 55%
+      );
+      transform: translate3d(calc(var(--lux, 0) * 50%), calc(var(--luy, 0) * 26%), 0);
+      opacity: 0;
+      transition:
+        opacity 0.4s ease,
+        transform 0.18s ease-out;
+    }
+    .group:hover .glare-band {
+      opacity: 1;
+    }
+  }
+  /* pe touch: o singură traversare, pornită de atingere (clasa .glare-tap) */
+  .glare-tap .glare-band {
+    display: block;
+    position: absolute;
+    top: -25%;
+    left: -100%;
+    width: 300%;
+    height: 150%;
+    background: linear-gradient(
+      115deg,
+      transparent 45%,
+      rgb(255 255 255 / 0.07) 47.5%,
+      rgb(255 255 255 / 0.16) 50%,
+      rgb(255 255 255 / 0.07) 52.5%,
+      transparent 55%
+    );
+    animation: glare-tap 0.9s ease-out forwards;
+  }
+  @keyframes glare-tap {
+    from { transform: translate3d(-25%, -13%, 0); }
+    to { transform: translate3d(25%, 13%, 0); }
   }
   @media (prefers-reduced-motion: reduce) {
     .glare {
@@ -631,6 +674,15 @@
     transition: opacity 0.25s ease-out;
     z-index: -1;
     pointer-events: none;
+  }
+  @media not ((hover: hover) and (pointer: fine)) {
+    .bglow:not(.sweep-active)::before,
+    .bglow:not(.sweep-active)::after,
+    .bglow:not(.sweep-active) > .bglow-edge,
+    .border-glow:not(.sweep-active)::before,
+    .border-glow:not(.sweep-active)::after {
+      opacity: 0;
+    }
   }
   .bglow:not(:hover):not(.sweep-active)::before,
   .bglow:not(:hover):not(.sweep-active)::after,
@@ -732,7 +784,7 @@
       0 0 50px 2px var(--glow-color-10);
   }
   /* conținutul stă deasupra straturilor de fundal */
-  .bglow > :not(.bglow-edge) {
+  .bglow > :not(.bglow-edge, .glare) {
     position: relative;
     z-index: 1;
   }
@@ -767,8 +819,8 @@
     z-index: -1;
     transition: opacity 0.25s ease-out;
   }
-  .border-glow:not(:hover)::before,
-  .border-glow:not(:hover)::after {
+  .border-glow:not(:hover):not(.sweep-active)::before,
+  .border-glow:not(:hover):not(.sweep-active)::after {
     opacity: 0;
     transition: opacity 0.7s ease-in-out;
   }

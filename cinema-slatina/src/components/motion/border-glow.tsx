@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { hasFinePointer, sweepGlow } from "@/components/motion/glow-card";
 
 /**
  * Conturul luminos care urmărește cursorul (adaptare după „Border Glow” din
@@ -11,7 +12,15 @@ import { useEffect } from "react";
  */
 export function BorderGlowTracker() {
   useEffect(() => {
-    if (window.matchMedia("(hover: none)").matches) return;
+    // Fără mouse (telefon, tabletă): lumina trece o dată, doar la atingere.
+    if (!hasFinePointer()) {
+      const onDown = (e: PointerEvent) => {
+        const target = e.target instanceof Element ? e.target.closest<HTMLElement>(".border-glow") : null;
+        if (target) sweepGlow(target);
+      };
+      document.addEventListener("pointerdown", onDown, { passive: true });
+      return () => document.removeEventListener("pointerdown", onDown);
+    }
 
     let frame = 0;
     let last: PointerEvent | null = null;

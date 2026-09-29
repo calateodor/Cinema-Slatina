@@ -94,7 +94,6 @@ export function MovieCard({
               3D
             </span>
           ) : null}
-          <Glare />
         </Link>
 
         <div className="flex flex-1 flex-col gap-2.5 p-3 pt-2 sm:p-4 sm:pt-2.5">
@@ -161,6 +160,8 @@ export function MovieCard({
             )}
           </div>
         </div>
+        {/* dunga de lucire trece peste tot cardul, după mouse */}
+        <Glare />
       </GlowCard>
     </article>
   );
