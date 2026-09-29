@@ -40,7 +40,7 @@ const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
  * filmului care urmează; în stânga și în dreapta, pe jumătate ascunse după
  * ecran, stau afișele filmului dinainte și ale celui de după. Un click pe un
  * afiș îl face să zboare pe ecran, unde se dizolvă în trailer. Pe telefon,
- * afișele laterale devin un carusel cu săgeți, imediat sub ecran.
+ * afișele laterale devin un carusel cu săgeți, sub sală.
  */
 export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
   const scope = useRef<HTMLElement>(null);
@@ -48,20 +48,26 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLUListElement>(null);
+  // `index` = filmul ales (afișele din laterale și caruselul se schimbă pe
+  // loc, la click); `screenIndex` = filmul de pe ecran, care se schimbă abia
+  // când afișul care zboară a acoperit ecranul.
   const [index, setIndex] = useState(0);
+  const [screenIndex, setScreenIndex] = useState(0);
+  // ultimul film ales; un click dat în timpul zborului câștigă la aterizare
+  const targetRef = useRef(0);
   const [muted, setMuted] = useState(true);
   const flyingRef = useRef(false);
 
   const count = items.length;
-  const active = items[index] ?? null;
+  const active = items[screenIndex] ?? null;
   const prev = count > 1 ? items[(index - 1 + count) % count] : null;
   const next = count > 1 ? items[(index + 1) % count] : null;
 
   /**
    * Afișul apăsat zboară pe ecran: o copie a lui pornește din locul unde a
    * fost apăsat, crește până acoperă ecranul și se dizolvă în noul film.
-   * Filmul se schimbă chiar la click (afișele din laterale se actualizează
-   * imediat); copia doar acoperă ecranul cât pornește noul trailer.
+   * Afișele din laterale se schimbă chiar la click; ecranul trece pe noul
+   * film abia când copia l-a acoperit.
    */
   const flyTo = useCallback(
     (source: HTMLElement | null, newIndex: number, tilt = 0) => {
@@ -74,7 +80,10 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
         flyingRef.current ||
         window.matchMedia(REDUCED_QUERY).matches
       ) {
+        targetRef.current = newIndex;
         setIndex(newIndex);
+        // în timpul unui zbor, ecranul se schimbă la aterizare
+        if (!flyingRef.current) setScreenIndex(newIndex);
         return;
       }
 
@@ -92,6 +101,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
       ghost.appendChild(img);
       document.body.appendChild(ghost);
       flyingRef.current = true;
+      targetRef.current = newIndex;
       setIndex(newIndex);
 
       gsap
@@ -109,6 +119,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
           rotate: 0,
           duration: 0.7,
           ease: "power3.inOut",
+          onComplete: () => setScreenIndex(targetRef.current),
         })
         .to(ghost, { opacity: 0, duration: 0.5, ease: "power2.out" }, "+=0.05");
     },
@@ -288,7 +299,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
           {active?.is3D ? (
             <span
               key={active.screeningId}
-              className="poster-type tilt-strong pointer-events-none absolute right-[3%] top-0 z-30 -translate-y-[62%] text-[clamp(1.4rem,6cqw,3.4rem)] animate-in fade-in zoom-in-75 duration-500 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:text-[clamp(1.4rem,4.2cqw,3.4rem)]"
+              className="poster-type tilt-strong pointer-events-none absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-[62%] text-[clamp(1.4rem,4.2cqw,3.4rem)] animate-in fade-in zoom-in-75 duration-500"
               aria-label="Proiecție 3D"
             >
               3D
@@ -332,13 +343,11 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
             />
           </div>
 
-          {/* Pe desktop, ca pe referință: titlul și ora pe același rând, în
-              stânga, butonul în dreapta, pe peretele dintre ecran și scaune.
-              Pe telefon titlul urcă deasupra ecranului, în stânga (sub ecran
-              stă caruselul), iar butonul coboară sub carusel. */}
+          {/* Ca pe referință: titlul și ora pe același rând, în stânga; butonul
+              în dreapta. Totul încape pe peretele dintre ecran și scaune. */}
           <div
             data-hero-caption
-            className="absolute bottom-full left-0 right-[18%] z-20 mb-[2.4cqw] flex items-end justify-between gap-[2.5cqw] lg:inset-x-[-4%] lg:bottom-auto lg:top-full lg:mb-0 lg:mt-[0.9cqw] lg:items-center"
+            className="absolute inset-x-[-4%] top-full z-20 mt-[0.9cqw] flex items-center justify-between gap-[2.5cqw]"
           >
             <div className="min-w-0 flex-1">
               {active ? (
@@ -346,11 +355,11 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
                   <h1 className="flex min-w-0 flex-wrap items-baseline gap-x-[1.6cqw] gap-y-0 drop-shadow-[0_4px_18px_rgba(0,0,0,0.85)]">
                     <Link
                       href={`/filme/${active.movie.slug}`}
-                      className="display min-w-0 text-[clamp(1.05rem,5.4cqw,1.6rem)] leading-[1] text-white transition-colors lg:text-[clamp(1rem,3.3cqw,2.7rem)] hover:text-brand-yellow motion-reduce:transition-none"
+                      className="display min-w-0 text-[clamp(1rem,3.3cqw,2.7rem)] leading-[1] text-white transition-colors hover:text-brand-yellow motion-reduce:transition-none"
                     >
                       {active.movie.title}
                     </Link>
-                    <span className="poster-type whitespace-nowrap text-[clamp(1.1rem,5.6cqw,1.7rem)] lg:text-[clamp(1.1rem,3.4cqw,2.8rem)]">
+                    <span className="poster-type whitespace-nowrap text-[clamp(1.1rem,3.4cqw,2.8rem)]">
                       {startsAt && !isToday(startsAt) ? (
                         <span className="ticket mr-[0.8cqw] align-middle text-[0.42em] tracking-[0.2em] text-white/85 [-webkit-text-stroke:0] [text-shadow:none]">
                           {dayTabLabel(startsAt).toUpperCase()}
@@ -359,7 +368,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
                       {startsAt ? formatTime(startsAt) : "—"}
                     </span>
                   </h1>
-                  <p className="mt-[0.8cqw] text-[clamp(0.7rem,3.1cqw,0.85rem)] text-white/75 lg:mt-[0.4cqw] lg:text-[clamp(0.6rem,1.25cqw,0.9rem)]">
+                  <p className="mt-[0.4cqw] text-[clamp(0.6rem,1.25cqw,0.9rem)] text-white/70">
                     {active.hall.name} · {active.is3D ? "3D" : "2D"} ·{" "}
                     {active.isDubbed ? "Dublat" : "Subtitrat"}
                     {active.movie.ageRating ? ` · ${active.movie.ageRating}` : ""}
@@ -370,14 +379,14 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
                   <h1 className="display text-[clamp(1rem,3.3cqw,2.7rem)] leading-[1] text-white">
                     Programul nu este încă stabilit
                   </h1>
-                  <p className="mt-[0.8cqw] text-[clamp(0.7rem,3.1cqw,0.85rem)] text-white/75 lg:mt-[0.4cqw] lg:text-[clamp(0.6rem,1.25cqw,0.9rem)]">
+                  <p className="mt-[0.4cqw] text-[clamp(0.6rem,1.25cqw,0.9rem)] text-white/70">
                     Filmele săptămânii apar aici imediat ce programul este publicat.
                   </p>
                 </>
               )}
             </div>
 
-            <div className="hidden shrink-0 flex-col items-center gap-[0.5cqw] lg:flex">
+            <div className="flex shrink-0 flex-col items-center gap-[0.5cqw]">
               <Button
                 asChild
                 className="glow-yellow h-auto rounded-[0.8cqw] bg-brand-yellow px-[2.2cqw] py-[0.9cqw] text-[clamp(0.75rem,1.6cqw,1.2rem)] font-semibold text-brand-ink hover:bg-brand-yellow-soft"
@@ -396,14 +405,13 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Pe telefon: caruselul cu filmele programului, imediat sub ecran.
-          Săgețile schimbă filmul de pe ecran, iar caruselul îl urmărește;
-          un afiș apăsat zboară direct pe ecran. */}
+      {/* Pe telefon: caruselul cu filmele programului, sub scaune. Săgețile
+          schimbă filmul de pe ecran, iar caruselul îl urmărește; un afiș
+          apăsat zboară direct pe ecran. */}
       {count > 1 ? (
-        <div className="relative z-10 -mt-[36vw] flex items-center gap-1.5 px-2 lg:hidden">
+        <div className="relative z-10 -mt-2 flex items-center gap-1.5 px-2 lg:hidden">
           <button
             type="button"
             onClick={() => go(-1)}
@@ -418,7 +426,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
             aria-label="Filmele din program"
           >
             {items.map((item, i) => (
-              <li key={item.screeningId} data-strip-index={i} className="w-[19vw] shrink-0 snap-center">
+              <li key={item.screeningId} data-strip-index={i} className="w-24 shrink-0 snap-center">
                 <button
                   type="button"
                   onClick={(e) => (i === index ? undefined : flyTo(e.currentTarget, i))}
@@ -426,7 +434,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
                   aria-label={`Arată ${item.movie.title} pe ecran`}
                   className="border-glow group relative block w-full rounded-lg text-left focus-visible:outline-none"
                 >
-                  <span className="poster-type absolute -top-3 left-0 z-10 -rotate-6 text-[4.6vw] leading-none">
+                  <span className="poster-type absolute -top-3 left-0 z-10 -rotate-6 text-lg leading-none">
                     {formatTime(new Date(item.startsAt))}
                   </span>
                   <MoviePoster
@@ -457,24 +465,6 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
         </div>
       ) : null}
 
-      {/* Pe telefon, sub carusel: butonul de rezervare. */}
-      <div
-        className={cn(
-          "relative z-10 flex flex-col items-center gap-1 px-4 lg:hidden",
-          count > 1 ? "mt-3" : "-mt-[34vw]",
-        )}
-      >
-        <Button
-          asChild
-          className="glow-yellow h-11 rounded-xl bg-brand-yellow px-6 text-base font-semibold text-brand-ink hover:bg-brand-yellow-soft"
-        >
-          <Link href={reserveHref} className="inline-flex items-center justify-center gap-2">
-            <Ticket className="size-4" aria-hidden="true" />
-            <span>{reserveLabel}</span>
-          </Link>
-        </Button>
-        <span className="text-xs text-white/70">Intrare gratuită</span>
-      </div>
     </section>
   );
 }
