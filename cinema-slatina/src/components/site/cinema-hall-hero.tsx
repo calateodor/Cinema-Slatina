@@ -40,7 +40,7 @@ const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
  * filmului care urmează; în stânga și în dreapta, pe jumătate ascunse după
  * ecran, stau afișele filmului dinainte și ale celui de după. Un click pe un
  * afiș îl face să zboare pe ecran, unde se dizolvă în trailer. Pe telefon,
- * afișele laterale devin un carusel pe jumătate ascuns sub ecran.
+ * afișele laterale devin un carusel cu săgeți, imediat sub ecran.
  */
 export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
   const scope = useRef<HTMLElement>(null);
@@ -59,8 +59,9 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
 
   /**
    * Afișul apăsat zboară pe ecran: o copie a lui pornește din locul unde a
-   * fost apăsat, crește până acoperă ecranul și se dizolvă în stop-cadrul
-   * noului film, care între timp a fost pus pe ecran.
+   * fost apăsat, crește până acoperă ecranul și se dizolvă în noul film.
+   * Filmul se schimbă chiar la click (afișele din laterale se actualizează
+   * imediat); copia doar acoperă ecranul cât pornește noul trailer.
    */
   const flyTo = useCallback(
     (source: HTMLElement | null, newIndex: number, tilt = 0) => {
@@ -79,17 +80,19 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
 
       const from = poster.getBoundingClientRect();
       const to = frame.getBoundingClientRect();
+      const src = poster.currentSrc || poster.src;
       const ghost = document.createElement("div");
       ghost.className =
         "pointer-events-none fixed z-[60] overflow-hidden rounded-lg shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)]";
       ghost.style.cssText = `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px;rotate:${tilt}deg;`;
       const img = document.createElement("img");
-      img.src = poster.currentSrc || poster.src;
+      img.src = src;
       img.alt = "";
       img.style.cssText = "width:100%;height:100%;object-fit:cover;display:block";
       ghost.appendChild(img);
       document.body.appendChild(ghost);
       flyingRef.current = true;
+      setIndex(newIndex);
 
       gsap
         .timeline({
@@ -106,7 +109,6 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
           rotate: 0,
           duration: 0.7,
           ease: "power3.inOut",
-          onComplete: () => setIndex(newIndex),
         })
         .to(ghost, { opacity: 0, duration: 0.5, ease: "power2.out" }, "+=0.05");
     },
@@ -395,50 +397,73 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
           </div>
         </div>
 
-        {/* Pe telefon: afișele celorlalte filme stau într-un carusel imediat
-            sub ecran, pe jumătate ascunse după el, ca afișele din laterală de
-            pe desktop. Ora e jos, pe partea care se vede. */}
-        {count > 1 ? (
+      </div>
+
+      {/* Pe telefon: caruselul cu filmele programului, imediat sub ecran.
+          Săgețile schimbă filmul de pe ecran, iar caruselul îl urmărește;
+          un afiș apăsat zboară direct pe ecran. */}
+      {count > 1 ? (
+        <div className="relative z-10 -mt-[36vw] flex items-center gap-1.5 px-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Filmul anterior"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-yellow text-brand-ink shadow-[0_6px_18px_-6px_rgba(255,222,89,0.8)] active:scale-95"
+          >
+            <ChevronLeft className="size-5" aria-hidden="true" />
+          </button>
           <ul
             ref={stripRef}
-            className="hall-strip absolute inset-x-0 z-10 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
+            className="flex min-w-0 flex-1 snap-x gap-2.5 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Filmele din program"
           >
             {items.map((item, i) => (
-              <li key={item.screeningId} data-strip-index={i} className="w-[23cqw] shrink-0 snap-center">
+              <li key={item.screeningId} data-strip-index={i} className="w-[19vw] shrink-0 snap-center">
                 <button
                   type="button"
                   onClick={(e) => (i === index ? undefined : flyTo(e.currentTarget, i))}
                   aria-pressed={i === index}
                   aria-label={`Arată ${item.movie.title} pe ecran`}
-                  className="border-glow group relative block w-full rounded-xl text-left focus-visible:outline-none"
+                  className="border-glow group relative block w-full rounded-lg text-left focus-visible:outline-none"
                 >
+                  <span className="poster-type absolute -top-3 left-0 z-10 -rotate-6 text-[4.6vw] leading-none">
+                    {formatTime(new Date(item.startsAt))}
+                  </span>
                   <MoviePoster
                     title={item.movie.title}
                     posterUrl={item.movie.posterUrl}
                     is3D={false}
-                    sizes="96px"
+                    sizes="80px"
                     className={cn(
-                      "transition-all duration-300 motion-reduce:transition-none",
+                      "rounded-lg transition-all duration-300 motion-reduce:transition-none",
                       i === index
                         ? "ring-2 ring-brand-yellow"
-                        : "opacity-75 group-focus-visible:ring-2 group-focus-visible:ring-brand-yellow",
+                        : "opacity-70 group-focus-visible:ring-2 group-focus-visible:ring-brand-yellow",
                     )}
                   />
-                  <span className="hall-strip-shade" aria-hidden="true" />
-                  <span className="poster-type absolute bottom-1 left-1.5 z-10 -rotate-6 text-[5.2cqw] leading-none">
-                    {formatTime(new Date(item.startsAt))}
-                  </span>
                   <Glare />
                 </button>
               </li>
             ))}
           </ul>
-        ) : null}
-      </div>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Filmul următor"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-yellow text-brand-ink shadow-[0_6px_18px_-6px_rgba(255,222,89,0.8)] active:scale-95"
+          >
+            <ChevronRight className="size-5" aria-hidden="true" />
+          </button>
+        </div>
+      ) : null}
 
       {/* Pe telefon, sub carusel: butonul de rezervare. */}
-      <div className="relative z-10 -mt-[17vw] flex flex-col items-center gap-1 px-4 lg:hidden">
+      <div
+        className={cn(
+          "relative z-10 flex flex-col items-center gap-1 px-4 lg:hidden",
+          count > 1 ? "mt-3" : "-mt-[34vw]",
+        )}
+      >
         <Button
           asChild
           className="glow-yellow h-11 rounded-xl bg-brand-yellow px-6 text-base font-semibold text-brand-ink hover:bg-brand-yellow-soft"

@@ -172,6 +172,12 @@
     @apply font-sans;
     -webkit-tap-highlight-color: transparent;
   }
+  /* pe telefon pagina nu trebuie să se poată trage stânga-dreapta: tot ce
+     iese pe laterale (lumini, fundaluri decorative) e tăiat, fără scroll */
+  html,
+  body {
+    overflow-x: clip;
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "ss01", "cv01";
@@ -311,8 +317,9 @@
     /* fundalul iese dincolo de grilă spre laterale (până la 6rem), dar nu
        trece niciodată de marginea ferestrei */
     inset: 0 max(-6rem, calc((100% - 100vw) / 2 + 0.5rem));
+    /* jos iese sub panou și se stinge într-un degradeu, fără muchie */
+    bottom: -6rem;
     z-index: -1;
-    border-radius: inherit;
     background:
       /* punctele de tipar ale afișului, abia vizibile */
       radial-gradient(rgb(90 30 0 / 0.14) 1px, transparent 1.6px) 0 0 / 11px 11px,
@@ -320,7 +327,6 @@
       linear-gradient(115deg, transparent 20%, rgb(255 240 190 / 0.18) 38%, transparent 55%),
       radial-gradient(80% 40% at 50% 12%, rgb(255 222 89 / 0.3) 0%, transparent 70%),
       linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
-    box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9);
     /* afișul lasă să se vadă sala și fundalul prin el */
     opacity: 0.3;
     /* elipsă ancorată jos: sus e transparent, iar colțurile de sus se topesc
@@ -328,12 +334,14 @@
        stânga și dreapta se topesc și ele, fără contur */
     mask-image:
       radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%),
-      linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
-    mask-composite: intersect;
+      linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+      linear-gradient(to bottom, #000 calc(100% - 16rem), transparent);
+    mask-composite: intersect, intersect;
     -webkit-mask-image:
       radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%),
-      linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
-    -webkit-mask-composite: source-in;
+      linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+      linear-gradient(to bottom, #000 calc(100% - 16rem), transparent);
+    -webkit-mask-composite: source-in, source-in;
   }
 
   /* Scena din prima pagină: sala reală, cu ecranul „viu” în ea. Poziția
@@ -920,20 +928,6 @@
   .hall-side-card:hover > .hall-side-shade,
   .hall-side-card:focus-visible > .hall-side-shade {
     opacity: 0;
-  }
-
-  /* Caruselul de pe telefon: pornește de sub marginea de jos a ecranului, așa
-     că jumătatea de sus a afișelor stă după pânză. */
-  .hall-strip {
-    top: calc(var(--sy-m) + var(--sh-m) - 17cqw);
-  }
-  .border-glow > .hall-strip-shade {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(to bottom, rgb(0 0 0 / 0.85) 46%, rgb(0 0 0 / 0.35) 62%, transparent 85%);
   }
 
   @media (prefers-reduced-motion: reduce) {
