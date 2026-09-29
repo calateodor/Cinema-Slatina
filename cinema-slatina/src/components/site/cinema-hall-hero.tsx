@@ -15,7 +15,6 @@ import { ChevronLeft, ChevronRight, Ticket } from "lucide-react";
 import { MoviePoster } from "@/components/site/movie-poster";
 import { YouTubeScreen } from "@/components/site/youtube-screen";
 import { ScreenSpill } from "@/components/site/projector-light";
-import { Aurora } from "@/components/motion/aurora";
 import { Button } from "@/components/ui/button";
 import { dayTabLabel, formatTime, isToday } from "@/lib/dates";
 import { youtubeId } from "@/lib/format";
@@ -253,11 +252,6 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
       className="relative lg:-mt-32"
       aria-label="Filmul de pe ecran"
     >
-      {/* Aurora iese de sub baza pozei: partea ei luminoasă stă sub gradientul
-          scurt cu care se topește sala. */}
-      {/* Poziția vine din proporția pozei: pe telefon sala are 108,4vw
-          înălțime, pe desktop 62,5vw; aurora începe puțin mai sus de bază. */}
-      <Aurora className="absolute inset-x-0 top-[97vw] z-0 h-[85vh] [mask-image:linear-gradient(to_bottom,transparent,#000_16%)] lg:top-[54vw] lg:h-[58vw]" />
       <div ref={sceneRef} className="hall-scene relative z-[1] w-full overflow-hidden" style={vars}>
         <Image
           src={scene.tall.src}

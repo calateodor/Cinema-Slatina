@@ -319,6 +319,8 @@
       radial-gradient(80% 40% at 50% 12%, rgb(255 222 89 / 0.3) 0%, transparent 70%),
       linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
     box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9);
+    /* afișul lasă să se vadă sala și fundalul prin el */
+    opacity: 0.62;
     /* elipsă ancorată jos: sus e transparent, iar colțurile de sus se topesc
        și spre laterale, fără muchii drepte peste scaune */
     mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 58%, transparent 82%);
