@@ -31,7 +31,7 @@ export default async function HomePage() {
       />
 
       <div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
-        <Section id="program" className="mt-6 sm:mt-10">
+        <Section id="program" className="relative z-10 mt-0 sm:mt-0 lg:-mt-[11vw]">
           <Reveal y={20}>
             <PosterGrid
               entries={grid.entries}

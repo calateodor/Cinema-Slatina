@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MoviePoster } from "@/components/site/movie-poster";
-import { ProgramBanner } from "@/components/site/program-banner";
 import { CINEMA } from "@/lib/constants";
 import { formatDayMonth } from "@/lib/dates";
 import type { GridEntry } from "@/server/queries";
@@ -14,16 +13,14 @@ type Props = {
 };
 
 /**
- * Programul săptămânii în forma afișului tipărit din Canva: panou portocaliu,
- * bannerul cinematografului sus, opt afișe pe patru coloane cu orele galbene
+ * Programul săptămânii în forma afișului tipărit din Canva: panou portocaliu
+ * care se ridică din întunericul sălii (sus e transparent), opt afișe pe patru coloane cu orele galbene
  * înclinate deasupra și marcajul 3D în colț, iar jos „INTRARE GRATUITĂ”,
  * telefonul, programul și data de început.
  */
 export function PosterGrid({ entries, published, weekStart, reservationsEnabled }: Props) {
   return (
-    <div className="poster-panel relative overflow-hidden rounded-[1.75rem] px-4 pb-8 pt-3 sm:rounded-[2.25rem] sm:px-8 sm:pb-12 sm:pt-5">
-      <ProgramBanner />
-
+    <div className="poster-panel relative rounded-b-[1.75rem] px-4 pb-8 pt-14 sm:rounded-b-[2.25rem] sm:px-8 sm:pb-12 sm:pt-24">
       {!published || entries.length === 0 ? (
         <div className="mx-auto my-10 max-w-xl text-center">
           <p className="display text-[clamp(1.4rem,4.5vw,2.4rem)] leading-tight text-white drop-shadow-[0_3px_0_rgba(28,19,5,0.5)]">

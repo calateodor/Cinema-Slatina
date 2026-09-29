@@ -265,14 +265,27 @@
   }
 
   /* Panoul portocaliu al programului, ca fundalul afișului din Canva. */
+  /* Panoul pornește transparent peste scaunele sălii și devine portocaliu
+     plin în jos (degradeu de opacitate 0 → 100%), ca afișul să iasă din
+     întunericul sălii. Culoarea stă pe ::before, ca masca să nu atingă
+     afișele și orele. */
   .poster-panel {
+    isolation: isolate;
+  }
+  .poster-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
     background:
-      radial-gradient(80% 60% at 50% 0%, rgb(255 222 89 / 0.28) 0%, transparent 70%),
+      radial-gradient(80% 40% at 50% 12%, rgb(255 222 89 / 0.25) 0%, transparent 70%),
       linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
-    box-shadow:
-      0 0 0 1px rgb(255 222 89 / 0.35),
-      0 0 120px -20px rgb(255 122 26 / 0.65),
-      0 40px 90px -40px rgb(0 0 0 / 0.9);
+    box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9);
+    /* elipsă ancorată jos: sus e transparent, iar colțurile de sus se topesc
+       și spre laterale, fără muchii drepte peste scaune */
+    mask-image: radial-gradient(ellipse 150% 115% at 50% 100%, #000 55%, transparent 87%);
+    -webkit-mask-image: radial-gradient(ellipse 150% 115% at 50% 100%, #000 55%, transparent 87%);
   }
 
   /* Scena din prima pagină: sala reală, cu ecranul „viu” în ea. Poziția

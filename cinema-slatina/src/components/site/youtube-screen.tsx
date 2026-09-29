@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Play, Volume2, VolumeX } from "lucide-react";
+import { Pause, Play, Volume1, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type YTPlayer = {
   loadVideoById: (id: string) => void;
   playVideo: () => void;
+  pauseVideo: () => void;
+  setVolume: (volume: number) => void;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   mute: () => void;
   unMute: () => void;
@@ -87,6 +89,13 @@ export function YouTubeScreen({
   // Dacă browserul blochează pornirea automată (de exemplu iPhone în modul de
   // economisire), după câteva secunde oferim un buton de pornire manuală.
   const [stalled, setStalled] = useState(false);
+  // Pauza pusă de vizitator, legată de videoclipul pe care a apăsat. La alt
+  // film, `paused` devine fals de la sine și trailerul nou pornește.
+  const [pausedId, setPausedId] = useState<string | null>(null);
+  const paused = videoId !== null && pausedId === videoId;
+  const pausedRef = useRef(false);
+  const [volume, setVolume] = useState(80);
+  const volumeRef = useRef(80);
 
   useEffect(() => {
     if (!videoId || playing) return;
@@ -135,6 +144,7 @@ export function YouTubeScreen({
           onReady: (e: YTEvent) => {
             e.target.unloadModule?.("captions");
             e.target.unloadModule?.("cc");
+            e.target.setVolume(volumeRef.current);
             if (mutedRef.current) e.target.mute();
             else e.target.unMute();
             e.target.playVideo();
@@ -150,10 +160,10 @@ export function YouTubeScreen({
               const id = currentIdRef.current;
               revealRef.current = window.setTimeout(() => setPlayingId(id), 2200);
             }
-            // Vizitatorul nu poate opri trailerul (ecranul nu primește clickuri);
-            // o pauză vine de la browser, de exemplu când fila e ascunsă. Cât
-            // stă oprit, acoperim interfața YouTube cu stop-cadrul filmului.
-            if (e.data === YT.PlayerState.PAUSED) setPlayingId(null);
+            // O pauză pusă de vizitator lasă cadrul filmului pe ecran; una venită
+            // de la browser (fila ascunsă) acoperă interfața YouTube cu
+            // stop-cadrul filmului.
+            if (e.data === YT.PlayerState.PAUSED && !pausedRef.current) setPlayingId(null);
             if (e.data === YT.PlayerState.ENDED) {
               e.target.seekTo(0, true);
               e.target.playVideo();
@@ -170,11 +180,41 @@ export function YouTubeScreen({
   // Când fila redevine vizibilă, trailerul repornește de unde a rămas.
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === "visible") playerRef.current?.playVideo();
+      if (document.visibilityState === "visible" && !pausedRef.current) {
+        playerRef.current?.playVideo();
+      }
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
+
+  // Un film nou pornește mereu, chiar dacă precedentul era pus pe pauză.
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
+
+  const togglePause = () => {
+    const player = playerRef.current;
+    if (!player || !videoId) return;
+    if (paused) {
+      setPausedId(null);
+      pausedRef.current = false;
+      player.playVideo();
+    } else {
+      setPausedId(videoId);
+      pausedRef.current = true;
+      player.pauseVideo();
+    }
+  };
+
+  const changeVolume = (value: number) => {
+    setVolume(value);
+    volumeRef.current = value;
+    playerRef.current?.setVolume(value);
+    // Tragerea cursorului înseamnă că vrei sunet: pornește-l dacă era oprit.
+    if (value > 0 && muted) onToggleMute();
+    if (value === 0 && !muted) onToggleMute();
+  };
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -248,19 +288,47 @@ export function YouTubeScreen({
       ) : null}
 
       {videoId ? (
-        <button
-          type="button"
-          onClick={onToggleMute}
-          aria-pressed={!muted}
-          aria-label={muted ? "Pornește sunetul trailerului" : "Oprește sunetul trailerului"}
-          className="absolute bottom-[3%] right-[2.5%] z-30 flex size-[clamp(2rem,5cqw,3rem)] items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-brand-yellow hover:text-brand-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-brand-yellow/60 motion-reduce:transition-none"
-        >
-          {muted ? (
-            <VolumeX className="size-[55%]" aria-hidden="true" />
-          ) : (
-            <Volume2 className="size-[55%]" aria-hidden="true" />
-          )}
-        </button>
+        // Comenzile: pauză, sunet și volum. Cursorul de volum se deschide la
+        // hover sau când primește focus de la tastatură.
+        <div className="group/controls absolute bottom-[3%] right-[2.5%] z-30 flex items-center gap-1 rounded-full bg-black/55 p-1 text-white backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={togglePause}
+            aria-label={paused ? "Pornește trailerul" : "Pune trailerul pe pauză"}
+            className="flex size-[clamp(1.9rem,4.4cqw,2.6rem)] items-center justify-center rounded-full transition-colors hover:bg-brand-yellow hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow motion-reduce:transition-none"
+          >
+            {paused ? (
+              <Play className="ml-[6%] size-[50%] fill-current" aria-hidden="true" />
+            ) : (
+              <Pause className="size-[50%] fill-current" aria-hidden="true" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={onToggleMute}
+            aria-pressed={!muted}
+            aria-label={muted ? "Pornește sunetul trailerului" : "Oprește sunetul trailerului"}
+            className="flex size-[clamp(1.9rem,4.4cqw,2.6rem)] items-center justify-center rounded-full transition-colors hover:bg-brand-yellow hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow motion-reduce:transition-none"
+          >
+            {muted || volume === 0 ? (
+              <VolumeX className="size-[55%]" aria-hidden="true" />
+            ) : volume < 50 ? (
+              <Volume1 className="size-[55%]" aria-hidden="true" />
+            ) : (
+              <Volume2 className="size-[55%]" aria-hidden="true" />
+            )}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={muted ? 0 : volume}
+            onChange={(e) => changeVolume(Number(e.target.value))}
+            aria-label="Volumul trailerului"
+            className="w-0 cursor-pointer accent-brand-yellow opacity-0 transition-[width,opacity,margin] duration-300 group-hover/controls:mr-2 group-hover/controls:w-[clamp(4rem,11cqw,7rem)] group-hover/controls:opacity-100 focus-visible:mr-2 focus-visible:w-[clamp(4rem,11cqw,7rem)] focus-visible:opacity-100 motion-reduce:transition-none"
+          />
+        </div>
       ) : (
         <p className="absolute bottom-[3%] right-[2.5%] z-30 rounded-full bg-black/55 px-3 py-1 text-[clamp(0.6rem,1.4cqw,0.8rem)] text-white/80">
           Trailerul nu este disponibil

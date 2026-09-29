@@ -338,7 +338,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
               în dreapta. Totul încape pe peretele dintre ecran și scaune. */}
           <div
             data-hero-caption
-            className="absolute inset-x-[-4%] top-full z-20 mt-[2cqw] flex items-center justify-between gap-[2.5cqw]"
+            className="absolute inset-x-[-4%] top-full z-20 mt-[0.9cqw] flex items-center justify-between gap-[2.5cqw]"
           >
             <div className="min-w-0 flex-1">
               {active ? (
@@ -382,9 +382,12 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
                 asChild
                 className="glow-yellow h-auto rounded-[0.8cqw] bg-brand-yellow px-[2.2cqw] py-[0.9cqw] text-[clamp(0.75rem,1.6cqw,1.2rem)] font-semibold text-brand-ink hover:bg-brand-yellow-soft"
               >
-                <Link href={reserveHref}>
-                  <Ticket data-icon="inline-start" className="hidden sm:inline" />
-                  {reserveLabel}
+                <Link
+                  href={reserveHref}
+                  className="inline-flex items-center justify-center gap-[0.5em] text-center"
+                >
+                  <Ticket className="hidden size-[1.15em] shrink-0 sm:block" aria-hidden="true" />
+                  <span>{reserveLabel}</span>
                 </Link>
               </Button>
               <span className="text-[clamp(0.55rem,1.2cqw,0.85rem)] text-white/75">
