@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarX2, Clock3, Star } from "lucide-react";
 import { MoviePoster } from "@/components/site/movie-poster";
 import { TrailerPlayer } from "@/components/site/trailer-player";
-import { ShowtimeCard } from "@/components/site/showtime-card";
+import { ScreeningTile } from "@/components/site/screening-tile";
 import { Reveal } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,7 +18,7 @@ import {
   getMovieBySlug,
   getUpcomingScreeningsForMovie,
 } from "@/server/queries";
-import { formatDayMonth, formatLongDate } from "@/lib/dates";
+import { formatDayMonth } from "@/lib/dates";
 
 export async function generateMetadata(
   props: PageProps<"/filme/[slug]">,
@@ -47,22 +47,14 @@ export default async function MoviePage(props: PageProps<"/filme/[slug]">) {
     areReservationsEnabled(),
   ]);
 
-  const byDay = new Map<string, typeof screenings>();
-  for (const s of screenings) {
-    const key = formatLongDate(new Date(s.startsAt));
-    const list = byDay.get(key) ?? [];
-    list.push(s);
-    byDay.set(key, list);
-  }
-
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-10">
       <Link
-        href="/filme"
+        href="/program"
         className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        Toate filmele
+        Programul săptămânii
       </Link>
 
       <Reveal y={16} className="grid gap-8 lg:grid-cols-[220px_1fr]">
@@ -187,24 +179,11 @@ export default async function MoviePage(props: PageProps<"/filme/[slug]">) {
             </EmptyHeader>
           </Empty>
         ) : (
-          <div className="flex flex-col gap-8">
-            {[...byDay.entries()].map(([day, list]) => (
-              <div key={day} className="flex flex-col gap-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {day}
-                </h3>
-                <div className="grid gap-3 lg:grid-cols-2">
-                  {list.map((s) => (
-                    <ShowtimeCard
-                      key={s.id}
-                      screening={s}
-                      reservationsEnabled={reservationsEnabled}
-                    />
-                  ))}
-                </div>
-              </div>
+          <Reveal cards className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {screenings.map((s) => (
+              <ScreeningTile key={s.id} screening={s} reservationsEnabled={reservationsEnabled} />
             ))}
-          </div>
+          </Reveal>
         )}
       </section>
     </div>

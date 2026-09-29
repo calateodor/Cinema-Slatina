@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "i.ytimg.com" },
     ],
   },
+  // Lista separată de filme dubla programul; fișele filmelor (/filme/[slug])
+  // rămân, iar vechiul link duce la program.
+  async redirects() {
+    return [{ source: "/filme", destination: "/program", permanent: false }];
+  },
 };
 
 export default nextConfig;

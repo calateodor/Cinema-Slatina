@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/program", label: "Program" },
-  { href: "/filme", label: "Filme" },
   { href: "/bar", label: "Bar" },
   { href: "/regulament", label: "Regulament" },
   { href: "/contact", label: "Contact" },

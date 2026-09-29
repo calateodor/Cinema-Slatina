@@ -68,7 +68,9 @@ export function SeatMeter({
         />
       </div>
 
-      {showExtra && capacity.extra > 0 ? (
+      {/* Scaunele mobile apar doar după ce s-au deblocat (sala plină); până
+          atunci „+20 blocate” doar ar încurca spectatorii. */}
+      {showExtra && capacity.extra > 0 && capacity.extraUnlocked ? (
         <Badge
           variant={capacity.extraUnlocked ? "brand" : "outline"}
           className={cn(
