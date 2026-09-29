@@ -545,8 +545,8 @@
       opacity 0.4s ease,
       filter 0.4s ease;
     filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.8));
-    /* pe jumătate transparente cât stau în așteptare; la hover vin în față */
-    opacity: 0.5;
+    /* semi-transparente cât stau în așteptare; la hover vin în față */
+    opacity: 0.65;
   }
   .hall-side-card:hover,
   .hall-side-card:focus-visible {

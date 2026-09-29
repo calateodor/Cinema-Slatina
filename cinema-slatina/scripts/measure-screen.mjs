@@ -1,13 +1,14 @@
 /**
- * Măsoară colțurile ecranului luminos dintr-o fotografie a sălii și le scrie
- * în procente, gata de pus în `src/lib/hall-scene.ts`.
+ * Măsoară colțurile pânzei din fotografia sălii și le scrie în procente,
+ * gata de pus în `src/lib/hall-scene.ts`.
  *
- *   node scripts/measure-screen.mjs public/hall/hall-wide.jpg
+ *   node scripts/measure-screen.mjs public/hall/sala-lat-v4.jpg
  *
- * Ecranul este singura suprafață mare, deschisă și neutră (nu caldă) din
- * imagine. Marginile stânga/dreapta se potrivesc cu câte o dreaptă prin
- * rândurile din mijlocul ecranului, ca perspectiva (trapezul) să fie prinsă
- * corect, iar colțurile rotunjite să nu strice măsurătoarea.
+ * Pânza e mult mai luminoasă decât pereții (salt de la ~30 la ~220 pe tonuri
+ * de gri). Pentru fiecare latură căutăm saltul pe câteva sute de linii din
+ * mijlocul ei (colțurile sunt rotunjite, deci le ocolim), potrivim o dreaptă
+ * prin puncte și calculăm colțurile ca intersecții ale celor patru drepte.
+ * Așa prindem și înclinarea fiecărei laturi, nu doar un dreptunghi.
  */
 import sharp from "sharp";
 
@@ -16,70 +17,99 @@ if (!file) {
   console.error("Dă calea imaginii: node scripts/measure-screen.mjs <imagine>");
   process.exit(1);
 }
+const T = Number(process.env.SCREEN_THRESHOLD ?? 130);
 
-const THRESHOLD = Number(process.env.SCREEN_THRESHOLD ?? 120);
+const { data, info } = await sharp(file).greyscale().raw().toBuffer({ resolveWithObject: true });
+const W = info.width;
+const H = info.height;
+const g = (x, y) => data[y * W + x];
+const cx = Math.round(W / 2);
+const cy = Math.round(H * 0.4);
 
-const image = sharp(file);
-const { width, height } = await image.metadata();
-const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
-const ch = info.channels;
+// Ne asigurăm că punctul de pornire e pe pânză.
+if (g(cx, cy) < T) {
+  console.error("Centrul ales nu e pe pânză; ajustează cy în script.");
+  process.exit(1);
+}
 
-const isScreen = (x, y) => {
-  const i = (y * width + x) * ch;
-  const r = data[i], g = data[i + 1], b = data[i + 2];
-  return r > THRESHOLD && g > THRESHOLD && b > THRESHOLD && Math.abs(r - b) < 60 && Math.abs(g - b) < 45;
+/** Din centru spre exterior, primul pixel sub prag (marginea pânzei). */
+function edgeAlong(x0, y0, dx, dy) {
+  let x = x0, y = y0;
+  while (x > 0 && y > 0 && x < W - 1 && y < H - 1 && g(x, y) >= T) {
+    x += dx;
+    y += dy;
+  }
+  // mijlocul tranziției, cu precizie de jumătate de pixel
+  return [x - dx / 2, y - dy / 2];
+}
+
+// Întinderea aproximativă a pânzei, ca să știm ce linii să eșantionăm.
+const left0 = edgeAlong(cx, cy, -1, 0)[0];
+const right0 = edgeAlong(cx, cy, 1, 0)[0];
+const top0 = edgeAlong(cx, cy, 0, -1)[1];
+const bottom0 = edgeAlong(cx, cy, 0, 1)[1];
+
+const span = (a, b) => {
+  const pad = (b - a) * 0.12; // ocolim colțurile rotunjite
+  const out = [];
+  for (let v = Math.ceil(a + pad); v <= Math.floor(b - pad); v++) out.push(v);
+  return out;
 };
 
-// Rândurile în care ecranul acoperă cel puțin 25% din lățime.
-const rowRuns = [];
-for (let y = 0; y < height; y++) {
-  let count = 0;
-  for (let x = 0; x < width; x++) if (isScreen(x, y)) count++;
-  rowRuns.push(count);
-}
-function longestRun(arr, threshold) {
-  let best = [0, -1], current = null;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] > threshold) {
-      if (!current) current = [i, i];
-      else current[1] = i;
-    } else {
-      if (current && current[1] - current[0] > best[1] - best[0]) best = current;
-      current = null;
-    }
-  }
-  if (current && current[1] - current[0] > best[1] - best[0]) best = current;
-  return best;
-}
-const [top, bottom] = longestRun(rowRuns, width * 0.25);
+const ys = span(top0, bottom0);
+const xs = span(left0, right0);
+const leftPts = ys.map((y) => [edgeAlong(cx, y, -1, 0)[0], y]);
+const rightPts = ys.map((y) => [edgeAlong(cx, y, 1, 0)[0], y]);
+const topPts = xs.map((x) => [x, edgeAlong(x, cy, 0, -1)[1]]);
+const bottomPts = xs.map((x) => [x, edgeAlong(x, cy, 0, 1)[1]]);
 
-// Marginile stânga/dreapta pe rândurile din mijlocul ecranului (evităm colțurile).
-const inset = Math.round((bottom - top) * 0.15);
-const lefts = [], rights = [];
-for (let y = top + inset; y <= bottom - inset; y++) {
-  let l = -1, r = -1;
-  for (let x = 0; x < width; x++) if (isScreen(x, y)) { l = x; break; }
-  for (let x = width - 1; x >= 0; x--) if (isScreen(x, y)) { r = x; break; }
-  if (l >= 0 && r >= 0) { lefts.push([y, l]); rights.push([y, r]); }
-}
-function fitLine(points) {
-  const n = points.length;
-  const my = points.reduce((s, p) => s + p[0], 0) / n;
-  const mx = points.reduce((s, p) => s + p[1], 0) / n;
+/** Regresie liniară; `vertical` = x în funcție de y. */
+function fit(points, vertical) {
+  const u = points.map((p) => (vertical ? p[1] : p[0]));
+  const v = points.map((p) => (vertical ? p[0] : p[1]));
+  const n = u.length;
+  const mu = u.reduce((s, a) => s + a, 0) / n;
+  const mv = v.reduce((s, a) => s + a, 0) / n;
   let num = 0, den = 0;
-  for (const [y, x] of points) { num += (y - my) * (x - mx); den += (y - my) ** 2; }
-  const slope = den === 0 ? 0 : num / den; // x = mx + slope * (y - my)
-  return (y) => mx + slope * (y - my);
+  for (let i = 0; i < n; i++) {
+    num += (u[i] - mu) * (v[i] - mv);
+    den += (u[i] - mu) ** 2;
+  }
+  const slope = den ? num / den : 0;
+  const residual = Math.max(...u.map((a, i) => Math.abs(mv + slope * (a - mu) - v[i])));
+  return { slope, intercept: mv - slope * mu, residual };
 }
-const leftAt = fitLine(lefts);
-const rightAt = fitLine(rights);
 
-const pct = (v, total) => +((v / total) * 100).toFixed(2);
-const quad = [
-  [pct(leftAt(top), width), pct(top, height)],
-  [pct(rightAt(top), width), pct(top, height)],
-  [pct(rightAt(bottom), width), pct(bottom, height)],
-  [pct(leftAt(bottom), width), pct(bottom, height)],
-];
+const L = fit(leftPts, true); // x = a*y + b
+const R = fit(rightPts, true);
+const Tp = fit(topPts, false); // y = a*x + b
+const B = fit(bottomPts, false);
 
-console.log(JSON.stringify({ width, height, top, bottom, quad }, null, 2));
+/** Intersecția dreptei verticale x=a*y+b cu cea orizontală y=c*x+d. */
+function meet(vert, hor) {
+  const y = (hor.slope * vert.intercept + hor.intercept) / (1 - hor.slope * vert.slope);
+  return [vert.slope * y + vert.intercept, y];
+}
+
+const corners = [meet(L, Tp), meet(R, Tp), meet(R, B), meet(L, B)];
+const pct = ([x, y]) => [+((x / W) * 100).toFixed(3), +((y / H) * 100).toFixed(3)];
+
+console.log(
+  JSON.stringify(
+    {
+      width: W,
+      height: H,
+      cornersPx: corners.map(([x, y]) => [+x.toFixed(1), +y.toFixed(1)]),
+      quad: corners.map(pct),
+      tiltDeg: {
+        left: +((Math.atan(L.slope) * 180) / Math.PI).toFixed(2),
+        right: +((Math.atan(R.slope) * 180) / Math.PI).toFixed(2),
+        top: +((Math.atan(Tp.slope) * 180) / Math.PI).toFixed(2),
+        bottom: +((Math.atan(B.slope) * 180) / Math.PI).toFixed(2),
+      },
+      maxResidualPx: +Math.max(L.residual, R.residual, Tp.residual, B.residual).toFixed(2),
+    },
+    null,
+    1,
+  ),
+);
