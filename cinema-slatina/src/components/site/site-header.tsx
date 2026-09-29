@@ -57,23 +57,16 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
       <div className="mx-auto flex h-24 w-full max-w-6xl items-center gap-3 px-4 sm:h-32 sm:gap-4 sm:px-6">
         <BrandLogo />
 
-        {/* Primăria, pe aceeași bară cu sigla și meniul. */}
-        <div className="flex items-center gap-2 border-l border-white/15 pl-3 sm:gap-2.5 sm:pl-4">
-          <Image
-            src="/brand/primaria-slatina.png"
-            alt="Stema Municipiului Slatina"
-            width={404}
-            height={600}
-            priority
-            className="h-10 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:h-14"
-          />
-          <p className="ticket text-[0.72rem] leading-[1.05] tracking-[0.14em] text-white/90 sm:text-[0.95rem]">
-            PRIMĂRIA MUNICIPIULUI
-            <span className="block text-[1.35em] tracking-[0.2em] text-brand-yellow">
-              SLATINA
-            </span>
-          </p>
-        </div>
+        {/* Numele cinematografului lângă siglă, ca la site-ul CSM: rândul mic
+            spațiat, dedesubt numele mare. */}
+        <Link href="/" className="hidden leading-none sm:block" tabIndex={-1}>
+          <span className="block text-[0.68rem] font-semibold tracking-[0.28em] text-brand-yellow">
+            CINEMA
+          </span>
+          <span className="display mt-1 block whitespace-nowrap text-[1.2rem] tracking-[0.04em] text-white">
+            EUGEN IONESCU
+          </span>
+        </Link>
 
         <div className="ml-auto flex flex-col items-end gap-1">
           <p className="ticket hidden text-sm tracking-[0.2em] text-brand-yellow xl:block">
@@ -89,7 +82,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
+                  "relative whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors",
                   active
                     ? "text-brand-yellow"
                     : "text-muted-foreground hover:text-foreground",
@@ -97,7 +90,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
               >
                 {item.label}
                 {active ? (
-                  <span className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-brand-yellow" />
+                  <span className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-brand-yellow" />
                 ) : null}
               </Link>
             );
@@ -118,14 +111,14 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
 
           <Link
             href={accountHref}
-            className="hidden items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-left transition-colors hover:border-brand-yellow/40 hover:bg-secondary xl:flex"
+            className="hidden items-center gap-2 whitespace-nowrap rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-left transition-colors hover:border-brand-yellow/40 hover:bg-secondary xl:flex"
           >
             <UserRound className="size-4 text-muted-foreground" />
             <span className="leading-tight">
               <span className="block text-xs font-semibold">
                 {user ? user.fullName : "Autentificare"}
               </span>
-              <span className="block text-[0.68rem] text-muted-foreground">
+              <span className="hidden text-[0.68rem] text-muted-foreground 2xl:block">
                 {user
                   ? user.role === "ADMIN"
                     ? "Administrare"
@@ -135,6 +128,26 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
             </span>
             <ChevronRight className="size-3.5 text-muted-foreground" />
           </Link>
+
+          {/* „Cred în Slatina” și stema Primăriei, în capătul barei, ca la CSM. */}
+          <div className="flex items-center gap-1.5 sm:gap-2 xl:ml-2">
+            <Image
+              src="/brand/cred-in-slatina.png"
+              alt="Cred în Slatina"
+              width={462}
+              height={503}
+              priority
+              className="h-9 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:h-11"
+            />
+            <Image
+              src="/brand/primaria-slatina.png"
+              alt="Stema Municipiului Slatina"
+              width={404}
+              height={600}
+              priority
+              className="h-9 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:h-11"
+            />
+          </div>
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

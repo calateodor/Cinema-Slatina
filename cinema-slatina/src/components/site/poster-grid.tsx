@@ -46,7 +46,7 @@ export function PosterGrid({ entries, published, weekStart, reservationsEnabled 
       ) : (
         <Reveal
           as="ul"
-          stagger
+          cards
           className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-4"
         >
           {entries.map((entry) => (

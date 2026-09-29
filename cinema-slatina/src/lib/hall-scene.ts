@@ -38,13 +38,15 @@ export const HALL_SCENE: HallScene = {
     ],
   },
   tall: {
-    // decupaj 1417×1536, servit la 1100×1192
-    src: "/hall/sala-inalt-v4.jpg",
+    // decupajul 1417×1536 apropiat cu 10% (1288×1396, centrat pe orizontală,
+    // lipit sus), servit la 1100×1192; colțurile sunt cele măsurate pe
+    // decupajul întreg, recalculate pentru noul cadru
+    src: "/hall/sala-inalt-v5.jpg",
     screen: [
-      [6.848, 14.88],
-      [93.029, 15.508],
-      [90.79, 57.289],
-      [8.421, 56.736],
+      [2.487, 16.372],
+      [97.3, 17.063],
+      [94.837, 63.034],
+      [4.218, 62.426],
     ],
   },
 };

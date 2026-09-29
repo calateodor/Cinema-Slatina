@@ -14,7 +14,7 @@ import { useEffect, useRef } from "react";
    un singur `transform`, ca telefonul să nu se sufoce.
 --------------------------------------------------------------------------- */
 
-const KEY = "cinema_cred_pozitie";
+const KEY = "cinema_cred_pozitie_v2";
 const MARGIN = 10;
 /** Frecare: cât din viteză rămâne după o secundă de alunecare. */
 const GLIDE = 0.16;
@@ -82,12 +82,9 @@ export function CredFloat() {
       if (raw && typeof raw.x === "number" && typeof raw.y === "number") {
         x = raw.x * window.innerWidth;
         y = raw.y * window.innerHeight;
-      } else if (window.innerWidth >= 1280) {
-        // pe desktop pornește sus, în dreapta barei, lângă „Intrare gratuită”
-        x = maxX();
-        y = 30;
       } else {
-        // pe telefon, în colțul din dreapta-jos, ca să nu stea peste meniu
+        // pornește în colțul din dreapta-jos: sus, în bară, stau deja
+        // „Cred în Slatina” și stema, iar pe telefon nu acoperă meniul
         x = maxX();
         y = maxY() - Math.min(40, maxY() * 0.06);
       }

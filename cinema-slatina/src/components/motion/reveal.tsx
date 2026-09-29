@@ -17,6 +17,12 @@ type Props = {
   delay?: number;
   /** Distanța de pornire, pe verticală. */
   y?: number;
+  /**
+   * Pentru grilele de carduri: fiecare card apare abia când ajunge el în
+   * ecran (rândurile de jos așteaptă derularea), iar cardurile care intră
+   * împreună vin pe rând, de jos, cu o ușoară creștere și îndreptare.
+   */
+  cards?: boolean;
 };
 
 /**
@@ -34,6 +40,7 @@ export function Reveal({
   stagger = false,
   delay = 0,
   y = 24,
+  cards = false,
 }: Props) {
   const scope = useRef<HTMLElement>(null);
 
@@ -44,6 +51,29 @@ export function Reveal({
       media.add("(prefers-reduced-motion: no-preference)", () => {
         const root = scope.current;
         if (!root) return;
+
+        if (cards) {
+          const items = Array.from(root.children) as HTMLElement[];
+          if (items.length === 0) return;
+          gsap.set(items, { opacity: 0, y: 70, scale: 0.92, rotate: -1.5, transformOrigin: "50% 100%" });
+          ScrollTrigger.batch(items, {
+            start: "top 92%",
+            once: true,
+            onEnter: (batch) =>
+              gsap.to(batch, {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                rotate: 0,
+                duration: 0.9,
+                ease: "power3.out",
+                stagger: 0.1,
+                overwrite: true,
+                clearProps: "transform",
+              }),
+          });
+          return;
+        }
 
         const targets = stagger
           ? (Array.from(root.children) as HTMLElement[])
