@@ -77,7 +77,11 @@ export function YouTubeScreen({
   onToggleMute,
   className,
 }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const mountRef = useRef<HTMLDivElement>(null);
+  // Ecranul a ieșit din pagină la derulare: trailerul stă pe pauză, ca
+  // telefonul să nu mai decodeze video cât derulezi prin program.
+  const offscreenRef = useRef(false);
   const playerRef = useRef<YTPlayer | null>(null);
   const mutedRef = useRef(muted);
   const currentIdRef = useRef<string | null>(null);
@@ -147,7 +151,7 @@ export function YouTubeScreen({
             e.target.setVolume(volumeRef.current);
             if (mutedRef.current) e.target.mute();
             else e.target.unMute();
-            e.target.playVideo();
+            if (!offscreenRef.current) e.target.playVideo();
           },
           onStateChange: (e: YTEvent) => {
             // YouTube arată titlul și iconița de play câteva secunde la pornire,
@@ -163,6 +167,8 @@ export function YouTubeScreen({
             // O pauză pusă de vizitator lasă cadrul filmului pe ecran; una venită
             // de la browser (fila ascunsă) acoperă interfața YouTube cu
             // stop-cadrul filmului.
+            // (și pauza de când ecranul iese din pagină: la revenire, YouTube
+            // arată o clipă iconița lui de pauză, pe care o acoperim tot așa)
             if (e.data === YT.PlayerState.PAUSED && !pausedRef.current) setPlayingId(null);
             if (e.data === YT.PlayerState.ENDED) {
               e.target.seekTo(0, true);
@@ -180,12 +186,29 @@ export function YouTubeScreen({
   // Când fila redevine vizibilă, trailerul repornește de unde a rămas.
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === "visible" && !pausedRef.current) {
+      if (document.visibilityState === "visible" && !pausedRef.current && !offscreenRef.current) {
         playerRef.current?.playVideo();
       }
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
+  // Cât ecranul nu se vede, trailerul stă pe pauză; revine când te întorci.
+  useEffect(() => {
+    // urmărim secțiunea sălii, nu playerul: playerul e deformat în 3D pe
+    // colțurile ecranului, iar pentru asta intersecția nu e de încredere
+    const root = rootRef.current?.closest("section") ?? rootRef.current;
+    if (!root) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      offscreenRef.current = !entry.isIntersecting;
+      const player = playerRef.current;
+      if (!player || pausedRef.current) return;
+      if (entry.isIntersecting) player.playVideo();
+      else player.pauseVideo();
+    });
+    observer.observe(root);
+    return () => observer.disconnect();
   }, []);
 
   // Un film nou pornește mereu, chiar dacă precedentul era pus pe pauză.
@@ -234,7 +257,7 @@ export function YouTubeScreen({
   );
 
   return (
-    <div className={cn("relative h-full w-full overflow-hidden bg-black", className)}>
+    <div ref={rootRef} className={cn("relative h-full w-full overflow-hidden bg-black", className)}>
       {/* Imaginea proiectată (trailerul și stop-cadrul). Stilul de „proiecție”
           (transparență, moliciune) îl primește din exterior, prin clasa
           `projection-media`; butonul de sunet rămâne clar, deasupra. */}

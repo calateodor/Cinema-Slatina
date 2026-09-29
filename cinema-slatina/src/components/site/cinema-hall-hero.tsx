@@ -11,7 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { ChevronLeft, ChevronRight, Ticket } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Ticket } from "lucide-react";
 import { MoviePoster } from "@/components/site/movie-poster";
 import { YouTubeScreen } from "@/components/site/youtube-screen";
 import { ScreenSpill } from "@/components/site/projector-light";
@@ -56,7 +56,18 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
   // ultimul film ales; un click dat în timpul zborului câștigă la aterizare
   const targetRef = useRef(0);
   const [muted, setMuted] = useState(true);
+  // săgeata „derulează” dispare după primul scroll
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const flyingRef = useRef(false);
+  // copia a ajuns pe ecran și doar se mai estompează
+  const landedRef = useRef(false);
 
   const count = items.length;
   const active = items[screenIndex] ?? null;
@@ -82,8 +93,9 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
       ) {
         targetRef.current = newIndex;
         setIndex(newIndex);
-        // în timpul unui zbor, ecranul se schimbă la aterizare
-        if (!flyingRef.current) setScreenIndex(newIndex);
+        // în timpul zborului ecranul se schimbă la aterizare; dacă a aterizat
+        // deja (copia doar se estompează), se schimbă pe loc
+        if (!flyingRef.current || landedRef.current) setScreenIndex(newIndex);
         return;
       }
 
@@ -101,6 +113,7 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
       ghost.appendChild(img);
       document.body.appendChild(ghost);
       flyingRef.current = true;
+      landedRef.current = false;
       targetRef.current = newIndex;
       setIndex(newIndex);
 
@@ -109,6 +122,9 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
           onComplete: () => {
             ghost.remove();
             flyingRef.current = false;
+            landedRef.current = false;
+            // ecranul arată mereu ultimul film ales în carusel
+            setScreenIndex(targetRef.current);
           },
         })
         .to(ghost, {
@@ -119,7 +135,10 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
           rotate: 0,
           duration: 0.7,
           ease: "power3.inOut",
-          onComplete: () => setScreenIndex(targetRef.current),
+          onComplete: () => {
+            landedRef.current = true;
+            setScreenIndex(targetRef.current);
+          },
         })
         .to(ghost, { opacity: 0, duration: 0.5, ease: "power2.out" }, "+=0.05");
     },
@@ -465,6 +484,26 @@ export function CinemaHallHero({ items, scene, reservationsEnabled }: Props) {
         </div>
       ) : null}
 
+
+      {/* Săgeata care te îndeamnă să derulezi spre program: pe telefon sub
+          carusel, pe desktop peste scaune, deasupra titlului programului. */}
+      <a
+        href="#program"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("program")?.scrollIntoView({ behavior: "smooth" });
+        }}
+        aria-label="Vezi programul săptămânii"
+        className={cn(
+          "scroll-cue relative z-20 mx-auto mt-3 flex w-fit flex-col items-center gap-0.5 text-brand-yellow transition-opacity duration-500 lg:absolute lg:bottom-[13vw] lg:left-1/2 lg:mt-0 lg:-translate-x-1/2",
+          scrolled && "pointer-events-none opacity-0",
+        )}
+      >
+        <span className="ticket text-[0.7rem] tracking-[0.3em] text-white/80">PROGRAMUL</span>
+        <span className="scroll-cue-arrow flex size-9 items-center justify-center rounded-full bg-brand-yellow text-brand-ink shadow-[0_6px_22px_-6px_rgba(255,222,89,0.9)]">
+          <ChevronDown className="size-5" aria-hidden="true" />
+        </span>
+      </a>
     </section>
   );
 }

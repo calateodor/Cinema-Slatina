@@ -50,7 +50,8 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
       className={cn(
         "sticky top-0 z-50 border-b transition-colors duration-300",
         scrolled
-          ? "border-border bg-background/85 backdrop-blur-xl"
+          ? // pe telefon fundal plin: blur-ul peste pagina care derulează e scump
+            "border-border bg-background/95 lg:bg-background/85 lg:backdrop-blur-xl"
           : "border-transparent bg-transparent",
       )}
     >
@@ -100,12 +101,11 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
         <div className="flex items-center gap-2 xl:ml-2">
           <Button
             asChild
-            className="glow-yellow rounded-full bg-primary px-4 font-semibold text-primary-foreground hover:bg-brand-yellow-soft sm:px-5"
+            className="glow-yellow rounded-full bg-primary px-3 font-semibold text-primary-foreground hover:bg-brand-yellow-soft sm:px-5"
           >
             <Link href="/program">
               <Ticket data-icon="inline-start" />
-              <span className="hidden sm:inline">Rezervă gratuit</span>
-              <span className="sr-only sm:hidden">Rezervă</span>
+              Rezervă gratuit
             </Link>
           </Button>
 

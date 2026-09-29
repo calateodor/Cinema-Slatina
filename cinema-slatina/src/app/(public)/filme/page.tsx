@@ -67,7 +67,7 @@ export default async function MoviesPage() {
                   )}
                   <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#101014] via-[#101014]/50 to-transparent" />
                   {movie.ageRating ? (
-                    <span className="absolute right-2 top-2 rounded-md bg-black/65 px-1.5 py-0.5 text-[0.68rem] font-semibold text-white backdrop-blur-sm">
+                    <span className="absolute right-2 top-2 rounded-md bg-black/75 px-1.5 py-0.5 text-[0.68rem] font-semibold text-white">
                       {movie.ageRating}
                     </span>
                   ) : null}

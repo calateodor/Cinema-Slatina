@@ -55,7 +55,7 @@ export function MovieCard({
   return (
     <article className={cn("movie-card group relative pt-5 sm:pt-6", dimmed && "opacity-55", className)}>
       {/* Orele, peste marginea de sus a cardului. */}
-      <div className="pointer-events-none absolute left-2 top-0 z-20 flex -rotate-6 flex-wrap gap-x-2">
+      <div data-reveal-pop className="pointer-events-none absolute left-2 top-0 z-20 flex -rotate-6 flex-wrap gap-x-2">
         {times.map((time) => (
           <span key={time} className="poster-type text-[clamp(1.55rem,4.4vw,2.35rem)] leading-none">
             {time}
@@ -85,7 +85,7 @@ export function MovieCard({
           {/* gradientul de jos leagă posterul de text */}
           <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#101014] via-[#101014]/55 to-transparent" />
           {ageRating ? (
-            <span className="absolute right-2.5 top-2.5 rounded-md bg-black/65 px-1.5 py-0.5 text-[0.68rem] font-semibold tracking-wide text-white backdrop-blur-sm">
+            <span className="absolute right-2.5 top-2.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[0.68rem] font-semibold tracking-wide text-white">
               {ageRating}
             </span>
           ) : null}

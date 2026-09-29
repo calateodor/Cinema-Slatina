@@ -4,9 +4,11 @@ import { useRef, type ElementType, type ReactNode } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { cn } from "@/lib/utils";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+// Pe telefon bara de adresă apare/dispare la derulare și schimbă înălțimea
+// ferestrei; fără asta, ScrollTrigger ar recalcula tot la fiecare schimbare.
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 type Props = {
   children: ReactNode;
@@ -55,22 +57,49 @@ export function Reveal({
         if (cards) {
           const items = Array.from(root.children) as HTMLElement[];
           if (items.length === 0) return;
-          gsap.set(items, { opacity: 0, y: 70, scale: 0.92, rotate: -1.5, transformOrigin: "50% 100%" });
+          // Apariția „de afiș”: fiecare card se descoperă de jos în sus, ca o
+          // cortină care se ridică (clip-path), urcând puțin; posterul din el
+          // coboară din zoom mai lent decât rama (parallax), iar orele sar la
+          // urmă peste marginea de sus. Marginile negative ale decupajului lasă
+          // loc orelor și halo-ului, care ies din card.
+          const hidden = "inset(100% -12% -12% -12% round 1.1rem)";
+          const shown = "inset(-30% -12% -12% -12% round 1.1rem)";
+          gsap.set(items, { clipPath: hidden, y: 56 });
+          items.forEach((item) => {
+            gsap.set(item.querySelectorAll("img"), { scale: 1.28, yPercent: 6 });
+            gsap.set(item.querySelectorAll("[data-reveal-pop]"), { opacity: 0, y: 18, scale: 0.7 });
+          });
           ScrollTrigger.batch(items, {
-            start: "top 92%",
+            start: "top 94%",
             once: true,
-            onEnter: (batch) =>
-              gsap.to(batch, {
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                rotate: 0,
-                duration: 0.9,
-                ease: "power3.out",
-                stagger: 0.1,
-                overwrite: true,
-                clearProps: "transform",
-              }),
+            onEnter: (batch) => {
+              const tl = gsap.timeline();
+              (batch as HTMLElement[]).forEach((item, i) => {
+                const at = i * 0.12;
+                tl.to(
+                  item,
+                  {
+                    clipPath: shown,
+                    y: 0,
+                    duration: 1.15,
+                    ease: "expo.out",
+                    force3D: true,
+                    clearProps: "clipPath,transform",
+                  },
+                  at,
+                )
+                  .to(
+                    item.querySelectorAll("img"),
+                    { scale: 1, yPercent: 0, duration: 1.5, ease: "expo.out", clearProps: "transform" },
+                    at,
+                  )
+                  .to(
+                    item.querySelectorAll("[data-reveal-pop]"),
+                    { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "back.out(2.4)", clearProps: "transform" },
+                    at + 0.38,
+                  );
+              });
+            },
           });
           return;
         }
@@ -102,7 +131,7 @@ export function Reveal({
   );
 
   return (
-    <Tag ref={scope} className={cn("[&>*]:will-change-transform", className)}>
+    <Tag ref={scope} className={className}>
       {children}
     </Tag>
   );
