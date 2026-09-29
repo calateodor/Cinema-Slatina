@@ -240,10 +240,43 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    overflow: hidden;
     background:
-      radial-gradient(55% 40% at 12% -5%, rgb(255 122 26 / 0.22) 0%, transparent 65%),
-      radial-gradient(45% 35% at 92% 18%, rgb(255 222 89 / 0.12) 0%, transparent 65%),
-      radial-gradient(60% 40% at 50% 110%, rgb(232 93 4 / 0.16) 0%, transparent 65%);
+      radial-gradient(120% 80% at 50% -20%, rgb(40 28 10 / 0.9) 0%, transparent 60%),
+      #0a0a0b;
+  }
+  /* Luminile calde ale sălii: două pete mari, galbenă și portocalie, care
+     plutesc lent (doar transform, pe compozitor). */
+  .glow-backdrop::before {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    background:
+      radial-gradient(28% 22% at 22% 18%, rgb(255 122 26 / 0.26) 0%, transparent 70%),
+      radial-gradient(24% 20% at 80% 30%, rgb(255 222 89 / 0.16) 0%, transparent 70%),
+      radial-gradient(30% 24% at 60% 85%, rgb(232 93 4 / 0.18) 0%, transparent 70%),
+      radial-gradient(22% 18% at 15% 75%, rgb(255 222 89 / 0.08) 0%, transparent 70%);
+    animation: backdrop-drift 38s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+  /* Grăuntele de peliculă peste tot fundalul. */
+  .glow-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  @keyframes backdrop-drift {
+    0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+    50% { transform: translate3d(4%, -3%, 0) rotate(4deg) scale(1.06); }
+    100% { transform: translate3d(-3%, 4%, 0) rotate(-3deg) scale(1.02); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glow-backdrop::before {
+      animation: none;
+    }
   }
   .glow-card {
     box-shadow:
@@ -279,13 +312,17 @@
     z-index: -1;
     border-radius: inherit;
     background:
-      radial-gradient(80% 40% at 50% 12%, rgb(255 222 89 / 0.25) 0%, transparent 70%),
+      /* punctele de tipar ale afișului, abia vizibile */
+      radial-gradient(rgb(90 30 0 / 0.14) 1px, transparent 1.6px) 0 0 / 11px 11px,
+      /* luciul diagonal al hârtiei */
+      linear-gradient(115deg, transparent 20%, rgb(255 240 190 / 0.18) 38%, transparent 55%),
+      radial-gradient(80% 40% at 50% 12%, rgb(255 222 89 / 0.3) 0%, transparent 70%),
       linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
     box-shadow: 0 40px 90px -40px rgb(0 0 0 / 0.9);
     /* elipsă ancorată jos: sus e transparent, iar colțurile de sus se topesc
        și spre laterale, fără muchii drepte peste scaune */
-    mask-image: radial-gradient(ellipse 150% 115% at 50% 100%, #000 55%, transparent 87%);
-    -webkit-mask-image: radial-gradient(ellipse 150% 115% at 50% 100%, #000 55%, transparent 87%);
+    mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 66%, transparent 89%);
+    -webkit-mask-image: radial-gradient(ellipse 150% 118% at 50% 100%, #000 66%, transparent 89%);
   }
 
   /* Scena din prima pagină: sala reală, cu ecranul „viu” în ea. Poziția
@@ -477,6 +514,174 @@
     .cred-float.lovita-y .cred-spin {
       animation: none;
     }
+  }
+
+  /* Ecoul titlului din antetul paginilor: doar contur galben, foarte stins. */
+  .page-header-echo {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255 222 89 / 0.13);
+    mask-image: linear-gradient(to right, #000 30%, transparent 90%);
+  }
+
+  /* Cardurile de film: ridicare ușoară la hover și luciul de pe buton. */
+  .movie-card {
+    transition: translate 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (hover: hover) {
+    .movie-card:hover {
+      translate: 0 -6px;
+    }
+    .movie-card:hover .movie-card-shine {
+      animation: card-shine 0.9s ease-out;
+    }
+  }
+  .movie-card-shine {
+    opacity: 0;
+  }
+  @keyframes card-shine {
+    0% { opacity: 0; left: -50%; }
+    20% { opacity: 1; }
+    100% { opacity: 0; left: 130%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .movie-card,
+    .movie-card:hover {
+      transition: none;
+      translate: none;
+    }
+    .movie-card:hover .movie-card-shine {
+      animation: none;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Border Glow — port fidel după react-bits, pentru <GlowCard>.
+     Variabilele de culoare vin din componentă; aici e doar geometria.
+  ------------------------------------------------------------------ */
+  .bglow {
+    --edge-proximity: 0;
+    --cursor-angle: 45deg;
+    --edge-sensitivity: 30;
+    --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+    --glow-padding: 40px;
+    --cone-spread: 25;
+    position: relative;
+    border-radius: var(--radius-2xl);
+    isolation: isolate;
+    transform: translate3d(0, 0, 0.01px);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background: var(--card-bg, #131316);
+    overflow: visible;
+    box-shadow:
+      rgb(0 0 0 / 0.1) 0 1px 2px,
+      rgb(0 0 0 / 0.1) 0 2px 4px,
+      rgb(0 0 0 / 0.1) 0 4px 8px,
+      rgb(0 0 0 / 0.1) 0 8px 16px,
+      rgb(0 0 0 / 0.1) 0 16px 32px,
+      rgb(0 0 0 / 0.1) 0 32px 64px;
+  }
+  .bglow::before,
+  .bglow::after,
+  .bglow > .bglow-edge {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transition: opacity 0.25s ease-out;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .bglow:not(:hover):not(.sweep-active)::before,
+  .bglow:not(:hover):not(.sweep-active)::after,
+  .bglow:not(:hover):not(.sweep-active) > .bglow-edge {
+    opacity: 0;
+    transition: opacity 0.75s ease-in-out;
+  }
+  /* marginea colorată, într-un con spre cursor */
+  .bglow::before {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--card-bg, #131316) 0 100%) padding-box,
+      linear-gradient(rgb(255 255 255 / 0%) 0% 100%) border-box,
+      var(--gradient-one) border-box,
+      var(--gradient-two) border-box,
+      var(--gradient-three) border-box,
+      var(--gradient-four) border-box,
+      var(--gradient-five) border-box,
+      var(--gradient-six) border-box,
+      var(--gradient-seven) border-box,
+      var(--gradient-base) border-box;
+    opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+    mask-image: conic-gradient(
+      from var(--cursor-angle) at center,
+      black calc(var(--cone-spread) * 1%),
+      transparent calc((var(--cone-spread) + 15) * 1%),
+      transparent calc((100 - var(--cone-spread) - 15) * 1%),
+      black calc((100 - var(--cone-spread)) * 1%)
+    );
+  }
+  /* aceeași plasă, estompată, pe interiorul de lângă margine */
+  .bglow::after {
+    border: 1px solid transparent;
+    background:
+      var(--gradient-one) padding-box,
+      var(--gradient-two) padding-box,
+      var(--gradient-three) padding-box,
+      var(--gradient-four) padding-box,
+      var(--gradient-five) padding-box,
+      var(--gradient-six) padding-box,
+      var(--gradient-seven) padding-box,
+      var(--gradient-base) padding-box;
+    mask-image:
+      linear-gradient(to bottom, black, black),
+      radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
+      radial-gradient(ellipse at 66% 66%, black 5%, transparent 40%),
+      radial-gradient(ellipse at 33% 33%, black 5%, transparent 40%),
+      radial-gradient(ellipse at 66% 33%, black 5%, transparent 40%),
+      radial-gradient(ellipse at 33% 66%, black 5%, transparent 40%),
+      conic-gradient(from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%);
+    mask-composite: subtract, add, add, add, add, add;
+    opacity: calc(var(--fill-opacity, 0.5) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+    mix-blend-mode: soft-light;
+  }
+  /* halo-ul luminos din afara cardului */
+  .bglow > .bglow-edge {
+    inset: calc(var(--glow-padding) * -1);
+    z-index: 1;
+    mask-image: conic-gradient(
+      from var(--cursor-angle) at center,
+      black 2.5%,
+      transparent 10%,
+      transparent 90%,
+      black 97.5%
+    );
+    opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+    mix-blend-mode: plus-lighter;
+  }
+  .bglow > .bglow-edge::before {
+    content: "";
+    position: absolute;
+    inset: var(--glow-padding);
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 1px var(--glow-color),
+      inset 0 0 1px 0 var(--glow-color-60),
+      inset 0 0 3px 0 var(--glow-color-50),
+      inset 0 0 6px 0 var(--glow-color-40),
+      inset 0 0 15px 0 var(--glow-color-30),
+      inset 0 0 25px 2px var(--glow-color-20),
+      inset 0 0 50px 2px var(--glow-color-10),
+      0 0 1px 0 var(--glow-color-60),
+      0 0 3px 0 var(--glow-color-50),
+      0 0 6px 0 var(--glow-color-40),
+      0 0 15px 0 var(--glow-color-30),
+      0 0 25px 2px var(--glow-color-20),
+      0 0 50px 2px var(--glow-color-10);
+  }
+  /* conținutul stă deasupra straturilor de fundal */
+  .bglow > :not(.bglow-edge) {
+    position: relative;
+    z-index: 1;
   }
 
   /* ------------------------------------------------------------------

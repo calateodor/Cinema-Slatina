@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { GlowCard } from "@/components/motion/glow-card";
 import { Ticket } from "lucide-react";
 import { MoviePoster } from "@/components/site/movie-poster";
 import { SeatMeter } from "@/components/site/seat-meter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { TimeBadge } from "@/components/site/showtime-badges";
 import type { ScreeningView } from "@/server/queries";
 
@@ -52,7 +53,7 @@ export function ShowtimeCard({
     !screening.hasStarted;
 
   return (
-    <Card className="border-glow glow-card group motion-reduce:transition-none">
+    <GlowCard className="group">
       <CardContent className="flex gap-4">
         <Link
           href={`/filme/${movie.slug}`}
@@ -134,6 +135,6 @@ export function ShowtimeCard({
           </div>
         </div>
       </CardContent>
-    </Card>
+    </GlowCard>
   );
 }

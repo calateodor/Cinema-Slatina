@@ -1,12 +1,13 @@
 "use client";
 
+import { GlowCard } from "@/components/motion/glow-card";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, MessageSquare, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -104,7 +105,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
 
   if (step === "done") {
     return (
-      <Card className="glow-yellow">
+      <GlowCard className="glow-yellow">
         <CardHeader>
           <CheckCircle2 className="size-8 text-brand-yellow" aria-hidden="true" />
           <CardTitle className="display mt-3 text-2xl">
@@ -132,13 +133,13 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
             <Link href="/program">Înapoi la program</Link>
           </Button>
         </CardContent>
-      </Card>
+      </GlowCard>
     );
   }
 
   if (step === "code") {
     return (
-      <Card className="border-glow glow-card">
+      <GlowCard >
         <CardHeader>
           <MessageSquare className="size-6 text-brand-orange" aria-hidden="true" />
           <CardTitle className="display mt-3 text-2xl">
@@ -212,12 +213,12 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
             </div>
           </form>
         </CardContent>
-      </Card>
+      </GlowCard>
     );
   }
 
   return (
-    <Card className="border-glow glow-card">
+    <GlowCard >
       <CardHeader>
         <CardTitle className="display text-2xl">Datele tale</CardTitle>
         <CardDescription>
@@ -332,7 +333,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
           </Button>
         </form>
       </CardContent>
-    </Card>
+    </GlowCard>
   );
 }
 

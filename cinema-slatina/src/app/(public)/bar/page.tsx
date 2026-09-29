@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { GlowCard } from "@/components/motion/glow-card";
 import { Coffee } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
-import { SectionHeading } from "@/components/site/sections";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/site/page-header";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Empty,
   EmptyDescription,
@@ -23,13 +24,11 @@ export default async function BarPage() {
   const menu = await getMenu();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-10 sm:px-6">
-      <Reveal y={16}>
-        <SectionHeading
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pb-10 sm:px-6">
+      <PageHeader
           title="Barul cinematografului"
           description="De aici iei ochelarii 3D și gustările pentru film. Plata se face la casierie, în numerar sau cu cardul."
         />
-      </Reveal>
 
       {menu.length === 0 ? (
         <Empty className="border bg-card/50">
@@ -45,7 +44,7 @@ export default async function BarPage() {
       ) : (
         <Reveal stagger className="flex flex-col gap-4">
           {menu.map((group) => (
-            <Card key={group.category} className="border-glow glow-card">
+            <GlowCard key={group.category}>
               <CardHeader className="border-b pb-4">
                 <CardTitle className="ticket text-xl tracking-wide text-brand-yellow">
                   {group.category.toUpperCase()}
@@ -71,7 +70,7 @@ export default async function BarPage() {
                   </div>
                 ))}
               </CardContent>
-            </Card>
+            </GlowCard>
           ))}
         </Reveal>
       )}

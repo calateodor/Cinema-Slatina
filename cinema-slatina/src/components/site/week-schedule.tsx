@@ -85,7 +85,7 @@ export function WeekSchedule({
             key={tab.key}
             value={tab.key}
             aria-label={`${tab.label}, ${tab.sub}`}
-            className="h-auto shrink-0 snap-start flex-col items-start gap-0 px-4 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="h-auto shrink-0 snap-start flex-col items-start gap-0 rounded-xl border-white/10 bg-white/[0.03] px-4 py-2 transition-all duration-300 hover:border-brand-yellow/40 hover:bg-white/[0.06] data-[state=on]:border-brand-yellow data-[state=on]:bg-brand-yellow data-[state=on]:text-brand-ink data-[state=on]:shadow-[0_10px_30px_-10px_rgba(255,222,89,0.75)] motion-reduce:transition-none"
           >
             <span className="text-sm font-semibold leading-tight">
               {tab.label}
@@ -114,7 +114,11 @@ export function WeekSchedule({
           description="Alege o altă zi din program sau vezi toate proiecțiile săptămânii."
         />
       ) : (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+        // cheia repornește intrarea cardurilor la fiecare zi aleasă
+        <div
+          key={active}
+          className="grid grid-cols-2 gap-x-3 gap-y-8 animate-in fade-in slide-in-from-bottom-3 duration-500 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-4 motion-reduce:animate-none"
+        >
           {visible.map((screening) => (
             <ShowtimePosterCard
               key={screening.id}

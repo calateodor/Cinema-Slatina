@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { GlowCard } from "@/components/motion/glow-card";
 import { CalendarClock } from "lucide-react";
 import { MoviePoster } from "@/components/site/movie-poster";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import {
   Empty,
   EmptyDescription,
@@ -40,7 +41,7 @@ export function ComingSoonList({ movies }: { movies: ComingSoonMovie[] }) {
     <ul className="mt-5 flex flex-col gap-3">
       {movies.map((movie) => (
         <li key={movie.id}>
-          <Card className="border-glow glow-card group motion-reduce:transition-none">
+          <GlowCard className="group">
             <CardContent>
               <Link
                 href={`/filme/${movie.slug}`}
@@ -74,7 +75,7 @@ export function ComingSoonList({ movies }: { movies: ComingSoonMovie[] }) {
                 )}
               </Link>
             </CardContent>
-          </Card>
+          </GlowCard>
         </li>
       ))}
     </ul>

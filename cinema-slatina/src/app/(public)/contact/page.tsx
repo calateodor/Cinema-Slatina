@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { GlowCard } from "@/components/motion/glow-card";
 import { Clock3, Mail, MapPin, Phone } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
-import { SectionHeading } from "@/components/site/sections";
+import { PageHeader } from "@/components/site/page-header";
 import { CityCrest } from "@/components/site/brand";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { CINEMA } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -68,13 +69,11 @@ const CONTACT_CARDS = [
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6">
-      <Reveal y={16}>
-        <SectionHeading
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pb-10 sm:px-6">
+      <PageHeader
           title="Contact"
           description={`${CINEMA.name} · ${CINEMA.city}`}
         />
-      </Reveal>
 
       <Reveal stagger className="grid gap-3 sm:grid-cols-2">
         {CONTACT_CARDS.map((card) => {
@@ -87,9 +86,9 @@ export default function ContactPage() {
           );
 
           return (
-            <Card
+            <GlowCard
               key={card.title}
-              className="border-glow glow-card motion-reduce:transition-none"
+              className="h-full"
             >
               {card.href ? (
                 <a
@@ -102,7 +101,7 @@ export default function ContactPage() {
               ) : (
                 body
               )}
-            </Card>
+            </GlowCard>
           );
         })}
       </Reveal>
@@ -113,24 +112,24 @@ export default function ContactPage() {
         </h2>
         <dl className="flex flex-col gap-3">
           {FAQ.map((item) => (
-            <Card key={item.q} className="border-glow glow-card">
+            <GlowCard key={item.q}>
               <CardContent>
                 <dt className="font-semibold">{item.q}</dt>
                 <dd className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                   {item.a}
                 </dd>
               </CardContent>
-            </Card>
+            </GlowCard>
           ))}
         </dl>
       </section>
 
-      <Card className="border-glow glow-card">
+      <GlowCard >
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
           <CityCrest />
           <p className="max-w-md text-sm text-muted-foreground">{CINEMA.owner}</p>
         </CardContent>
-      </Card>
+      </GlowCard>
     </div>
   );
 }

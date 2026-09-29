@@ -278,7 +278,7 @@ export type GridEntry = {
   times: string[];
   is3D: boolean;
   isDubbed: boolean;
-  halls: string[];
+  halls: { name: string; colorHex: string }[];
   /** Prima proiecție viitoare la care se mai pot face rezervări. */
   nextScreeningId: string | null;
 };
@@ -300,7 +300,9 @@ export async function getWeekGrid() {
       nextScreeningId: null,
     };
     if (!entry.times.includes(time)) entry.times.push(time);
-    if (!entry.halls.includes(s.hall.name)) entry.halls.push(s.hall.name);
+    if (!entry.halls.some((h) => h.name === s.hall.name)) {
+      entry.halls.push({ name: s.hall.name, colorHex: s.hall.colorHex });
+    }
     entry.is3D = entry.is3D || s.is3D;
     firstStart.set(
       s.movie.id,

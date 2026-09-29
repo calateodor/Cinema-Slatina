@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GlowCard } from "@/components/motion/glow-card";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -7,9 +8,7 @@ import { SeatMeter } from "@/components/site/seat-meter";
 import { HallBadge } from "@/components/site/showtime-card";
 import { ReservationForm } from "@/components/site/reservation-form";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
+import { CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -54,7 +53,7 @@ export default async function ReservationPage(
       </h1>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.15fr]">
-        <Card className="border-glow glow-card">
+        <GlowCard >
           <CardContent className="flex flex-col gap-5">
             <div className="flex gap-4">
               <div className="w-20 shrink-0">
@@ -100,10 +99,10 @@ export default async function ReservationPage(
               sală până cu 10 minute înainte de începerea filmului.
             </p>
           </CardContent>
-        </Card>
+        </GlowCard>
 
         {closed ? (
-          <Card className="border-glow glow-card">
+          <GlowCard >
             <CardHeader>
               <CardTitle className="display text-2xl">
                 Rezervările sunt indisponibile
@@ -123,7 +122,7 @@ export default async function ReservationPage(
                 Vezi restul programului →
               </Link>
             </CardContent>
-          </Card>
+          </GlowCard>
         ) : (
           <ReservationForm
             screeningId={screening.id}

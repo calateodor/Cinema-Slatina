@@ -12,7 +12,7 @@ const sora = Sora({
 const bebas = Bebas_Neue({
   variable: "--font-bebas",
   weight: "400",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
@@ -28,7 +28,8 @@ const alfa = Alfa_Slab_One({
 const lilita = Lilita_One({
   variable: "--font-lilita",
   weight: "400",
-  subsets: ["latin"],
+  // latin-ext aduce ă, â, î, ș, ț — fără el, „Rezervă” cădea pe alt font
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 

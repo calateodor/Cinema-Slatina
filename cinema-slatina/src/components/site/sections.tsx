@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { GlowCard } from "@/components/motion/glow-card";
 import { ArrowRight, Clock3, MapPin, Phone, Ticket } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { CINEMA } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -83,9 +84,9 @@ export function VisitInfo() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {VISIT_CARDS.map((card) => (
-        <Card
+        <GlowCard
           key={card.title}
-          className="border-glow glow-card motion-reduce:transition-none"
+          className="h-full"
         >
           <CardContent className="flex flex-col gap-1">
             <card.icon className="size-5 text-brand-orange" aria-hidden="true" />
@@ -115,7 +116,7 @@ export function VisitInfo() {
               )
             ) : null}
           </CardContent>
-        </Card>
+        </GlowCard>
       ))}
     </div>
   );

@@ -1,8 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
-import { MoviePoster } from "@/components/site/movie-poster";
+import { Reveal } from "@/components/motion/reveal";
+import { MovieCard } from "@/components/site/movie-card";
 import { CINEMA } from "@/lib/constants";
-import { formatDayMonth } from "@/lib/dates";
+import { formatDayMonth, formatWeekRange } from "@/lib/dates";
 import type { GridEntry } from "@/server/queries";
 
 type Props = {
@@ -14,13 +14,25 @@ type Props = {
 
 /**
  * Programul săptămânii în forma afișului tipărit din Canva: panou portocaliu
- * care se ridică din întunericul sălii (sus e transparent), opt afișe pe patru coloane cu orele galbene
- * înclinate deasupra și marcajul 3D în colț, iar jos „INTRARE GRATUITĂ”,
+ * care se ridică din întunericul sălii (sus e transparent), cardurile
+ * filmelor cu orele galbene înclinate deasupra, iar jos „INTRARE GRATUITĂ”,
  * telefonul, programul și data de început.
  */
 export function PosterGrid({ entries, published, weekStart, reservationsEnabled }: Props) {
   return (
-    <div className="poster-panel relative rounded-b-[1.75rem] px-4 pb-8 pt-14 sm:rounded-b-[2.25rem] sm:px-8 sm:pb-12 sm:pt-24">
+    <div className="poster-panel relative rounded-b-[1.75rem] px-3 pb-8 pt-10 sm:rounded-b-[2.25rem] sm:px-8 sm:pb-12 sm:pt-16">
+      {/* Titlul stă în zona în care panoul iese din întunericul sălii. */}
+      <div className="mb-8 flex flex-col items-center gap-2 text-center sm:mb-12">
+        <span className="ticket -skew-x-12 bg-brand-yellow px-3 py-0.5 text-sm tracking-[0.22em] text-brand-ink shadow-[0_8px_24px_-8px_rgba(255,222,89,0.8)] sm:text-base">
+          <span className="inline-block skew-x-12">
+            SĂPTĂMÂNA {formatWeekRange(weekStart).toUpperCase()}
+          </span>
+        </span>
+        <h2 className="display text-[clamp(1.9rem,5.4vw,3.6rem)] leading-none text-white drop-shadow-[0_6px_24px_rgba(0,0,0,0.65)]">
+          Programul săptămânii
+        </h2>
+      </div>
+
       {!published || entries.length === 0 ? (
         <div className="mx-auto my-10 max-w-xl text-center">
           <p className="display text-[clamp(1.4rem,4.5vw,2.4rem)] leading-tight text-white drop-shadow-[0_3px_0_rgba(28,19,5,0.5)]">
@@ -32,53 +44,34 @@ export function PosterGrid({ entries, published, weekStart, reservationsEnabled 
           </p>
         </div>
       ) : (
-        <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-10 sm:mt-5 sm:grid-cols-4 sm:gap-x-5 sm:gap-y-12">
-          {entries.map((entry) => {
-            const reserveHref =
-              entry.nextScreeningId && reservationsEnabled
-                ? `/rezervare/${entry.nextScreeningId}`
-                : `/filme/${entry.movie.slug}`;
-            return (
-              <li key={entry.movie.id} className="relative flex flex-col">
-                <div className="pointer-events-none absolute -top-5 left-0 z-10 -rotate-6 sm:-top-7">
-                  <span className="poster-type text-[clamp(1.6rem,5.2vw,2.75rem)] whitespace-nowrap">
-                    {entry.times.join(" · ")}
-                  </span>
-                </div>
-
-                <Link
-                  href={`/filme/${entry.movie.slug}`}
-                  aria-label={`${entry.movie.title}, ora ${entry.times.join(" și ")}`}
-                  className="group block focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/70"
-                >
-                  <MoviePoster
-                    title={entry.movie.title}
-                    posterUrl={entry.movie.posterUrl}
-                    is3D={entry.is3D}
-                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 250px"
-                    className="rounded-lg shadow-[0_22px_40px_-18px_rgba(0,0,0,0.9)] ring-0 transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:scale-[1.02] motion-reduce:transition-none"
-                  />
-                </Link>
-
-                <div className="mt-2.5 flex items-start justify-between gap-2">
-                  <Link
-                    href={`/filme/${entry.movie.slug}`}
-                    className="display line-clamp-2 text-[0.8rem] leading-tight text-white drop-shadow-[0_2px_0_rgba(28,19,5,0.45)] transition-colors hover:text-brand-yellow motion-reduce:transition-none sm:text-[0.95rem]"
-                  >
-                    {entry.movie.title}
-                  </Link>
-                  <Link
-                    href={reserveHref}
-                    className="poster-type shrink-0 rounded-full bg-brand-ink/85 px-2.5 py-1 text-[0.95rem] leading-none transition-colors hover:bg-brand-ink motion-reduce:transition-none sm:px-3 sm:text-base"
-                    aria-label={`Rezervă la ${entry.movie.title}`}
-                  >
-                    {entry.nextScreeningId ? "Rezervă" : "Detalii"}
-                  </Link>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <Reveal
+          as="ul"
+          stagger
+          className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-5 sm:gap-y-10 lg:grid-cols-4"
+        >
+          {entries.map((entry) => (
+            <li key={entry.movie.id} className="flex">
+              <MovieCard
+                className="w-full"
+                href={`/filme/${entry.movie.slug}`}
+                title={entry.movie.title}
+                posterUrl={entry.movie.posterUrl}
+                times={entry.times}
+                is3D={entry.is3D}
+                isDubbed={entry.isDubbed}
+                genres={entry.movie.genres}
+                runtimeMin={entry.movie.runtimeMin}
+                ageRating={entry.movie.ageRating}
+                halls={entry.halls}
+                action={
+                  entry.nextScreeningId && reservationsEnabled
+                    ? { href: `/rezervare/${entry.nextScreeningId}`, label: "Rezervă gratuit" }
+                    : { href: `/filme/${entry.movie.slug}`, label: "Vezi filmul" }
+                }
+              />
+            </li>
+          ))}
+        </Reveal>
       )}
 
       <PosterFooter weekStart={weekStart} />

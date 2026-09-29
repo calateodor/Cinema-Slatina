@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { GlowCard } from "@/components/motion/glow-card";
 import { Reveal } from "@/components/motion/reveal";
-import { SectionHeading } from "@/components/site/sections";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/site/page-header";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CINEMA, SETTING_KEYS } from "@/lib/constants";
 import { getSettings } from "@/server/queries";
 
@@ -54,26 +55,24 @@ export default async function RulesPage() {
   const custom = settings[SETTING_KEYS.RULES_CONTENT];
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-10 sm:px-6">
-      <Reveal y={16}>
-        <SectionHeading
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pb-10 sm:px-6">
+      <PageHeader
           title="Regulament"
           description={`Regulile de acces în sălile ${CINEMA.name} din ${CINEMA.city}.`}
         />
-      </Reveal>
 
       {custom ? (
         <Reveal y={16}>
-          <Card className="border-glow glow-card">
+          <GlowCard >
             <CardContent className="whitespace-pre-line text-[0.95rem] leading-relaxed text-muted-foreground">
               {custom}
             </CardContent>
-          </Card>
+          </GlowCard>
         </Reveal>
       ) : (
         <Reveal stagger className="flex flex-col gap-4">
           {DEFAULT_RULES.map((group) => (
-            <Card key={group.title} className="border-glow glow-card">
+            <GlowCard key={group.title}>
               <CardHeader>
                 <CardTitle className="ticket text-xl tracking-wide text-brand-yellow">
                   {group.title.toUpperCase()}
@@ -95,7 +94,7 @@ export default async function RulesPage() {
                   ))}
                 </ul>
               </CardContent>
-            </Card>
+            </GlowCard>
           ))}
         </Reveal>
       )}

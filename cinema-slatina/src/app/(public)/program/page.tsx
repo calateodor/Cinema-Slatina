@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { WeekSchedule } from "@/components/site/week-schedule";
 import { Reveal } from "@/components/motion/reveal";
-import { SectionHeading } from "@/components/site/sections";
+import { PageHeader } from "@/components/site/page-header";
 import { ProgramBanner } from "@/components/site/program-banner";
 import { dayKey, formatWeekRange, todayStart, weekDays } from "@/lib/dates";
 import { areReservationsEnabled, getPublicSchedule } from "@/server/queries";
@@ -24,18 +24,18 @@ export default async function ProgramPage() {
     .map(dayKey);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
-      <Reveal y={16} className="mb-8">
-        <ProgramBanner />
-      </Reveal>
-      <Reveal y={16}>
-        <SectionHeading
+    <div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
+      <div className="grid items-center gap-2 lg:grid-cols-[1.15fr_1fr]">
+        <PageHeader
           title="Programul săptămânii"
           description={`Săptămâna ${formatWeekRange(schedule.thisWeekStart)}. Intrarea este gratuită la toate proiecțiile.`}
         />
-      </Reveal>
+        <Reveal y={16} className="-mt-4 mb-4 lg:mt-0 lg:mb-0">
+          <ProgramBanner />
+        </Reveal>
+      </div>
 
-      <div className="mt-6">
+      <div className="mt-2">
         <WeekSchedule
           screenings={schedule.current.screenings}
           currentPublished={schedule.currentPublished}
