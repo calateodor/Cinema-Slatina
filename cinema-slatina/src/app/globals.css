@@ -608,12 +608,13 @@
     opacity: 0;
     transition: opacity 0.75s ease-in-out;
   }
-  /* marginea colorată, într-un con spre cursor */
+  /* marginea colorată, într-un con spre cursor. Stă DEASUPRA conținutului
+     (posterul umple cardul până la margine și ar acoperi-o), iar masca lasă
+     să se vadă doar inelul de 1,5px de pe contur, intersectat cu conul. */
   .bglow::before {
-    border: 1px solid transparent;
+    z-index: 3;
+    border: 1.5px solid transparent;
     background:
-      linear-gradient(var(--card-bg, #131316) 0 100%) padding-box,
-      linear-gradient(rgb(255 255 255 / 0%) 0% 100%) border-box,
       var(--gradient-one) border-box,
       var(--gradient-two) border-box,
       var(--gradient-three) border-box,
@@ -623,16 +624,26 @@
       var(--gradient-seven) border-box,
       var(--gradient-base) border-box;
     opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
-    mask-image: conic-gradient(
-      from var(--cursor-angle) at center,
-      black calc(var(--cone-spread) * 1%),
-      transparent calc((var(--cone-spread) + 15) * 1%),
-      transparent calc((100 - var(--cone-spread) - 15) * 1%),
-      black calc((100 - var(--cone-spread)) * 1%)
-    );
+    mask-image:
+      conic-gradient(
+        from var(--cursor-angle) at center,
+        black calc(var(--cone-spread) * 1%),
+        transparent calc((var(--cone-spread) + 15) * 1%),
+        transparent calc((100 - var(--cone-spread) - 15) * 1%),
+        black calc((100 - var(--cone-spread)) * 1%)
+      ),
+      linear-gradient(#000 0 0),
+      linear-gradient(#000 0 0);
+    mask-clip: border-box, padding-box, border-box;
+    mask-origin: border-box;
+    /* straturile se compun de jos în sus: întregul minus interiorul = inelul,
+       apoi inelul intersectat cu conul */
+    mask-composite: intersect, exclude;
   }
-  /* aceeași plasă, estompată, pe interiorul de lângă margine */
+  /* aceeași plasă, estompată, pe interiorul de lângă margine; tot peste
+     conținut, ca să nu se oprească la marginea posterului */
   .bglow::after {
+    z-index: 2;
     border: 1px solid transparent;
     background:
       var(--gradient-one) padding-box,
@@ -750,6 +761,9 @@
       linear-gradient(#000 0 0);
     mask-composite: intersect, exclude;
     opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+    /* inelul trece peste afiș, altfel afișul i-ar acoperi jumătatea
+       dinăuntru și lumina ar părea tăiată */
+    z-index: 1;
   }
   /* Halo-ul din afara cardului, deplasat spre partea cursorului. */
   .border-glow::after {
@@ -760,7 +774,7 @@
       calc(var(--gdx) * 30px) calc(var(--gdy) * 30px) 110px 10px color-mix(in oklch, var(--glow-b) 22%, transparent);
     opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
   }
-  /* Straturile stau sub conținut, dar peste fundalul cardului. */
+  /* Conținutul stă peste halo, dar sub inelul de pe margine. */
   .border-glow > * {
     position: relative;
     z-index: 0;
