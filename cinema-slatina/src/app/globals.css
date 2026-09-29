@@ -17,6 +17,7 @@
   --font-sans: var(--font-sora);
   --font-display: var(--font-alfa);
   --font-ticket: var(--font-bebas);
+  --font-poster: var(--font-lilita);
   --font-mono: ui-monospace, SFMono-Regular, monospace;
   --font-heading: var(--font-alfa);
 
@@ -90,7 +91,9 @@
   --popover: #16161a;
   --popover-foreground: #f7f5f2;
 
-  --primary: #ff7a1a;
+  /* Butonul principal e galbenul din siglă, ca pe afiș; portocaliul rămâne
+     pentru lumini, gradiente și linkuri. */
+  --primary: #ffde59;
   --primary-foreground: #14100b;
 
   --secondary: #1e1e23;
@@ -108,7 +111,7 @@
 
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 14%);
-  --ring: #ff7a1a;
+  --ring: #ffde59;
 
   --sidebar: #0f0f11;
   --sidebar-foreground: #f7f5f2;
@@ -216,6 +219,367 @@
       var(--brand-yellow) 0 14px,
       transparent 14px 28px
     );
+  }
+
+  /* Literele de pe afișul tipărit: orele și marcajul 3D sunt galbene, rotunde,
+     cu contur închis și umbră dură, ca lipite peste poster. */
+  .poster-type {
+    font-family: var(--font-poster), var(--font-sans), sans-serif;
+    color: var(--brand-yellow);
+    paint-order: stroke fill;
+    -webkit-text-stroke: 0.055em #1c1305;
+    text-shadow: 0.06em 0.08em 0 rgb(28 19 5 / 0.8);
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+
+  /* Lumina difuză din spatele secțiunilor: portocaliu cald sus-stânga,
+     galben de siglă în dreapta. Stă fix în spatele întregii pagini. */
+  .glow-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(55% 40% at 12% -5%, rgb(255 122 26 / 0.22) 0%, transparent 65%),
+      radial-gradient(45% 35% at 92% 18%, rgb(255 222 89 / 0.12) 0%, transparent 65%),
+      radial-gradient(60% 40% at 50% 110%, rgb(232 93 4 / 0.16) 0%, transparent 65%);
+  }
+  .glow-card {
+    box-shadow:
+      0 0 0 1px rgb(255 222 89 / 0.08),
+      0 24px 60px -30px rgb(255 122 26 / 0.55);
+    transition: box-shadow 300ms ease, transform 300ms ease;
+  }
+  .glow-card:hover {
+    box-shadow:
+      0 0 0 1px rgb(255 222 89 / 0.35),
+      0 0 40px -6px rgb(255 222 89 / 0.35),
+      0 30px 70px -30px rgb(255 122 26 / 0.7);
+  }
+  .glow-yellow {
+    box-shadow:
+      0 0 0 1px rgb(255 222 89 / 0.5),
+      0 0 34px -4px rgb(255 222 89 / 0.55),
+      0 18px 40px -18px rgb(255 122 26 / 0.8);
+  }
+
+  /* Panoul portocaliu al programului, ca fundalul afișului din Canva. */
+  .poster-panel {
+    background:
+      radial-gradient(80% 60% at 50% 0%, rgb(255 222 89 / 0.28) 0%, transparent 70%),
+      linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
+    box-shadow:
+      0 0 0 1px rgb(255 222 89 / 0.35),
+      0 0 120px -20px rgb(255 122 26 / 0.65),
+      0 40px 90px -40px rgb(0 0 0 / 0.9);
+  }
+
+  /* Scena din prima pagină: sala reală, cu ecranul „viu” în ea. Poziția
+     ecranului este dată în procente din imagine, separat pentru cadrul lat
+     (desktop) și cel înalt (telefon). */
+  .hall-scene {
+    /* raportul exact al imaginii înalte din public/hall/sala-inalt-v4.jpg */
+    aspect-ratio: 1417 / 1536;
+    container-type: inline-size;
+  }
+  .hall-screen {
+    left: var(--sx-m);
+    top: var(--sy-m);
+    width: var(--sw-m);
+    height: var(--sh-m);
+  }
+  @media (min-width: 1024px) {
+    .hall-scene {
+      /* raportul exact al imaginii late din public/hall/sala-lat-v4.jpg */
+      aspect-ratio: 2100 / 1312;
+    }
+    .hall-screen {
+      left: var(--sx-d);
+      top: var(--sy-d);
+      width: var(--sw-d);
+      height: var(--sh-d);
+    }
+  }
+  /* Marginea ecranului: o linie subțire și umbră, fără lumină răspândită în
+     sală — trailerul poate începe din negru, iar sala rămâne întunecată. */
+  .hall-screen-glow {
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.08),
+      0 30px 90px -20px rgb(0 0 0 / 0.95);
+  }
+
+  /* ------------------------------------------------------------------
+     Proiecția: trailerul pare aruncat pe pânza albă din fotografie, nu
+     lipit peste ea ca un televizor.
+  ------------------------------------------------------------------ */
+  /* Pânza e opacă (afișele de după ecran nu se văd prin ea); culoarea ei,
+     un alb-albăstrui stins, iese prin imaginea ușor transparentă. */
+  .hall-projection {
+    background: #b9c6d8;
+  }
+  /* Imaginea e ușor transparentă: negrul din film devine gri-albăstrui, ca
+     pe o pânză reală, iar contrastul și saturația scad puțin. */
+  .hall-projection .projection-media {
+    opacity: 0.92;
+    filter: contrast(0.94) saturate(0.9) brightness(1.03) blur(0.35px);
+  }
+  /* Hotspot-ul lămpii: centrul mai luminos, colțurile mai stinse, iar
+     marginile se topesc în pânză în loc să fie tăiate drept. */
+  .projection-hotspot {
+    background: radial-gradient(
+      ellipse 70% 65% at 50% 46%,
+      transparent 45%,
+      rgb(0 0 0 / 0.28) 100%
+    );
+    box-shadow: inset 0 0 1.4cqw 0.3cqw rgb(4 8 18 / 0.45);
+  }
+  /* Țesătura perforată a pânzei, vizibilă doar de aproape. */
+  .projection-fabric {
+    background-image: radial-gradient(rgb(255 255 255 / 0.5) 0.5px, transparent 0.8px);
+    background-size: 2px 2px;
+    mix-blend-mode: overlay;
+    opacity: 0.07;
+  }
+  /* Lumina filmului răsfrântă în sală. */
+  .screen-spill {
+    background-size: 60% auto;
+    background-position: 50% 30%;
+    background-repeat: no-repeat;
+    filter: blur(70px) saturate(1.5);
+    mix-blend-mode: screen;
+    opacity: 0.4;
+    transform: scale(1.8);
+    animation: spill-in 1.2s ease-out both;
+  }
+  @keyframes spill-in {
+    from { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen-spill {
+      animation: none;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     „Cred în Slatina” — insigna care se trage prin pagină și ricoșează
+     (portată de pe site-ul Olimpiadei Liceelor, cu glow galben).
+  ------------------------------------------------------------------ */
+  .cred-float {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 60; /* peste antet (50), sub meniul lateral */
+    width: clamp(50px, 4.6vw, 66px);
+    /* fără touch-action browserul ar derula pagina în loc să miște insigna */
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    will-change: transform;
+  }
+  .cred-float.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .cred-float.trasa {
+    cursor: grabbing;
+  }
+  .cred-spin {
+    position: relative;
+    will-change: transform;
+  }
+  /* halou întunecat în spate, ca insigna să se vadă și peste zone deschise */
+  .cred-spin::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: 180%;
+    height: 180%;
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      circle,
+      rgb(8 8 10 / 0.55) 0%,
+      rgb(8 8 10 / 0.4) 32%,
+      rgb(8 8 10 / 0.18) 48%,
+      rgb(8 8 10 / 0) 64%
+    );
+  }
+  .cred-float img {
+    display: block;
+    width: 100%;
+    height: auto;
+    -webkit-user-drag: none;
+    filter: drop-shadow(0 0 16px rgb(255 222 89 / 0.55))
+      drop-shadow(0 6px 14px rgb(0 0 0 / 0.6));
+    animation: cred-plutire 3.4s ease-in-out infinite;
+    transition: scale 0.3s ease;
+  }
+  /* cât o ții sau cât patinează, nu mai plutește */
+  .cred-float.trasa img,
+  .cred-float.patineaza img {
+    animation-play-state: paused;
+  }
+  .cred-float.trasa img {
+    scale: 1.06;
+  }
+  @media (hover: hover) {
+    .cred-float:hover img {
+      scale: 1.08;
+    }
+  }
+  @keyframes cred-plutire {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -6px; }
+  }
+  /* turtirea de la ricoșeu, pe axa peretelui de care s-a lovit */
+  .cred-float.lovita-x .cred-spin {
+    animation: cred-izbit-x 0.34s ease-out;
+  }
+  .cred-float.lovita-y .cred-spin {
+    animation: cred-izbit-y 0.34s ease-out;
+  }
+  @keyframes cred-izbit-x {
+    0% { scale: 1 1; }
+    28% { scale: 0.78 1.2; }
+    100% { scale: 1 1; }
+  }
+  @keyframes cred-izbit-y {
+    0% { scale: 1 1; }
+    28% { scale: 1.2 0.78; }
+    100% { scale: 1 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cred-float img,
+    .cred-float.lovita-x .cred-spin,
+    .cred-float.lovita-y .cred-spin {
+      animation: none;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     Border Glow (după react-bits): un inel colorat și un halo care apar pe
+     marginea de care se apropie cursorul. `--edge-proximity` (0–100) și
+     `--cursor-angle` sunt setate de BorderGlowTracker; restul e CSS.
+     Culori: galbenul siglei ca lumină principală, albastrul proiecției și
+     un alb rece în plasa de gradiente a inelului.
+  ------------------------------------------------------------------ */
+  .border-glow {
+    --edge-proximity: 0;
+    --cursor-angle: 45deg;
+    --gdx: 0;
+    --gdy: 0;
+    --edge-sensitivity: 15;
+    --color-sensitivity: calc(var(--edge-sensitivity) + 10);
+    --glow-color: hsl(48 100% 67%);
+    --glow-a: hsl(48 100% 67%);
+    --glow-b: hsl(215 100% 68%);
+    --glow-c: hsl(200 100% 88%);
+    position: relative;
+    isolation: isolate;
+  }
+  .border-glow::before,
+  .border-glow::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: -1;
+    transition: opacity 0.25s ease-out;
+  }
+  .border-glow:not(:hover)::before,
+  .border-glow:not(:hover)::after {
+    opacity: 0;
+    transition: opacity 0.7s ease-in-out;
+  }
+  /* Inelul de pe margine: plasă de gradiente galben/albastru/alb, vizibilă
+     doar în conul dinspre cursor (mask-composite: con ∩ inel). */
+  .border-glow::before {
+    inset: -1px;
+    border: 2px solid transparent;
+    background:
+      radial-gradient(at 80% 55%, var(--glow-a) 0px, transparent 50%) border-box,
+      radial-gradient(at 69% 34%, var(--glow-b) 0px, transparent 50%) border-box,
+      radial-gradient(at 8% 6%, var(--glow-c) 0px, transparent 50%) border-box,
+      radial-gradient(at 41% 38%, var(--glow-a) 0px, transparent 50%) border-box,
+      radial-gradient(at 86% 85%, var(--glow-b) 0px, transparent 50%) border-box,
+      radial-gradient(at 82% 18%, var(--glow-c) 0px, transparent 50%) border-box,
+      linear-gradient(var(--glow-a) 0 100%) border-box;
+    mask:
+      conic-gradient(from var(--cursor-angle) at center, #000 22%, transparent 36%, transparent 64%, #000 78%),
+      linear-gradient(#000 0 0) padding-box,
+      linear-gradient(#000 0 0);
+    mask-composite: intersect, exclude;
+    opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  }
+  /* Halo-ul din afara cardului, deplasat spre partea cursorului. */
+  .border-glow::after {
+    inset: 0;
+    box-shadow:
+      calc(var(--gdx) * 10px) calc(var(--gdy) * 10px) 24px -2px color-mix(in oklch, var(--glow-color) 55%, transparent),
+      calc(var(--gdx) * 22px) calc(var(--gdy) * 22px) 60px 4px color-mix(in oklch, var(--glow-color) 30%, transparent),
+      calc(var(--gdx) * 30px) calc(var(--gdy) * 30px) 110px 10px color-mix(in oklch, var(--glow-b) 22%, transparent);
+    opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+  }
+  /* Straturile stau sub conținut, dar peste fundalul cardului. */
+  .border-glow > * {
+    position: relative;
+    z-index: 0;
+  }
+
+  /* Afișele de lângă ecran: ies de după ecran, se îndreaptă și cresc. */
+  .hall-side-card {
+    transition:
+      rotate 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      translate 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      scale 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.4s ease,
+      filter 0.4s ease;
+    filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.8));
+    /* pe jumătate transparente cât stau în așteptare; la hover vin în față */
+    opacity: 0.5;
+  }
+  .hall-side-card:hover,
+  .hall-side-card:focus-visible {
+    opacity: 1;
+  }
+  .hall-side-card[data-side="left"] {
+    rotate: -5deg;
+  }
+  .hall-side-card[data-side="right"] {
+    rotate: 5deg;
+  }
+  .hall-side-card:hover,
+  .hall-side-card:focus-visible {
+    scale: 1.15;
+    filter: drop-shadow(0 30px 50px rgb(0 0 0 / 0.85))
+      drop-shadow(0 0 28px rgb(255 222 89 / 0.35));
+  }
+  .hall-side-card[data-side="left"]:hover,
+  .hall-side-card[data-side="left"]:focus-visible {
+    translate: -12% 0;
+    rotate: -2deg;
+  }
+  .hall-side-card[data-side="right"]:hover,
+  .hall-side-card[data-side="right"]:focus-visible {
+    translate: 12% 0;
+    rotate: 2deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hall-side-card,
+    .hall-side-card:hover {
+      transition: none;
+      scale: 1;
+    }
   }
 }
 

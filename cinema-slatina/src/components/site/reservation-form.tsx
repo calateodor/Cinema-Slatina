@@ -104,7 +104,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
 
   if (step === "done") {
     return (
-      <Card className="ring-brand-yellow/30">
+      <Card className="glow-yellow">
         <CardHeader>
           <CheckCircle2 className="size-8 text-brand-yellow" aria-hidden="true" />
           <CardTitle className="display mt-3 text-2xl">
@@ -138,7 +138,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
 
   if (step === "code") {
     return (
-      <Card>
+      <Card className="border-glow glow-card">
         <CardHeader>
           <MessageSquare className="size-6 text-brand-orange" aria-hidden="true" />
           <CardTitle className="display mt-3 text-2xl">
@@ -217,7 +217,7 @@ export function ReservationForm({ screeningId, maxSeats, usesExtraSeats }: Props
   }
 
   return (
-    <Card>
+    <Card className="border-glow glow-card">
       <CardHeader>
         <CardTitle className="display text-2xl">Datele tale</CardTitle>
         <CardDescription>

@@ -1,126 +1,80 @@
 import Link from "next/link";
-import { HeroCarousel, type HeroSlide } from "@/components/site/hero-carousel";
-import { WeekSchedule } from "@/components/site/week-schedule";
-import { MovieRail } from "@/components/site/movie-rail";
+import { CinemaHallHero } from "@/components/site/cinema-hall-hero";
+import { PosterGrid } from "@/components/site/poster-grid";
 import { ComingSoonList } from "@/components/site/coming-soon-list";
 import { Section, SectionHeading, VisitInfo } from "@/components/site/sections";
 import { Reveal } from "@/components/motion/reveal";
-import { CityCrest } from "@/components/site/brand";
-import { ProgramBanner } from "@/components/site/program-banner";
-import { dayKey, todayStart, weekDays } from "@/lib/dates";
+import { CityBrandBand } from "@/components/site/brand";
+import { HALL_SCENE } from "@/lib/hall-scene";
 import {
   areReservationsEnabled,
   getComingSoon,
-  getMoviesThisWeek,
-  getPublicSchedule,
+  getHeroItems,
+  getWeekGrid,
 } from "@/server/queries";
 import { CINEMA } from "@/lib/constants";
 
 export default async function HomePage() {
-  const [schedule, moviesThisWeek, comingSoon, reservationsEnabled] =
-    await Promise.all([
-      getPublicSchedule(),
-      getMoviesThisWeek(),
-      getComingSoon(),
-      areReservationsEnabled(),
-    ]);
-
-  const today = todayStart();
-  const days = weekDays(schedule.thisWeekStart)
-    .filter((d) => d >= today)
-    .map(dayKey);
-
-  // Caruselul de sus arată doar premierele. Fără niciun film marcat
-  // „în curând”, secțiunea nu se randează deloc.
-  const slides: HeroSlide[] = comingSoon.slice(0, 4).map((m) => ({
-    slug: m.slug,
-    eyebrow: "ÎN CURÂND",
-    title: m.title,
-    synopsis: m.synopsis,
-    posterUrl: m.posterUrl,
-    backdropUrl: m.backdropUrl,
-    genres: m.genres,
-  }));
+  const [heroItems, grid, comingSoon, reservationsEnabled] = await Promise.all([
+    getHeroItems(),
+    getWeekGrid(),
+    getComingSoon(),
+    areReservationsEnabled(),
+  ]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
-      {slides.length > 0 ? (
-        <Reveal y={16}>
-          <HeroCarousel slides={slides} />
-        </Reveal>
-      ) : null}
+    <>
+      <CinemaHallHero
+        items={heroItems}
+        scene={HALL_SCENE}
+        reservationsEnabled={reservationsEnabled}
+      />
 
-      <Section id="program">
-        <Reveal y={16} className="mb-6">
-          <ProgramBanner />
-        </Reveal>
-        <Reveal y={16}>
-          <SectionHeading
-            title="Programul săptămânii"
-            action={{ href: "/program", label: "Toate proiecțiile" }}
-          />
-        </Reveal>
-        <div className="mt-5">
-          <WeekSchedule
-            screenings={schedule.current.screenings}
-            currentPublished={schedule.currentPublished}
-            nextScreenings={schedule.next.screenings}
-            nextPublished={schedule.nextPublished}
-            nextWeekStart={schedule.nextWeekStart.toISOString()}
-            days={days}
-            reservationsEnabled={reservationsEnabled}
-          />
-        </div>
-      </Section>
-
-      <Section>
-        <Reveal y={16}>
-          <SectionHeading
-            title="Filmele săptămânii"
-            action={{ href: "/filme", label: "Vezi toate" }}
-          />
-        </Reveal>
-        <MovieRail movies={moviesThisWeek} />
-      </Section>
-
-      {comingSoon.length > 0 ? (
-        <Section>
-          <Reveal y={16}>
-            <SectionHeading title={`În curând la ${CINEMA.shortName}`} />
+      <div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6">
+        <Section id="program" className="mt-6 sm:mt-10">
+          <Reveal y={20}>
+            <PosterGrid
+              entries={grid.entries}
+              published={grid.published}
+              weekStart={grid.weekStart}
+              reservationsEnabled={reservationsEnabled}
+            />
           </Reveal>
-          <ComingSoonList movies={comingSoon} />
         </Section>
-      ) : null}
 
-      <Section id="vizita">
-        <Reveal y={16}>
-          <SectionHeading title="Vizitează-ne" />
+        <Reveal y={20} className="mt-10 sm:mt-14">
+          <CityBrandBand />
         </Reveal>
-        <Reveal className="mt-5" stagger>
-          <VisitInfo />
-        </Reveal>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Mâncarea și băutura din exterior nu sunt permise în sală. Regulile
-          complete sunt în{" "}
-          <Link
-            href="/regulament"
-            className="font-medium text-brand-orange hover:text-brand-yellow"
-          >
-            regulamentul cinematografului
-          </Link>
-          .
-        </p>
-      </Section>
 
-      <Section>
-        <div className="flex flex-col items-center gap-4 rounded-3xl border border-border bg-card px-6 py-8 text-center">
-          <CityCrest />
-          <p className="max-w-md text-sm text-muted-foreground">
-            {CINEMA.name} este administrat de Primăria Municipiului Slatina.
-            Intrarea la toate proiecțiile este gratuită.
+        {comingSoon.length > 0 ? (
+          <Section>
+            <Reveal y={16}>
+              <SectionHeading title={`În curând la ${CINEMA.shortName}`} />
+            </Reveal>
+            <ComingSoonList movies={comingSoon} />
+          </Section>
+        ) : null}
+
+        <Section id="vizita">
+          <Reveal y={16}>
+            <SectionHeading title="Vizitează-ne" />
+          </Reveal>
+          <Reveal className="mt-5" stagger>
+            <VisitInfo />
+          </Reveal>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Mâncarea și băutura din exterior nu sunt permise în sală. Regulile
+            complete sunt în{" "}
+            <Link
+              href="/regulament"
+              className="font-medium text-brand-orange hover:text-brand-yellow"
+            >
+              regulamentul cinematografului
+            </Link>
+            .
           </p>
-        </div>
-      </Section>
-    </div>
+        </Section>
+      </div>
+    </>
   );
 }

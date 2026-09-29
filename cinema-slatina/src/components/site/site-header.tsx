@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { CINEMA } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -49,13 +51,36 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
         "sticky top-0 z-50 border-b transition-colors duration-300",
         scrolled
           ? "border-border bg-background/85 backdrop-blur-xl"
-          : "border-transparent bg-background/40 backdrop-blur-sm",
+          : "border-transparent bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-24 w-full max-w-6xl items-center gap-4 px-4 sm:h-32 sm:px-6">
+      <div className="mx-auto flex h-24 w-full max-w-6xl items-center gap-3 px-4 sm:h-32 sm:gap-4 sm:px-6">
         <BrandLogo />
 
-        <nav className="ml-auto hidden items-center gap-1 lg:flex">
+        {/* Primăria, pe aceeași bară cu sigla și meniul. */}
+        <div className="flex items-center gap-2 border-l border-white/15 pl-3 sm:gap-2.5 sm:pl-4">
+          <Image
+            src="/brand/primaria-slatina.png"
+            alt="Stema Municipiului Slatina"
+            width={404}
+            height={600}
+            priority
+            className="h-10 w-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:h-14"
+          />
+          <p className="ticket text-[0.72rem] leading-[1.05] tracking-[0.14em] text-white/90 sm:text-[0.95rem]">
+            PRIMĂRIA MUNICIPIULUI
+            <span className="block text-[1.35em] tracking-[0.2em] text-brand-yellow">
+              SLATINA
+            </span>
+          </p>
+        </div>
+
+        <div className="ml-auto flex flex-col items-end gap-1">
+          <p className="ticket hidden text-sm tracking-[0.2em] text-brand-yellow xl:block">
+            INTRARE GRATUITĂ · {CINEMA.hours.toUpperCase()}
+          </p>
+          <div className="flex items-center gap-2">
+        <nav className="hidden items-center gap-0.5 xl:flex">
           {NAV.map((item) => {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -79,21 +104,21 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-4">
+        <div className="flex items-center gap-2 xl:ml-2">
           <Button
             asChild
-            className="rounded-full bg-primary px-4 font-semibold text-primary-foreground shadow-[0_10px_30px_-12px_var(--brand-orange)] hover:bg-brand-orange-deep sm:px-5"
+            className="glow-yellow rounded-full bg-primary px-4 font-semibold text-primary-foreground hover:bg-brand-yellow-soft sm:px-5"
           >
             <Link href="/program">
               <Ticket data-icon="inline-start" />
               <span className="hidden sm:inline">Rezervă gratuit</span>
-              <span className="sm:hidden">Rezervă</span>
+              <span className="sr-only sm:hidden">Rezervă</span>
             </Link>
           </Button>
 
           <Link
             href={accountHref}
-            className="hidden items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-left transition-colors hover:border-brand-yellow/40 hover:bg-secondary md:flex"
+            className="hidden items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-left transition-colors hover:border-brand-yellow/40 hover:bg-secondary xl:flex"
           >
             <UserRound className="size-4 text-muted-foreground" />
             <span className="leading-tight">
@@ -116,7 +141,7 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full lg:hidden"
+                className="rounded-full xl:hidden"
                 aria-label="Deschide meniul"
               >
                 <Menu className="size-5" />
@@ -151,6 +176,8 @@ export function SiteHeader({ user }: { user: HeaderUser }) {
               </nav>
             </SheetContent>
           </Sheet>
+        </div>
+          </div>
         </div>
       </div>
     </header>

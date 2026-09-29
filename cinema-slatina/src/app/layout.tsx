@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Sora, Bebas_Neue, Alfa_Slab_One } from "next/font/google";
+import { Sora, Bebas_Neue, Alfa_Slab_One, Lilita_One } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -21,6 +21,14 @@ const alfa = Alfa_Slab_One({
   variable: "--font-alfa",
   weight: "400",
   subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+/** Fontul orelor de pe afișul din Canva: rotund, gros, galben, cu contur închis. */
+const lilita = Lilita_One({
+  variable: "--font-lilita",
+  weight: "400",
+  subsets: ["latin"],
   display: "swap",
 });
 
@@ -50,7 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ro"
-      className={`${sora.variable} ${bebas.variable} ${alfa.variable} h-full antialiased`}
+      className={`${sora.variable} ${bebas.variable} ${alfa.variable} ${lilita.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         {children}

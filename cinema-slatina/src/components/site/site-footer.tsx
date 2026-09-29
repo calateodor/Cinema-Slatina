@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { BrandLogo, CityCrest } from "@/components/site/brand";
+import { BrandLogo } from "@/components/site/brand";
 import { CINEMA } from "@/lib/constants";
 
 const INFO_LINKS = [
@@ -12,14 +13,45 @@ const INFO_LINKS = [
 export function SiteFooter() {
   return (
     <footer className="mt-20 border-t border-border bg-surface-sunken">
+      {/* Semnătura tipărită: sigla, sloganul, stema și „Cred în Slatina”. */}
+      <div className="border-b border-white/5">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-6 px-4 py-10 sm:justify-between sm:px-6">
+          <BrandLogo size="lg" />
+          <Image
+            src="/brand/slogan-cinema-la-tine.png"
+            alt="Cinema la tine în oraș"
+            width={1013}
+            height={570}
+            className="h-24 w-auto sm:h-28"
+          />
+          <div className="flex items-center gap-4">
+            <Image
+              src="/brand/primaria-slatina.png"
+              alt="Stema Municipiului Slatina"
+              width={404}
+              height={600}
+              className="h-24 w-auto sm:h-28"
+            />
+            <Image
+              src="/brand/cred-in-slatina.png"
+              alt="Cred în Slatina"
+              width={462}
+              height={503}
+              className="h-20 w-auto sm:h-24"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <BrandLogo />
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            <p className="ticket text-base tracking-widest text-brand-yellow">
+              PRIMĂRIA MUNICIPIULUI SLATINA
+            </p>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
               {CINEMA.name} · {CINEMA.address}. {CINEMA.owner}
             </p>
-            <CityCrest className="mt-6" />
           </div>
 
           <div>

@@ -85,7 +85,7 @@ export function VisitInfo() {
       {VISIT_CARDS.map((card) => (
         <Card
           key={card.title}
-          className="transition-shadow duration-300 hover:ring-brand-yellow/30 motion-reduce:transition-none"
+          className="border-glow glow-card motion-reduce:transition-none"
         >
           <CardContent className="flex flex-col gap-1">
             <card.icon className="size-5 text-brand-orange" aria-hidden="true" />

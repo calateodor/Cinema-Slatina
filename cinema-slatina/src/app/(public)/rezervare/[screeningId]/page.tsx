@@ -54,7 +54,7 @@ export default async function ReservationPage(
       </h1>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.15fr]">
-        <Card>
+        <Card className="border-glow glow-card">
           <CardContent className="flex flex-col gap-5">
             <div className="flex gap-4">
               <div className="w-20 shrink-0">
@@ -73,7 +73,7 @@ export default async function ReservationPage(
                     {movie.genres}
                   </p>
                 ) : null}
-                <p className="ticket mt-2 text-2xl leading-none text-brand-orange">
+                <p className="poster-type tilt mt-2 inline-block text-3xl leading-none">
                   {formatTime(screening.startsAt)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground first-letter:uppercase">
@@ -103,7 +103,7 @@ export default async function ReservationPage(
         </Card>
 
         {closed ? (
-          <Card>
+          <Card className="border-glow glow-card">
             <CardHeader>
               <CardTitle className="display text-2xl">
                 Rezervările sunt indisponibile

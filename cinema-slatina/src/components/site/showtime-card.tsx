@@ -52,7 +52,7 @@ export function ShowtimeCard({
     !screening.hasStarted;
 
   return (
-    <Card className="group transition-shadow duration-300 hover:ring-brand-orange/40 motion-reduce:transition-none">
+    <Card className="border-glow glow-card group motion-reduce:transition-none">
       <CardContent className="flex gap-4">
         <Link
           href={`/filme/${movie.slug}`}
@@ -70,7 +70,7 @@ export function ShowtimeCard({
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <TimeBadge startsAt={screening.startsAt} size="sm" />
+            <TimeBadge startsAt={screening.startsAt} size="sm" variant="poster" />
             {movie.runtimeMin ? (
               <span className="text-xs text-muted-foreground">
                 {movie.runtimeMin} min

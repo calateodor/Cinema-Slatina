@@ -89,7 +89,7 @@ export default function ContactPage() {
           return (
             <Card
               key={card.title}
-              className="transition-shadow hover:ring-brand-yellow/30 motion-reduce:transition-none"
+              className="border-glow glow-card motion-reduce:transition-none"
             >
               {card.href ? (
                 <a
@@ -113,7 +113,7 @@ export default function ContactPage() {
         </h2>
         <dl className="flex flex-col gap-3">
           {FAQ.map((item) => (
-            <Card key={item.q}>
+            <Card key={item.q} className="border-glow glow-card">
               <CardContent>
                 <dt className="font-semibold">{item.q}</dt>
                 <dd className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -125,7 +125,7 @@ export default function ContactPage() {
         </dl>
       </section>
 
-      <Card>
+      <Card className="border-glow glow-card">
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
           <CityCrest />
           <p className="max-w-md text-sm text-muted-foreground">{CINEMA.owner}</p>

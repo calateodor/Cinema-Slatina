@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { buildCapacity, seatsTakenByScreening, type Capacity } from "@/lib/capacity";
-import { addDays, nextWeekStartOf, weekStartOf } from "@/lib/dates";
+import { addDays, formatTime, nextWeekStartOf, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
 
 export type ScreeningView = {
@@ -182,6 +182,150 @@ export async function getComingSoon() {
       ageRating: true,
     },
   });
+}
+
+/**
+ * Ce se vede pe „ecranul” din prima pagină: următoarea proiecție a fiecărui
+ * film din programul publicat, în ordinea orelor. Primul element este filmul
+ * care urmează cel mai curând — el rulează pe ecran la deschiderea paginii.
+ */
+export type HeroItem = {
+  screeningId: string;
+  startsAt: Date;
+  is3D: boolean;
+  isDubbed: boolean;
+  hall: { name: string; colorHex: string };
+  movie: {
+    id: string;
+    slug: string;
+    title: string;
+    posterUrl: string | null;
+    backdropUrl: string | null;
+    trailerUrl: string | null;
+    genres: string | null;
+    ageRating: string | null;
+    runtimeMin: number | null;
+  };
+  canReserve: boolean;
+  soldOut: boolean;
+};
+
+export async function getHeroItems(limit = 8): Promise<HeroItem[]> {
+  const now = new Date();
+  const rows = await db.screening.findMany({
+    where: {
+      isCancelled: false,
+      startsAt: { gte: now },
+      week: { isPublished: true },
+      movie: { isArchived: false },
+    },
+    include: {
+      hall: true,
+      movie: {
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          posterUrl: true,
+          backdropUrl: true,
+          trailerUrl: true,
+          genres: true,
+          ageRating: true,
+          runtimeMin: true,
+        },
+      },
+    },
+    orderBy: [{ startsAt: "asc" }, { hall: { sortOrder: "asc" } }],
+    take: 120,
+  });
+
+  const picked: typeof rows = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    if (seen.has(row.movieId)) continue;
+    seen.add(row.movieId);
+    picked.push(row);
+    if (picked.length >= limit) break;
+  }
+
+  const taken = await seatsTakenByScreening(picked.map((r) => r.id));
+  return picked.map((r) => {
+    const capacity = buildCapacity(
+      r.capacityOverride ?? r.hall.baseCapacity,
+      r.allowExtraSeats ? r.hall.extraCapacity : 0,
+      taken.get(r.id) ?? 0,
+    );
+    return {
+      screeningId: r.id,
+      startsAt: r.startsAt,
+      is3D: r.is3D,
+      isDubbed: r.isDubbed,
+      hall: { name: r.hall.name, colorHex: r.hall.colorHex },
+      movie: r.movie,
+      soldOut: capacity.soldOut,
+      canReserve: r.reservationsOpen && !capacity.soldOut,
+    };
+  });
+}
+
+/**
+ * Grila de afiș a săptămânii: un film apare o singură dată, cu toate orele la
+ * care rulează (de regulă aceeași oră în fiecare zi), ca pe afișul tipărit.
+ */
+export type GridEntry = {
+  movie: ScreeningView["movie"];
+  /** Orele distincte, "HH:mm", sortate. */
+  times: string[];
+  is3D: boolean;
+  isDubbed: boolean;
+  halls: string[];
+  /** Prima proiecție viitoare la care se mai pot face rezervări. */
+  nextScreeningId: string | null;
+};
+
+export async function getWeekGrid() {
+  const { current, currentPublished, thisWeekStart } = await getPublicSchedule();
+
+  const byMovie = new Map<string, GridEntry>();
+  // Prima proiecție a fiecărui film, ca ordinea din grilă să fie cea a orelor.
+  const firstStart = new Map<string, number>();
+  for (const s of current.screenings) {
+    const time = formatTime(new Date(s.startsAt));
+    const entry = byMovie.get(s.movie.id) ?? {
+      movie: s.movie,
+      times: [],
+      is3D: false,
+      isDubbed: s.isDubbed,
+      halls: [],
+      nextScreeningId: null,
+    };
+    if (!entry.times.includes(time)) entry.times.push(time);
+    if (!entry.halls.includes(s.hall.name)) entry.halls.push(s.hall.name);
+    entry.is3D = entry.is3D || s.is3D;
+    firstStart.set(
+      s.movie.id,
+      Math.min(firstStart.get(s.movie.id) ?? Number.POSITIVE_INFINITY, s.startsAt.getTime()),
+    );
+    if (
+      !entry.nextScreeningId &&
+      !s.hasStarted &&
+      s.reservationsOpen &&
+      !s.capacity.soldOut
+    ) {
+      entry.nextScreeningId = s.id;
+    }
+    byMovie.set(s.movie.id, entry);
+  }
+
+  const entries = [...byMovie.values()]
+    .map((entry) => ({ ...entry, times: [...entry.times].sort() }))
+    .sort(
+      (a, b) =>
+        a.times[0].localeCompare(b.times[0]) ||
+        (firstStart.get(a.movie.id) ?? 0) - (firstStart.get(b.movie.id) ?? 0),
+    );
+
+  return { entries, published: currentPublished, weekStart: thisWeekStart };
 }
 
 export async function getMovieBySlug(slug: string) {

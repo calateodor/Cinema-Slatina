@@ -45,7 +45,7 @@ export default async function BarPage() {
       ) : (
         <Reveal stagger className="flex flex-col gap-4">
           {menu.map((group) => (
-            <Card key={group.category}>
+            <Card key={group.category} className="border-glow glow-card">
               <CardHeader className="border-b pb-4">
                 <CardTitle className="ticket text-xl tracking-wide text-brand-yellow">
                   {group.category.toUpperCase()}
@@ -64,7 +64,7 @@ export default async function BarPage() {
                           </p>
                         ) : null}
                       </div>
-                      <span className="ticket shrink-0 text-lg tabular-nums text-brand-orange">
+                      <span className="poster-type shrink-0 text-xl tabular-nums">
                         {formatPrice(item.priceBani)}
                       </span>
                     </div>

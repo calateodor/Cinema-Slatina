@@ -38,9 +38,9 @@ export function ShowtimePosterCard({
         screening.hasStarted && "opacity-55",
       )}
     >
-      {/* Ora, ca pe afiș: mare, galbenă, înclinată, peste marginea posterului. */}
-      <div className="relative z-10 -mb-3 flex justify-center">
-        <TimeBadge startsAt={screening.startsAt} />
+      {/* Ora, ca pe afiș: mare, galbenă, înclinată, peste colțul posterului. */}
+      <div className="relative z-10 -mb-4 flex justify-start pl-1">
+        <TimeBadge startsAt={screening.startsAt} variant="poster" />
       </div>
 
       <Link
@@ -53,7 +53,7 @@ export function ShowtimePosterCard({
           posterUrl={movie.posterUrl}
           is3D={screening.is3D}
           sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 260px"
-          className="transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none"
+          className="border-glow glow-card transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none"
         />
       </Link>
 

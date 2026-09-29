@@ -3,18 +3,40 @@ import { formatTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 /**
- * Ora proiecției, în forma de pe afișul tipărit: etichetă galbenă, ușor
- * înclinată, așezată peste marginea de sus a posterului.
+ * Ora proiecției. Varianta `poster` este cea de pe afișul din Canva: litere
+ * galbene, rotunde, cu contur închis, ușor înclinate, lipite peste marginea
+ * posterului. Varianta `pill` (eticheta galbenă cu text închis) rămâne pentru
+ * panourile interne, care rulează pe fundal deschis.
  */
 export function TimeBadge({
   startsAt,
   size = "md",
+  variant = "pill",
   className,
 }: {
   startsAt: Date | string;
   size?: "sm" | "md" | "lg";
+  variant?: "poster" | "pill";
   className?: string;
 }) {
+  const time = formatTime(new Date(startsAt));
+
+  if (variant === "poster") {
+    return (
+      <span
+        className={cn(
+          "poster-type tilt inline-block",
+          size === "sm" && "text-xl",
+          size === "md" && "text-3xl sm:text-4xl",
+          size === "lg" && "text-4xl sm:text-5xl",
+          className,
+        )}
+      >
+        {time}
+      </span>
+    );
+  }
+
   return (
     <span
       className={cn(
@@ -25,21 +47,30 @@ export function TimeBadge({
         className,
       )}
     >
-      {formatTime(new Date(startsAt))}
+      {time}
     </span>
   );
 }
 
-/** Marcajul 3D din colțul de jos al afișului, înclinat în sens invers. */
+/** Marcajul 3D din colțul de jos al afișului, ca pe afișul tipărit. */
 export function Badge3D({ className }: { className?: string }) {
   return (
-    <Badge
-      variant="brand"
+    <span
       className={cn(
-        "ticket tilt-strong absolute bottom-2 right-2 h-auto px-2.5 py-0.5 text-xl leading-none shadow-[0_4px_14px_-4px_rgba(0,0,0,0.9)]",
+        "poster-type tilt-strong absolute bottom-1.5 right-2 text-[clamp(1.1rem,14cqw,2rem)]",
         className,
       )}
+      aria-label="Proiecție 3D"
     >
+      3D
+    </span>
+  );
+}
+
+/** Varianta discretă a marcajului 3D, pentru liste și panouri interne. */
+export function Badge3DPill({ className }: { className?: string }) {
+  return (
+    <Badge variant="brand" className={cn("h-auto px-2 py-0.5", className)}>
       3D
     </Badge>
   );

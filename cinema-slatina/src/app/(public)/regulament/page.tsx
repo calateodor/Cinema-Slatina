@@ -64,7 +64,7 @@ export default async function RulesPage() {
 
       {custom ? (
         <Reveal y={16}>
-          <Card>
+          <Card className="border-glow glow-card">
             <CardContent className="whitespace-pre-line text-[0.95rem] leading-relaxed text-muted-foreground">
               {custom}
             </CardContent>
@@ -73,7 +73,7 @@ export default async function RulesPage() {
       ) : (
         <Reveal stagger className="flex flex-col gap-4">
           {DEFAULT_RULES.map((group) => (
-            <Card key={group.title}>
+            <Card key={group.title} className="border-glow glow-card">
               <CardHeader>
                 <CardTitle className="ticket text-xl tracking-wide text-brand-yellow">
                   {group.title.toUpperCase()}

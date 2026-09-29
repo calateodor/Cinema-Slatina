@@ -40,7 +40,7 @@ export function ComingSoonList({ movies }: { movies: ComingSoonMovie[] }) {
     <ul className="mt-5 flex flex-col gap-3">
       {movies.map((movie) => (
         <li key={movie.id}>
-          <Card className="group transition-shadow duration-300 hover:ring-brand-orange/40 motion-reduce:transition-none">
+          <Card className="border-glow glow-card group motion-reduce:transition-none">
             <CardContent>
               <Link
                 href={`/filme/${movie.slug}`}
