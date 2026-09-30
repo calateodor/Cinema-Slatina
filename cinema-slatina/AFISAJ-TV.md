@@ -18,7 +18,8 @@ Trailerul de pe televizoarele sălilor merge fără sunet. Pentru sunet, adaugă
 Ce face pagina singură:
 
 - arată programul de azi; după ultimul film trece pe **PROGRAM MÂINE**;
-- „Rulează acum” / „S-a terminat” se calculează din oră și durata filmului;
+- filmul care rulează se luminează și primește banda galbenă „Rulează acum”;
+  filmele terminate se sting (calculat din oră și durata filmului);
 - pe sală, trailerul e al filmului care urmează și rămâne până la 10 minute
   după ce a început, apoi trece la următorul;
 - reia programul din site la fiecare minut (ce publică adminul apare singur)
