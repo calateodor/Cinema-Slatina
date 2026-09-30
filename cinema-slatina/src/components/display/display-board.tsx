@@ -9,37 +9,39 @@ import type { DisplayProgram, DisplayScreening } from "@/server/queries";
 import { cn } from "@/lib/utils";
 
 /* ---------------------------------------------------------------------------
-   Afișajul de pe televizoarele din cinematograf: un perete de afișe mari, în
-   stilul cardurilor de pe prima pagină, pe un fundal cinematic (cadrul din
-   filmul care rulează, estompat). Două moduri:
-   - fără sală: televizorul de la casierie, un rând de afișe pentru fiecare sală;
+   Afișajul de pe televizoarele din cinematograf, în forma afișului din Canva:
+   fundal portocaliu, afișele filmelor în ordinea orelor, ora galbenă înclinată
+   peste colțul fiecăruia, un ceas mare sus. Fiecare card are, lângă afiș,
+   sala, titlul și starea: „rulează” cu minutele rămase, sau în cât timp
+   începe. Filmele terminate rămân la fel, doar fără stare.
+   Două moduri:
+   - fără sală: televizorul de la casierie, toate filmele zilei, pe lat;
    - cu sală: televizorul de la intrarea sălii, cu trailerul filmului care
-     urmează și afișele sălii.
-   Singura stare marcată e „rulează acum”: afișul se luminează și primește o
-   bandă galbenă; filmele terminate doar se sting. Totul se calculează în
-   browser din ora curentă; programul se reia din bază la fiecare minut, iar
-   pagina se reîncarcă de tot o dată la 12 ore, ca să nu se împotmolească pe
-   cutiile slabe.
+     urmează și cardurile sălii.
+   Totul se calculează în browser din ora curentă; programul se reia din bază
+   la fiecare minut, iar pagina se reîncarcă de tot o dată la 12 ore.
 --------------------------------------------------------------------------- */
 
 const DEFAULT_RUNTIME_MIN = 110;
 /** Cât timp după început mai ține televizorul sălii trailerul filmului. */
 const TRAILER_GRACE_MIN = 10;
 const REFRESH_MS = 60_000;
-const CLOCK_MS = 15_000;
+const CLOCK_MS = 5_000;
 const RELOAD_MS = 12 * 60 * 60_000;
 
 type Status = "upcoming" | "running" | "ended";
 
 const startOf = (s: DisplayScreening) => new Date(s.startsAt);
-const endOf = (s: DisplayScreening) =>
-  new Date(startOf(s).getTime() + (s.movie.runtimeMin ?? DEFAULT_RUNTIME_MIN) * 60_000);
+const runtimeOf = (s: DisplayScreening) => s.movie.runtimeMin ?? DEFAULT_RUNTIME_MIN;
+const endOf = (s: DisplayScreening) => new Date(startOf(s).getTime() + runtimeOf(s) * 60_000);
 function statusOf(s: DisplayScreening, now: Date): Status {
   if (now >= endOf(s)) return "ended";
   if (now >= startOf(s)) return "running";
   return "upcoming";
 }
 const minutesUntil = (date: Date, now: Date) => Math.round((date.getTime() - now.getTime()) / 60_000);
+/** „25 MIN” sau „1 H 20” */
+const fmtMinutes = (m: number) => (m < 60 ? `${m} MIN` : `${Math.floor(m / 60)} H${m % 60 ? ` ${m % 60}` : ""}`);
 
 /** Ziua afișată: azi, cât mai e ceva de văzut; după ultimul film, mâine. */
 function pickDay(screenings: DisplayScreening[], now: Date) {
@@ -64,7 +66,7 @@ export function DisplayBoard({
   const [now, setNow] = useState(() => new Date(program.generatedAt));
 
   useEffect(() => {
-    // ora reală a cutiei, imediat după hidratare, apoi din 15 în 15 secunde
+    // ora reală a cutiei, imediat după hidratare, apoi din 5 în 5 secunde
     const first = window.setTimeout(() => setNow(new Date()), 0);
     const clock = window.setInterval(() => setNow(new Date()), CLOCK_MS);
     const refresh = window.setInterval(() => router.refresh(), REFRESH_MS);
@@ -83,182 +85,163 @@ export function DisplayBoard({
   const dayDate = day.list[0] ? startOf(day.list[0]) : addDays(now, day.isTomorrow ? 1 : 0);
   // filmul care urmează sau a început de sub 10 minute (pe sală: trailerul lui)
   const featured = scoped.find((s) => minutesUntil(startOf(s), now) > -TRAILER_GRACE_MIN);
-  // fundalul: cadrul filmului care rulează, altfel al celui care urmează
-  const backdropOf = day.list.find((s) => statusOf(s, now) === "running") ?? featured;
-  const backdrop = backdropOf?.movie.backdropUrl ?? backdropOf?.movie.posterUrl ?? null;
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {backdrop ? (
-        <Image key={backdrop} src={backdrop} alt="" fill priority sizes="100vw" className="tv-backdrop object-cover" />
-      ) : null}
-      <div className="tv-shade absolute inset-0" />
+    <div className="tv-canva flex h-full w-full flex-col px-[1.3vw] py-[1.8vh]">
+      <TopBar now={now} date={dayDate} isTomorrow={day.isTomorrow} hall={hall} />
 
       {hall ? (
-        <main className="relative grid h-full grid-cols-[58fr_42fr] gap-[2.5vw] px-[2.5vw] py-[3vh]">
-          <FeaturedPanel
-            screening={featured}
-            now={now}
-            sound={sound}
-            hall={hall}
-            date={dayDate}
-            isTomorrow={day.isTomorrow}
-          />
-          <PosterWall list={day.list} now={now} posterHeight="38vh" />
+        <main className="grid min-h-0 flex-1 grid-cols-[52fr_48fr] gap-[2vw] pt-[2vh]">
+          <FeaturedPanel screening={featured} now={now} sound={sound} />
+          <CardGrid list={day.list} now={now} columns={2} />
         </main>
       ) : (
-        <main className="relative flex h-full flex-col justify-evenly px-[2.5vw] py-[2vh]">
-          {program.halls.map((h) => (
-            <section key={h.slug} className="grid grid-cols-[auto_1fr] items-center gap-[2vw]">
-              <HallLabel name={h.name} colorHex={h.colorHex} />
-              <PosterWall list={day.list.filter((s) => s.hall.slug === h.slug)} now={now} posterHeight="41vh" />
-            </section>
-          ))}
-          {day.isTomorrow ? <DayNote date={dayDate} /> : null}
+        <main className="min-h-0 flex-1 pt-[2.5vh]">
+          <CardGrid list={day.list} now={now} columns={4} />
         </main>
       )}
     </div>
   );
 }
 
-/** Numele sălii, pe verticală, în culoarea ei, la capătul rândului de afișe. */
-function HallLabel({ name, colorHex }: { name: string; colorHex: string }) {
-  return (
-    <div className="flex h-[42vh] items-center gap-[0.8vw]">
-      <span className="h-full w-[0.45vw] rounded-full" style={{ backgroundColor: colorHex }} />
-      <span
-        className="ticket rotate-180 whitespace-nowrap text-[2.8vw] leading-none tracking-[0.2em] [writing-mode:vertical-rl]"
-        style={{ color: colorHex }}
-      >
-        {name.toUpperCase()}
-      </span>
-    </div>
-  );
-}
-
-/** Mențiune discretă când, după ultimul film, se afișează deja ziua următoare. */
-function DayNote({ date }: { date: Date }) {
+/** Ceasul mare, la mijloc; în stânga ziua, în dreapta sala (pe televizorul sălii). */
+function TopBar({
+  now,
+  date,
+  isTomorrow,
+  hall,
+}: {
+  now: Date;
+  date: Date;
+  isTomorrow: boolean;
+  hall?: { name: string; colorHex: string };
+}) {
   const weekday = formatWeekday(date);
   return (
-    <p className="ticket absolute right-[2.5vw] top-[1.6vh] text-[1.4vw] tracking-[0.22em] text-white/60">
-      MÂINE · {weekday.toUpperCase()}, {formatDayMonth(date).toUpperCase()}
-    </p>
+    <header className="grid grid-cols-[1fr_auto_1fr] items-center">
+      <p className="ticket text-[1.9vw] leading-none tracking-[0.2em] text-brand-ink/85">
+        {isTomorrow ? "PROGRAM MÂINE · " : ""}
+        {weekday.toUpperCase()}, {formatDayMonth(date).toUpperCase()}
+      </p>
+      <p className="poster-type text-[6.5vw] leading-none" aria-label="Ora curentă">
+        {formatTime(now)}
+      </p>
+      <p className="ticket flex items-center justify-end gap-[0.7vw] text-[1.9vw] leading-none tracking-[0.2em] text-brand-ink/85">
+        {hall ? (
+          <>
+            <span className="size-[1vw] rounded-full ring-[0.15vw] ring-brand-ink/40" style={{ backgroundColor: hall.colorHex }} />
+            {hall.name.toUpperCase()}
+          </>
+        ) : null}
+      </p>
+    </header>
   );
 }
 
-function PosterWall({ list, now, posterHeight }: { list: DisplayScreening[]; now: Date; posterHeight: string }) {
+function CardGrid({ list, now, columns }: { list: DisplayScreening[]; now: Date; columns: 2 | 4 }) {
   if (list.length === 0) {
-    return <p className="display self-center text-center text-[2vw] text-white/50">Nicio proiecție programată.</p>;
+    return (
+      <p className="display flex h-full items-center justify-center text-[2.4vw] text-brand-ink/80">
+        Nicio proiecție programată.
+      </p>
+    );
   }
   return (
-    <ul className="flex flex-wrap items-center justify-center gap-x-[2.2vw] gap-y-[6vh]">
+    <ul
+      className={cn("grid h-full auto-rows-fr gap-x-[1.1vw] gap-y-[4.2vh]", columns === 4 ? "grid-cols-4" : "grid-cols-2")}
+    >
       {list.map((s) => (
-        <PosterCard key={s.id} screening={s} status={statusOf(s, now)} height={posterHeight} />
+        <FilmCard key={s.id} screening={s} now={now} />
       ))}
     </ul>
   );
 }
 
 /**
- * Afișul unui film, ca pe prima pagină: ora galbenă, înclinată, peste colțul
- * de sus; titlul pe un gradient jos. Când rulează, cardul se luminează și
- * primește banda galbenă „RULEAZĂ ACUM”; când s-a terminat, se stinge.
+ * Cardul unui film: afișul întreg în stânga, cu ora galbenă înclinată peste
+ * colț (ca pe afișul din Canva); în dreapta sala, titlul și starea. Filmul
+ * care rulează are ramă galbenă și banda „RULEAZĂ” cu minutele rămase.
  */
-function PosterCard({ screening: s, status, height }: { screening: DisplayScreening; status: Status; height: string }) {
+function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Date }) {
+  const status = statusOf(s, now);
+  const running = status === "running";
+  const toStart = minutesUntil(startOf(s), now);
+  const left = minutesUntil(endOf(s), now);
+  const firstGenre = s.movie.genres?.split(",")[0]?.trim();
+
   return (
-    <li
-      className={cn(
-        "relative shrink-0 transition-[opacity,filter,scale] duration-700",
-        status === "running" && "tv-card-running z-10 scale-[1.07]",
-        status === "ended" && "opacity-45 saturate-[0.35]",
-      )}
-      style={{ height, aspectRatio: "2 / 3" }}
-    >
-      <span className="poster-type pointer-events-none absolute -top-[2.2vh] left-[0.4vw] z-20 -rotate-6 text-[2.6vw] leading-none">
+    <li className={cn("relative min-h-0 transition-[scale] duration-700", running && "z-10 scale-[1.04]")}>
+      <span className="poster-type pointer-events-none absolute -top-[2.4vh] left-[0.3vw] z-20 -rotate-6 text-[2.7vw] leading-none">
         {formatTime(startOf(s))}
       </span>
       <div
         className={cn(
-          "relative h-full w-full overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_5vh_-1vh_rgba(0,0,0,0.8)]",
-          status === "running" ? "ring-[0.3vw] ring-brand-yellow" : "ring-1 ring-white/10",
+          "flex h-full overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_4vh_-1.5vh_rgba(0,0,0,0.7)]",
+          running ? "ring-[0.35vw] ring-brand-yellow" : "ring-[0.15vw] ring-black/25",
         )}
       >
-        {s.movie.posterUrl ? (
-          <Image src={s.movie.posterUrl} alt="" fill sizes="20vw" className="object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
-            <span className="display text-[1.6vw] text-white/85">{s.movie.title}</span>
-          </div>
-        )}
-        {s.movie.ageRating ? (
-          <span className="absolute right-[0.6vw] top-[0.6vw] rounded-[0.4vw] bg-black/70 px-[0.5vw] py-[0.2vh] text-[0.95vw] font-semibold tracking-wide text-white">
-            {s.movie.ageRating}
-          </span>
-        ) : null}
-        {s.is3D ? (
-          <span className="poster-type tilt-strong absolute bottom-[26%] right-[0.6vw] text-[1.8vw] leading-none">3D</span>
-        ) : null}
-        {/* titlul pe gradient, ca pe cardurile de pe prima pagină */}
-        <div
-          className={cn(
-            "absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#101014] via-[#101014]/85 to-transparent px-[0.9vw] pt-[6vh]",
-            // când rulează, textul urcă deasupra benzii galbene
-            status === "running" ? "pb-[5.6vh]" : "pb-[1.2vh]",
+        <div className="relative h-full shrink-0" style={{ aspectRatio: "2 / 3" }}>
+          {s.movie.posterUrl ? (
+            <Image src={s.movie.posterUrl} alt="" fill sizes="18vw" className="object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
+              <span className="display text-[1.5vw] text-white/85">{s.movie.title}</span>
+            </div>
           )}
-        >
-          <p className="display line-clamp-2 text-[1.45vw] leading-tight text-white">{s.movie.title}</p>
-          <p className="mt-[0.4vh] truncate text-[0.95vw] text-white/60">
-            {[s.is3D ? "3D" : null, s.isDubbed ? "Dublat" : "Subtitrat", s.movie.genres?.split(",")[0]?.trim()]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          {s.is3D ? (
+            <span className="poster-type tilt-strong absolute bottom-[0.6vh] right-[0.5vw] text-[2vw] leading-none">3D</span>
+          ) : null}
         </div>
-        {status === "running" ? (
-          <div className="ticket absolute inset-x-0 bottom-0 flex items-center justify-center gap-[0.6vw] bg-brand-yellow py-[0.9vh] text-[1.35vw] tracking-[0.22em] text-brand-ink">
-            <span className="tv-live size-[0.7vw] rounded-full bg-brand-ink" />
-            RULEAZĂ ACUM
+
+        <div className="flex min-w-0 flex-1 flex-col gap-[0.8vh] p-[0.6vw] pt-[1.3vh]">
+          <span
+            className="ticket w-fit whitespace-nowrap rounded-full px-[0.6vw] py-[0.3vh] text-[0.82vw] leading-none tracking-[0.1em] text-white"
+            style={{ backgroundColor: s.hall.colorHex }}
+          >
+            {s.hall.name.toUpperCase()}
+          </span>
+          <p className="display line-clamp-3 text-[1.08vw] leading-tight text-white [overflow-wrap:anywhere]">{s.movie.title}</p>
+          <p className="text-[0.82vw] leading-snug text-white/60">
+            {[s.movie.ageRating, s.isDubbed ? "Dublat" : "Subtitrat", firstGenre].filter(Boolean).join(" · ")}
+            <br />
+            {runtimeOf(s)} min
+          </p>
+
+          <div className="mt-auto">
+            {running ? (
+              <div className="ticket rounded-[0.6vw] bg-brand-yellow px-[0.6vw] py-[0.8vh] leading-none text-brand-ink">
+                <span className="flex items-center gap-[0.45vw] text-[1.2vw] tracking-[0.14em]">
+                  <span className="tv-live size-[0.55vw] shrink-0 rounded-full bg-brand-ink" />
+                  RULEAZĂ
+                </span>
+                <span className="mt-[0.8vh] block text-[0.8vw] tracking-[0.12em] text-brand-ink/75">MAI SUNT</span>
+                <span className="mt-[0.4vh] block text-[1.35vw] tracking-[0.08em]">{fmtMinutes(Math.max(1, left))}</span>
+              </div>
+            ) : status === "upcoming" ? (
+              <div className="ticket rounded-[0.6vw] bg-white/10 px-[0.6vw] py-[0.8vh] leading-none text-white ring-1 ring-white/15">
+                <span className="block text-[0.8vw] tracking-[0.14em] text-white/60">ÎNCEPE ÎN</span>
+                <span className="mt-[0.5vh] block text-[1.35vw] tracking-[0.08em] text-brand-yellow">
+                  {isToday(startOf(s), now) ? fmtMinutes(Math.max(1, toStart)) : "MÂINE"}
+                </span>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </div>
     </li>
   );
 }
 
 /** Trailerul filmului care urmează, pe televizorul de la intrarea sălii. */
-function FeaturedPanel({
-  screening,
-  now,
-  sound,
-  hall,
-  date,
-  isTomorrow,
-}: {
-  screening?: DisplayScreening;
-  now: Date;
-  sound: boolean;
-  hall: { name: string; colorHex: string };
-  date: Date;
-  isTomorrow: boolean;
-}) {
-  const weekday = formatWeekday(date);
+function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening; now: Date; sound: boolean }) {
   const videoId = screening ? youtubeId(screening.movie.trailerUrl) : null;
   const still = screening?.movie.backdropUrl ?? screening?.movie.posterUrl ?? null;
   const mins = screening ? minutesUntil(startOf(screening), now) : 0;
 
   return (
     <section className="flex min-h-0 flex-col">
-      <div className="mb-[2vh] flex items-baseline gap-[1.2vw]">
-        <h1 className="ticket text-[3.4vw] leading-none tracking-[0.2em]" style={{ color: hall.colorHex }}>
-          {hall.name.toUpperCase()}
-        </h1>
-        <p className="ticket text-[1.3vw] tracking-[0.2em] text-white/60">
-          {isTomorrow ? "MÂINE · " : ""}
-          {weekday.toUpperCase()}, {formatDayMonth(date).toUpperCase()}
-        </p>
-      </div>
-
       <div
-        className="relative w-full overflow-hidden rounded-[1vw] bg-black shadow-[0_3vh_8vh_-2vh_rgba(0,0,0,0.9)] ring-1 ring-white/10"
+        className="relative w-full overflow-hidden rounded-[1vw] bg-black shadow-[0_3vh_6vh_-2vh_rgba(0,0,0,0.8)] ring-[0.15vw] ring-black/25"
         style={{ aspectRatio: "16 / 9" }}
       >
         {videoId ? (
@@ -271,7 +254,7 @@ function FeaturedPanel({
             allow="autoplay; encrypted-media"
           />
         ) : still ? (
-          <Image src={still} alt="" fill sizes="60vw" className="object-cover" />
+          <Image src={still} alt="" fill sizes="55vw" className="object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center">
             <p className="ticket text-[2.6vw] tracking-[0.2em] text-brand-yellow">MULȚUMIM CĂ AȚI VENIT</p>
@@ -280,10 +263,10 @@ function FeaturedPanel({
       </div>
 
       {screening ? (
-        <div className="mt-[2.5vh] flex items-end justify-between gap-[2vw]">
+        <div className="mt-[2.5vh] flex items-end justify-between gap-[2vw] text-brand-ink">
           <div className="min-w-0">
-            <h2 className="display line-clamp-2 text-[3vw] leading-tight">{screening.movie.title}</h2>
-            <p className="mt-[0.6vh] text-[1.25vw] text-white/65">
+            <h2 className="display line-clamp-2 text-[2.8vw] leading-tight">{screening.movie.title}</h2>
+            <p className="mt-[0.6vh] text-[1.2vw] text-brand-ink/75">
               {[
                 screening.is3D ? "3D" : "2D",
                 screening.isDubbed ? "Dublat" : "Subtitrat",
@@ -295,20 +278,13 @@ function FeaturedPanel({
             </p>
           </div>
           <div className="shrink-0 text-right">
-            <p className="poster-type text-[4.6vw] leading-none">{formatTime(startOf(screening))}</p>
-            <p
-              className={cn(
-                "ticket mt-[0.6vh] text-[1.25vw] tracking-[0.18em]",
-                mins <= 0 ? "text-brand-yellow" : "text-white/70",
-              )}
-            >
+            <p className="poster-type text-[4.4vw] leading-none">{formatTime(startOf(screening))}</p>
+            <p className="ticket mt-[0.6vh] text-[1.2vw] tracking-[0.18em] text-brand-ink/85">
               {mins <= 0
                 ? `RULEAZĂ · A ÎNCEPUT ACUM ${-mins} MIN`
-                : mins <= 90
-                  ? `ÎNCEPE ÎN ${mins} MIN`
-                  : isToday(startOf(screening), now)
-                    ? "ASTĂZI"
-                    : "MÂINE"}
+                : isToday(startOf(screening), now)
+                  ? `ÎNCEPE ÎN ${fmtMinutes(mins)}`
+                  : "MÂINE"}
             </p>
           </div>
         </div>

@@ -947,25 +947,12 @@
   .tv-root ::-webkit-scrollbar {
     display: none;
   }
-  /* cadrul filmului, estompat și întunecat, ca fundal; static, o singură dată */
-  .tv-backdrop {
-    filter: blur(26px) brightness(0.45) saturate(1.1);
-    transform: scale(1.12);
-  }
-  .tv-shade {
+  /* fundalul afișajului: portocaliul afișului din Canva, cu punctele de tipar */
+  .tv-canva {
     background:
-      radial-gradient(90% 70% at 50% 45%, transparent 0%, rgb(10 10 11 / 0.55) 70%, rgb(10 10 11 / 0.9) 100%),
-      linear-gradient(180deg, rgb(10 10 11 / 0.35) 0%, transparent 30%, transparent 70%, rgb(10 10 11 / 0.5) 100%);
-  }
-  /* afișul care rulează: halo galben în jurul lui */
-  .tv-card-running::before {
-    content: "";
-    position: absolute;
-    inset: -8%;
-    z-index: -1;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgb(255 222 89 / 0.38), transparent);
-    filter: blur(14px);
+      radial-gradient(rgb(90 30 0 / 0.14) 1px, transparent 1.6px) 0 0 / 11px 11px,
+      radial-gradient(80% 40% at 50% 0%, rgb(255 222 89 / 0.28) 0%, transparent 70%),
+      linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
   }
   .tv-live {
     animation: tv-live 1.6s ease-in-out infinite;
