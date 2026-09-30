@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { GlowCard } from "@/components/motion/glow-card";
 import { addDays, formatDayMonth, formatTime, formatWeekday, isToday } from "@/lib/dates";
 import { youtubeId } from "@/lib/format";
 import type { DisplayProgram, DisplayScreening } from "@/server/queries";
@@ -11,10 +10,10 @@ import { cn } from "@/lib/utils";
 
 /* ---------------------------------------------------------------------------
    Afișajul de pe televizoarele din cinematograf, în spiritul afișului din
-   Canva: fundal portocaliu (stins), filmele în ordinea orelor, ora galbenă
+   Canva: fundal negru cu punctele aurii de tipar, filmele în ordinea orelor, ora galbenă
    înclinată peste colțul fiecăruia, un ceas mare sus. Cardurile sunt late,
    cu imaginea panoramică a filmului (de la TMDB), sala, titlul și starea:
-   filmul care rulează are Border Glow-ul de pe prima pagină și un cronometru
+   filmul care rulează are o lumină care dă ocol marginilor și un cronometru
    cu cât mai e din film; cele care urmează arată în cât timp încep.
    Filmele terminate rămân la fel, doar fără stare.
    Două moduri:
@@ -174,8 +173,9 @@ function CardGrid({ list, now, columns }: { list: DisplayScreening[]; now: Date;
 
 /**
  * Cardul lat al unui film: imaginea panoramică sus, cu ora galbenă înclinată
- * peste colț și sala în colțul opus; dedesubt titlul și starea. Filmul care
- * rulează are Border Glow-ul de pe prima pagină și cronometrul cu cât mai e.
+ * peste colț și sala în colțul opus, topită într-un gradient spre corpul
+ * cardului; dedesubt titlul și starea. Filmul care rulează are o lumină care
+ * dă ocol marginilor și cronometrul cu cât mai e din film.
  */
 function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Date }) {
   const status = statusOf(s, now);
@@ -188,62 +188,64 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
       <span className="poster-type pointer-events-none absolute -top-[2.4vh] left-[0.4vw] z-20 -rotate-6 text-[2.6vw] leading-none">
         {formatTime(startOf(s))}
       </span>
-      <GlowCard
-        asCard={false}
-        background="#101014"
-        glowRadius={running ? 60 : 44}
-        glowIntensity={running ? 1.6 : 1}
-        className={cn("tv-card flex h-full flex-col rounded-[1vw]", running && "tv-glow sweep-active")}
-      >
-        <div className="relative w-full overflow-hidden rounded-t-[1vw]" style={{ aspectRatio: "16 / 10" }}>
-          {image ? (
-            <Image src={image} alt="" fill sizes="24vw" className="object-cover" />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
-              <span className="display text-[1.5vw] text-white/85">{s.movie.title}</span>
-            </div>
-          )}
-          <span
-            className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.7vw] py-[0.35vh] text-[0.9vw] leading-none tracking-[0.1em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
-            style={{ backgroundColor: s.hall.colorHex }}
-          >
-            {s.hall.name.toUpperCase()}
-          </span>
-          {s.is3D ? (
-            <span className="poster-type tilt-strong absolute bottom-[0.6vh] right-[0.5vw] text-[2vw] leading-none">3D</span>
-          ) : null}
-        </div>
-
-        <div className="flex min-h-0 flex-1 items-center justify-between gap-[0.8vw] px-[0.9vw] py-[1.2vh]">
-          <div className="min-w-0">
-            <p className="display line-clamp-2 text-[1.3vw] leading-tight text-white [overflow-wrap:anywhere]">
-              {s.movie.title}
-            </p>
-            <p className="mt-[0.5vh] text-[0.85vw] leading-snug text-white/60">
-              {[s.movie.ageRating, s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+      <div className="relative h-full rounded-[1vw]">
+        {running ? (
+          <>
+            <span className="tv-orbit-halo" aria-hidden="true" />
+            <span className="tv-orbit-ring" aria-hidden="true" />
+          </>
+        ) : null}
+        <div className="relative flex h-full flex-col overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_4vh_-1.5vh_rgba(0,0,0,0.7)]">
+          <div className="relative w-full" style={{ aspectRatio: "16 / 10" }}>
+            {image ? (
+              <Image src={image} alt="" fill sizes="24vw" className="object-cover" />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
+                <span className="display text-[1.5vw] text-white/85">{s.movie.title}</span>
+              </div>
+            )}
+            {/* imaginea se topește în corpul cardului, fără muchie */}
+            <span className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#101014] via-[#101014]/60 to-transparent" />
+            <span
+              className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.7vw] py-[0.35vh] text-[0.9vw] leading-none tracking-[0.1em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
+              style={{ backgroundColor: s.hall.colorHex }}
+            >
+              {s.hall.name.toUpperCase()}
+            </span>
+            {s.is3D ? (
+              <span className="poster-type tilt-strong absolute bottom-[0.6vh] right-[0.5vw] text-[2vw] leading-none">3D</span>
+            ) : null}
           </div>
 
-          {running ? (
-            <div className="ticket shrink-0 text-right leading-none">
-              <span className="flex items-center justify-end gap-[0.4vw] text-[0.85vw] tracking-[0.18em] text-brand-yellow">
-                <span className="tv-live size-[0.5vw] rounded-full bg-brand-yellow" />
-                RULEAZĂ · MAI E
-              </span>
-              <Countdown until={endOf(s)} now={now} className="mt-[0.6vh] block text-[2.2vw] tabular-nums tracking-[0.06em] text-white" />
+          <div className="flex min-h-0 flex-1 items-center justify-between gap-[0.8vw] px-[0.9vw] pb-[1.2vh]">
+            <div className="min-w-0">
+              <p className="display line-clamp-2 text-[1.3vw] leading-tight text-white [overflow-wrap:anywhere]">
+                {s.movie.title}
+              </p>
+              <p className="mt-[0.5vh] text-[0.85vw] leading-snug text-white/60">
+                {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
+              </p>
             </div>
-          ) : status === "upcoming" ? (
-            <div className="ticket shrink-0 text-right leading-none">
-              <span className="block text-[0.85vw] tracking-[0.18em] text-white/50">ÎNCEPE ÎN</span>
-              <span className="mt-[0.6vh] block text-[1.8vw] tracking-[0.06em] text-brand-yellow">
-                {isToday(startOf(s), now) ? fmtMinutes(Math.max(1, minutesUntil(startOf(s), now))) : "MÂINE"}
-              </span>
-            </div>
-          ) : null}
+
+            {running ? (
+              <div className="ticket shrink-0 text-right leading-none">
+                <span className="flex items-center justify-end gap-[0.4vw] text-[0.85vw] tracking-[0.18em] text-brand-yellow">
+                  <span className="tv-live size-[0.5vw] rounded-full bg-brand-yellow" />
+                  RULEAZĂ
+                </span>
+                <Countdown until={endOf(s)} now={now} className="mt-[0.6vh] block text-[2.2vw] tabular-nums tracking-[0.06em] text-white" />
+              </div>
+            ) : status === "upcoming" ? (
+              <div className="ticket shrink-0 text-right leading-none">
+                <span className="block text-[0.85vw] tracking-[0.18em] text-white/50">ÎNCEPE ÎN</span>
+                <span className="mt-[0.6vh] block text-[1.8vw] tracking-[0.06em] text-brand-yellow">
+                  {isToday(startOf(s), now) ? fmtMinutes(Math.max(1, minutesUntil(startOf(s), now))) : "MÂINE"}
+                </span>
+              </div>
+            ) : null}
+          </div>
         </div>
-      </GlowCard>
+      </div>
     </li>
   );
 }
@@ -299,7 +301,6 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
               {[
                 screening.is3D ? "3D" : "2D",
                 screening.isDubbed ? "Dublat" : "Subtitrat",
-                screening.movie.ageRating,
                 screening.movie.genres,
               ]
                 .filter(Boolean)
@@ -311,7 +312,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
             <p className="ticket mt-[0.6vh] text-[1.2vw] tracking-[0.18em] text-white/75">
               {mins <= 0 ? (
                 <>
-                  RULEAZĂ · MAI E <Countdown until={endOf(screening)} now={now} className="text-brand-yellow" />
+                  RULEAZĂ · <Countdown until={endOf(screening)} now={now} className="text-brand-yellow" />
                 </>
               ) : isToday(startOf(screening), now) ? (
                 `ÎNCEPE ÎN ${fmtMinutes(mins)}`
