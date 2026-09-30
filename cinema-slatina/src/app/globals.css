@@ -193,6 +193,12 @@
   }
 }
 
+@property --cursor-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 45deg;
+}
+
 @layer components {
   /* Titlu de sectiune, in fontul de afis al cinematografului */
   .display {
@@ -947,12 +953,24 @@
   .tv-root ::-webkit-scrollbar {
     display: none;
   }
-  /* fundalul afișajului: portocaliul afișului din Canva, cu punctele de tipar */
+  /* fundalul afișajului: portocaliul afișului din Canva, cu punctele de
+     tipar, lăsat la ~20% peste negru */
   .tv-canva {
     background:
+      linear-gradient(rgb(10 10 11 / 0.8), rgb(10 10 11 / 0.8)),
       radial-gradient(rgb(90 30 0 / 0.14) 1px, transparent 1.6px) 0 0 / 11px 11px,
       radial-gradient(80% 40% at 50% 0%, rgb(255 222 89 / 0.28) 0%, transparent 70%),
       linear-gradient(180deg, #f6a02a 0%, #ef8a1f 55%, #e57314 100%);
+  }
+  /* Filmul care rulează: Border Glow-ul de pe prima pagină, dar fără cursor —
+     conul de lumină dă ocol cardului singur. */
+  .bglow.tv-glow {
+    --edge-proximity: 100;
+    animation: tv-orbit 6s linear infinite;
+  }
+  @keyframes tv-orbit {
+    from { --cursor-angle: 0deg; }
+    to { --cursor-angle: 360deg; }
   }
   .tv-live {
     animation: tv-live 1.6s ease-in-out infinite;
