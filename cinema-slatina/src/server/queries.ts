@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { buildCapacity, seatsTakenByScreening, type Capacity } from "@/lib/capacity";
-import { addDays, formatTime, nextWeekStartOf, weekStartOf } from "@/lib/dates";
+import { addDays, formatTime, nextWeekStartOf, todayStart, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
 
 export type ScreeningView = {
@@ -398,4 +398,76 @@ export async function getMenu() {
     grouped.set(item.category, list);
   }
   return [...grouped.entries()].map(([category, list]) => ({ category, items: list }));
+}
+
+/* ---------------------------------------------------------------------------
+   Afișajul de pe televizoarele din cinematograf (/afisaj): programul de azi și
+   de mâine, fără capacitate (nu se arată locuri pe televizor). Datele sunt
+   text simplu, ca să treacă neschimbate către componenta din browser.
+--------------------------------------------------------------------------- */
+export type DisplayScreening = {
+  id: string;
+  /** ISO, ca să nu depindă de fusul orar al cutiei de pe televizor. */
+  startsAt: string;
+  is3D: boolean;
+  isDubbed: boolean;
+  hall: { slug: string; name: string; colorHex: string };
+  movie: {
+    title: string;
+    posterUrl: string | null;
+    backdropUrl: string | null;
+    genres: string | null;
+    runtimeMin: number | null;
+    ageRating: string | null;
+    trailerUrl: string | null;
+  };
+};
+
+export type DisplayProgram = {
+  halls: { slug: string; name: string; colorHex: string }[];
+  screenings: DisplayScreening[];
+  /** Momentul interogării: prima „oră” a afișajului, aceeași pe server și în browser. */
+  generatedAt: string;
+};
+
+export async function getDisplayProgram(now: Date = new Date()): Promise<DisplayProgram> {
+  const from = todayStart(now);
+  const to = addDays(from, 2);
+  const [halls, rows] = await Promise.all([
+    db.hall.findMany({
+      orderBy: { sortOrder: "asc" },
+      select: { slug: true, name: true, colorHex: true },
+    }),
+    db.screening.findMany({
+      where: {
+        startsAt: { gte: from, lt: to },
+        isCancelled: false,
+        week: { isPublished: true },
+      },
+      orderBy: [{ startsAt: "asc" }, { hall: { sortOrder: "asc" } }],
+      select: {
+        id: true,
+        startsAt: true,
+        is3D: true,
+        isDubbed: true,
+        hall: { select: { slug: true, name: true, colorHex: true } },
+        movie: {
+          select: {
+            title: true,
+            posterUrl: true,
+            backdropUrl: true,
+            genres: true,
+            runtimeMin: true,
+            ageRating: true,
+            trailerUrl: true,
+          },
+        },
+      },
+    }),
+  ]);
+  return {
+    halls,
+    screenings: rows.map((r) => ({ ...r, startsAt: r.startsAt.toISOString() })),
+    generatedAt: now.toISOString(),
+  };
 }

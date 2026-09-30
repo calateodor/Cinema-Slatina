@@ -936,6 +936,25 @@
     translate: 12% 0;
     rotate: 2deg;
   }
+  /* Afișajul de pe televizoare (/afisaj): fără cursor, fără bare de derulare,
+     fundal static (cutiile de pe televizoare sunt slabe). */
+  .tv-root {
+    cursor: none;
+    background:
+      radial-gradient(120% 80% at 50% -20%, #2a1c08 0%, transparent 60%),
+      #0a0a0b;
+  }
+  .tv-root ::-webkit-scrollbar {
+    display: none;
+  }
+  .tv-live {
+    animation: tv-live 1.6s ease-in-out infinite;
+  }
+  @keyframes tv-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
   /* Săgeata „derulează”: sare ușor, ca să atragă privirea. */
   .scroll-cue-arrow {
     animation: scroll-cue 1.6s ease-in-out infinite;
