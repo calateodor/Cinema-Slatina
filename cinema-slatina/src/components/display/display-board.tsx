@@ -194,7 +194,9 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
           {/* Imaginea umple cardul până jos; peste ea, un gradient lung o
               topește treptat în negrul cu detaliile, fără nicio muchie. */}
           {image ? (
-            <Image src={image} alt="" fill sizes="24vw" className="object-cover object-top" />
+            {/* cerem o imagine mare (cutiile raportează ecranul mai mic decât e și
+                ar primi una mică, întinsă) și cu compresie mică */}
+            <Image src={image} alt="" fill sizes="60vw" quality={90} className="object-cover object-top" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1a1308] p-[1vw] text-center">
               <span className="display text-[1.5vw] text-white">{s.movie.title}</span>
@@ -278,7 +280,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
             allow="autoplay; encrypted-media"
           />
         ) : still ? (
-          <Image src={still} alt="" fill sizes="55vw" className="object-cover" />
+          <Image src={still} alt="" fill sizes="100vw" quality={90} className="object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="ticket text-[2.6vw] tracking-[0.2em] text-brand-yellow">MULȚUMIM CĂ AȚI VENIT</p>
