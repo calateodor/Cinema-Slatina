@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 /** Pagina de afișaj ocupă tot ecranul: fără antet, subsol sau insigne. */
 export default function DisplayLayout({ children }: LayoutProps<"/afisaj">) {
   return (
-    <div className="tv-root fixed inset-0 overflow-hidden text-white [scrollbar-width:none]">
+    <div className="tv-root fixed inset-0 overflow-hidden text-white [scrollbar-width:none]" tabIndex={-1}>
       {children}
     </div>
   );

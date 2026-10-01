@@ -947,6 +947,21 @@
   .tv-root ::-webkit-scrollbar {
     display: none;
   }
+  /* Browserul cutiei de pe televizor „selectează” elemente cu telecomanda și
+     le desenează un chenar de focus (apărea în jurul cronometrului). Pe
+     afișaj nu e nimic de apăsat, așa că nu există focus deloc. */
+  .tv-root,
+  .tv-root * {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-focus-ring-color: transparent;
+    user-select: none;
+  }
+  .tv-root *:focus,
+  .tv-root *:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
   /* fundalul afișajului: negru, doar cu punctele aurii de tipar ale afișului */
   .tv-canva {
     background:
