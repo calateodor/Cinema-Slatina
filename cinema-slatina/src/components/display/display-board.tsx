@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
    Canva: fundal negru cu punctele aurii de tipar, filmele în ordinea orelor, ora galbenă
    înclinată peste colțul fiecăruia, un ceas mare sus. Cardurile sunt late,
    cu imaginea panoramică a filmului (de la TMDB), sala, titlul și starea:
-   filmul care rulează are o lumină care dă ocol marginilor și un cronometru
+   filmul care rulează are conturul galben, cu halo pulsând, și un cronometru
    cu cât mai e din film; cele care urmează arată în cât timp încep.
    Filmele terminate rămân la fel, doar fără stare.
    Două moduri:
@@ -173,9 +173,9 @@ function CardGrid({ list, now, columns }: { list: DisplayScreening[]; now: Date;
 
 /**
  * Cardul lat al unui film: imaginea panoramică sus, cu ora galbenă înclinată
- * peste colț și sala în colțul opus, topită într-un gradient spre corpul
- * cardului; dedesubt titlul și starea. Filmul care rulează are o lumină care
- * dă ocol marginilor și cronometrul cu cât mai e din film.
+ * peste colț și sala în colțul opus, topită într-un gradient lung spre corpul
+ * cardului; dedesubt titlul și starea. Filmul care rulează are tot conturul
+ * galben, cu un halo care pulsează, și cronometrul cu cât mai e din film.
  */
 function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Date }) {
   const status = statusOf(s, now);
@@ -189,23 +189,19 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
         {formatTime(startOf(s))}
       </span>
       <div className="relative h-full rounded-[1vw]">
-        {running ? (
-          <>
-            <span className="tv-orbit-halo" aria-hidden="true" />
-            <span className="tv-orbit-ring" aria-hidden="true" />
-          </>
-        ) : null}
+        {running ? <span className="tv-running" aria-hidden="true" /> : null}
         <div className="relative flex h-full flex-col overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_4vh_-1.5vh_rgba(0,0,0,0.7)]">
+          {/* Imaginea umple cardul până jos; peste ea, un gradient lung o
+              topește treptat în negrul cu detaliile, fără nicio muchie. */}
+          {image ? (
+            <Image src={image} alt="" fill sizes="24vw" className="object-cover object-top" />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
+              <span className="display text-[1.5vw] text-white/85">{s.movie.title}</span>
+            </div>
+          )}
+          <span className="absolute inset-0 bg-gradient-to-b from-transparent from-[38%] via-[#101014]/85 via-[68%] to-[#101014] to-[78%]" />
           <div className="relative w-full" style={{ aspectRatio: "16 / 10" }}>
-            {image ? (
-              <Image src={image} alt="" fill sizes="24vw" className="object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
-                <span className="display text-[1.5vw] text-white/85">{s.movie.title}</span>
-              </div>
-            )}
-            {/* imaginea se topește în corpul cardului, fără muchie */}
-            <span className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#101014] via-[#101014]/60 to-transparent" />
             <span
               className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.7vw] py-[0.35vh] text-[0.9vw] leading-none tracking-[0.1em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
               style={{ backgroundColor: s.hall.colorHex }}
@@ -217,7 +213,7 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
             ) : null}
           </div>
 
-          <div className="flex min-h-0 flex-1 items-center justify-between gap-[0.8vw] px-[0.9vw] pb-[1.2vh]">
+          <div className="relative flex min-h-0 flex-1 items-center justify-between gap-[0.8vw] px-[0.9vw] pb-[1.2vh]">
             <div className="min-w-0">
               <p className="display line-clamp-2 text-[1.3vw] leading-tight text-white [overflow-wrap:anywhere]">
                 {s.movie.title}
@@ -233,7 +229,7 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
                   <span className="tv-live size-[0.5vw] rounded-full bg-brand-yellow" />
                   RULEAZĂ
                 </span>
-                <Countdown until={endOf(s)} now={now} className="mt-[0.6vh] block text-[2.2vw] tabular-nums tracking-[0.06em] text-white" />
+                <Countdown until={endOf(s)} now={now} className="tv-countdown mt-[0.6vh] text-[2.2vw] tabular-nums tracking-[0.06em] text-white" />
               </div>
             ) : status === "upcoming" ? (
               <div className="ticket shrink-0 text-right leading-none">
@@ -312,7 +308,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
             <p className="ticket mt-[0.6vh] text-[1.2vw] tracking-[0.18em] text-white/75">
               {mins <= 0 ? (
                 <>
-                  RULEAZĂ · <Countdown until={endOf(screening)} now={now} className="text-brand-yellow" />
+                  RULEAZĂ · <Countdown until={endOf(screening)} now={now} className="tv-countdown text-brand-yellow" />
                 </>
               ) : isToday(startOf(screening), now) ? (
                 `ÎNCEPE ÎN ${fmtMinutes(mins)}`
