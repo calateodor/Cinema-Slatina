@@ -965,21 +965,58 @@
   /* fundalul afișajului: negru, doar cu punctele aurii de tipar ale afișului */
   .tv-canva {
     background:
-      radial-gradient(rgb(255 205 90 / 0.16) 1px, transparent 1.7px) 0 0 / 12px 12px,
+      radial-gradient(rgba(255, 205, 90, 0.16) 1px, transparent 1.7px) 0 0 / 12px 12px,
       #0a0a0b;
   }
   /* Filmul care rulează: tot conturul e galben, cu un halo în jurul lui care
      pulsează lent. Doar opacitate și box-shadow, fără blur sau rotiri —
      ieftin pentru cutiile de pe televizoare. */
+  /* Tot ce e pe afișaj e scris în CSS „vechi” (fără color-mix, oklab, inset,
+     aspect-ratio): browserul cutiilor de pe televizoare nu le știe și
+     altfel degradeul dispărea și textul nu se mai citea. */
+  .tv-fade {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(16, 16, 20, 0) 28%,
+      rgba(16, 16, 20, 0.55) 50%,
+      rgba(16, 16, 20, 0.92) 64%,
+      #101014 74%
+    );
+  }
+  /* spațiul rezervat imaginii: 16/10, prin padding, nu aspect-ratio */
+  .tv-image-space {
+    position: relative;
+    width: 100%;
+    padding-top: 62.5%;
+  }
+  .tv-video-space {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+  }
+  .tv-muted {
+    color: rgba(255, 255, 255, 0.62);
+  }
+  .tv-dim {
+    color: rgba(255, 255, 255, 0.5);
+  }
   .tv-running {
     position: absolute;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     border-radius: inherit;
     pointer-events: none;
     box-shadow:
       0 0 0 0.28vw #ffde59,
-      0 0 1.2vw 0.2vw rgb(255 222 89 / 0.55),
-      0 0 3vw 0.6vw rgb(255 160 40 / 0.35);
+      0 0 1.2vw 0.2vw rgba(255, 222, 89, 0.55),
+      0 0 3vw 0.6vw rgba(255, 160, 40, 0.35);
     animation: tv-pulse 2.4s ease-in-out infinite;
   }
   @keyframes tv-pulse {

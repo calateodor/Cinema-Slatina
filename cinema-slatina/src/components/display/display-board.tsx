@@ -130,14 +130,14 @@ function TopBar({
   const weekday = formatWeekday(date);
   return (
     <header className="grid grid-cols-[1fr_auto_1fr] items-center">
-      <p className="ticket text-[1.7vw] leading-none tracking-[0.2em] text-white/70">
+      <p className="ticket tv-muted text-[1.7vw] leading-none tracking-[0.2em]">
         {isTomorrow ? "PROGRAM MÂINE · " : ""}
         {weekday.toUpperCase()}, {formatDayMonth(date).toUpperCase()}
       </p>
       <p className="poster-type text-[5.6vw] leading-none" aria-label="Ora curentă">
         {formatTime(now)}
       </p>
-      <p className="ticket flex items-center justify-end gap-[0.7vw] text-[1.7vw] leading-none tracking-[0.2em] text-white/70">
+      <p className="ticket tv-muted flex items-center justify-end gap-[0.7vw] text-[1.7vw] leading-none tracking-[0.2em]">
         {hall ? (
           <>
             <span className="size-[0.9vw] rounded-full" style={{ backgroundColor: hall.colorHex }} />
@@ -152,7 +152,7 @@ function TopBar({
 function CardGrid({ list, now, columns }: { list: DisplayScreening[]; now: Date; columns: 2 | 4 }) {
   if (list.length === 0) {
     return (
-      <p className="display flex h-full items-center justify-center text-[2.4vw] text-white/70">
+      <p className="display tv-muted flex h-full items-center justify-center text-[2.4vw]">
         Nicio proiecție programată.
       </p>
     );
@@ -196,12 +196,12 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
           {image ? (
             <Image src={image} alt="" fill sizes="24vw" className="object-cover object-top" />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-[#2a1d08] to-[#0b0b0e] p-[1vw] text-center">
-              <span className="display text-[1.5vw] text-white/85">{s.movie.title}</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-[#1a1308] p-[1vw] text-center">
+              <span className="display text-[1.5vw] text-white">{s.movie.title}</span>
             </div>
           )}
-          <span className="absolute inset-0 bg-gradient-to-b from-transparent from-[38%] via-[#101014]/85 via-[68%] to-[#101014] to-[78%]" />
-          <div className="relative w-full" style={{ aspectRatio: "16 / 10" }}>
+          <span className="tv-fade" aria-hidden="true" />
+          <div className="tv-image-space">
             <span
               className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.7vw] py-[0.35vh] text-[0.9vw] leading-none tracking-[0.1em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
               style={{ backgroundColor: s.hall.colorHex }}
@@ -218,7 +218,7 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
               <p className="display line-clamp-2 text-[1.3vw] leading-tight text-white [overflow-wrap:anywhere]">
                 {s.movie.title}
               </p>
-              <p className="mt-[0.5vh] text-[0.85vw] leading-snug text-white/60">
+              <p className="tv-muted mt-[0.5vh] text-[0.85vw] leading-snug">
                 {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
               </p>
             </div>
@@ -233,7 +233,7 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
               </div>
             ) : status === "upcoming" ? (
               <div className="ticket shrink-0 text-right leading-none">
-                <span className="block text-[0.85vw] tracking-[0.18em] text-white/50">ÎNCEPE ÎN</span>
+                <span className="tv-dim block text-[0.85vw] tracking-[0.18em]">ÎNCEPE ÎN</span>
                 <span className="mt-[0.6vh] block text-[1.8vw] tracking-[0.06em] text-brand-yellow">
                   {isToday(startOf(s), now) ? fmtMinutes(Math.max(1, minutesUntil(startOf(s), now))) : "MÂINE"}
                 </span>
@@ -267,10 +267,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
 
   return (
     <section className="flex min-h-0 flex-col">
-      <div
-        className="relative w-full overflow-hidden rounded-[1vw] bg-black shadow-[0_3vh_6vh_-2vh_rgba(0,0,0,0.8)] ring-1 ring-white/10"
-        style={{ aspectRatio: "16 / 9" }}
-      >
+      <div className="tv-video-space overflow-hidden rounded-[1vw] bg-black shadow-[0_3vh_6vh_-2vh_rgba(0,0,0,0.8)]">
         {videoId ? (
           <iframe
             key={`${videoId}-${sound}`}
@@ -283,7 +280,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
         ) : still ? (
           <Image src={still} alt="" fill sizes="55vw" className="object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <p className="ticket text-[2.6vw] tracking-[0.2em] text-brand-yellow">MULȚUMIM CĂ AȚI VENIT</p>
           </div>
         )}
@@ -293,7 +290,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
         <div className="mt-[2.5vh] flex items-end justify-between gap-[2vw] text-white">
           <div className="min-w-0">
             <h2 className="display line-clamp-2 text-[2.8vw] leading-tight">{screening.movie.title}</h2>
-            <p className="mt-[0.6vh] text-[1.2vw] text-white/65">
+            <p className="tv-muted mt-[0.6vh] text-[1.2vw]">
               {[
                 screening.is3D ? "3D" : "2D",
                 screening.isDubbed ? "Dublat" : "Subtitrat",
@@ -305,7 +302,7 @@ function FeaturedPanel({ screening, now, sound }: { screening?: DisplayScreening
           </div>
           <div className="shrink-0 text-right">
             <p className="poster-type text-[4.4vw] leading-none">{formatTime(startOf(screening))}</p>
-            <p className="ticket mt-[0.6vh] text-[1.2vw] tracking-[0.18em] text-white/75">
+            <p className="ticket tv-muted mt-[0.6vh] text-[1.2vw] tracking-[0.18em]">
               {mins <= 0 ? (
                 <>
                   RULEAZĂ · <Countdown until={endOf(screening)} now={now} className="tv-countdown text-brand-yellow" />
