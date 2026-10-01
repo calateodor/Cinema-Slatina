@@ -973,13 +973,15 @@
      ieftin pentru cutiile de pe televizoare. */
   /* Tot ce e pe afișaj e scris în CSS „vechi” (fără color-mix, oklab, inset,
      aspect-ratio): browserul cutiilor de pe televizoare nu le știe și
-     altfel degradeul dispărea și textul nu se mai citea. */
+     altfel degradeul dispărea și textul nu se mai citea. Atenție: top+right+
+     bottom+left împreună sunt unite de minificator în `inset`, de aceea
+     straturile folosesc top/left + width/height. */
   .tv-fade {
     position: absolute;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
     /* scurt și ușor: imaginea rămâne vizibilă până aproape de text, iar jos
        se închide doar cât să se citească scrisul */
     background: linear-gradient(
@@ -1010,9 +1012,9 @@
   .tv-running {
     position: absolute;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
     border-radius: inherit;
     pointer-events: none;
     box-shadow:

@@ -193,9 +193,9 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
         <div className="relative flex h-full flex-col overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_4vh_-1.5vh_rgba(0,0,0,0.7)]">
           {/* Imaginea umple cardul până jos; peste ea, un gradient lung o
               topește treptat în negrul cu detaliile, fără nicio muchie. */}
+          {/* imagine mare și puțin comprimată: cutiile raportează ecranul mai
+              mic decât e și ar primi una mică, întinsă */}
           {image ? (
-            {/* cerem o imagine mare (cutiile raportează ecranul mai mic decât e și
-                ar primi una mică, întinsă) și cu compresie mică */}
             <Image src={image} alt="" fill sizes="60vw" quality={90} className="object-cover object-top" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1a1308] p-[1vw] text-center">

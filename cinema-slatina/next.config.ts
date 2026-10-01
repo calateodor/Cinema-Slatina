@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // 90 e pentru imaginile mari de pe afișajul televizoarelor
+    qualities: [75, 90],
     remotePatterns: [
       // Postere și imagini de fundal preluate automat după link-ul de IMDb.
       { protocol: "https", hostname: "image.tmdb.org" },
