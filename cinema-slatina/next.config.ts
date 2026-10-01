@@ -12,7 +12,12 @@ const nextConfig: NextConfig = {
   // Lista separată de filme dubla programul; fișele filmelor (/filme/[slug])
   // rămân, iar vechiul link duce la program.
   async redirects() {
-    return [{ source: "/filme", destination: "/program", permanent: false }];
+    return [
+      { source: "/filme", destination: "/program", permanent: false },
+      // adrese scurte pentru televizoare, ușor de tastat cu telecomanda
+      { source: "/tv", destination: "/afisaj", permanent: false },
+      { source: "/tv/:hall", destination: "/afisaj/:hall", permanent: false },
+    ];
   },
 };
 
