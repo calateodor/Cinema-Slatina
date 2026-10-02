@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { buildCapacity, seatsTakenByScreening, type Capacity } from "@/lib/capacity";
 import { addDays, formatTime, nextWeekStartOf, todayStart, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
+import { signedTrailerUrl } from "@/lib/trailer-signing";
 
 export type ScreeningView = {
   id: string;
@@ -420,8 +421,13 @@ export type DisplayScreening = {
     runtimeMin: number | null;
     ageRating: string | null;
     trailerUrl: string | null;
-    /** MP4-ul trailerului (Vercel Blob), doar dacă încă corespunde linkului YouTube. */
+    /**
+     * Link semnat (temporar) către MP4-ul trailerului din Vercel Blob, doar dacă
+     * fișierul încă corespunde linkului YouTube; altfel `null`.
+     */
     trailerFileUrl: string | null;
+    /** Identificator stabil al fișierului (linkul semnat se poate schimba). */
+    trailerFileKey: string | null;
   };
 };
 
@@ -471,19 +477,22 @@ export async function getDisplayProgram(now: Date = new Date()): Promise<Display
   ]);
   return {
     halls,
-    screenings: rows.map((r) => {
-      const { trailerFileSource, trailerFileUrl, ...movie } = r.movie;
-      return {
-        ...r,
-        startsAt: r.startsAt.toISOString(),
-        movie: {
-          ...movie,
-          // fișierul se folosește doar cât linkul YouTube e cel din care a fost tras
-          trailerFileUrl:
-            trailerFileUrl && trailerFileSource === movie.trailerUrl ? trailerFileUrl : null,
-        },
-      };
-    }),
+    screenings: await Promise.all(
+      rows.map(async (r) => {
+        const { trailerFileSource, trailerFileUrl, ...movie } = r.movie;
+        // fișierul se folosește doar cât linkul YouTube e cel din care a fost tras
+        const file = trailerFileUrl && trailerFileSource === movie.trailerUrl ? trailerFileUrl : null;
+        return {
+          ...r,
+          startsAt: r.startsAt.toISOString(),
+          movie: {
+            ...movie,
+            trailerFileUrl: file ? await signedTrailerUrl(file) : null,
+            trailerFileKey: file,
+          },
+        };
+      }),
+    ),
     generatedAt: now.toISOString(),
   };
 }

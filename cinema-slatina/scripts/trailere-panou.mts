@@ -26,7 +26,7 @@ import { spawn } from "node:child_process";
 import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
-import { put } from "@vercel/blob";
+import { head, put } from "@vercel/blob";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
@@ -238,7 +238,8 @@ async function actionIa() {
         }
         log(`↑ ${m.title}: urc în Vercel Blob…`);
         const result = await put(`trailere/${m.slug}-${m.videoId}.mp4`, createReadStream(full), {
-          access: "public",
+          // blob-ul e privat: site-ul semnează un link temporar pentru televizoare
+          access: "private",
           contentType: "video/mp4",
           addRandomSuffix: false,
           allowOverwrite: true,
@@ -272,11 +273,10 @@ async function actionUpdate(dry = false) {
     const fresh = m.inProgram && e && e.source === m.source && e.blobUrl;
     if (fresh && !(m.dbFile === e.blobUrl && m.dbSource === m.source)) {
       if (!dry) {
-        // nu publicăm un link care nu răspunde: televizorul ar rămâne fără clip
-        const head = await fetch(e.blobUrl!, { method: "HEAD" }).catch(() => null);
-        const type = head?.headers.get("content-type") ?? "";
-        if (!head?.ok || !type.startsWith("video/")) {
-          log(`✗ ${m.title}: fișierul urcat nu răspunde (${head?.status ?? "fără rețea"}), nu îl public`);
+        // nu publicăm un fișier care nu există în Blob: televizorul ar rămâne fără clip
+        const info = await head(e.blobUrl!).catch((err: unknown) => (err instanceof Error ? err.message : String(err)));
+        if (typeof info === "string" || !info.contentType.startsWith("video/")) {
+          log(`✗ ${m.title}: fișierul urcat nu se găsește (${typeof info === "string" ? info.slice(0, 80) : info.contentType}), nu îl public`);
           continue;
         }
       }

@@ -517,6 +517,9 @@ function FileTrailer({
   onFail: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  // Linkul semnat se poate reînnoi la reîmprospătare; clipul rămâne pe primul,
+  // ca să nu repornească (componenta e recreată la alt fișier, prin `key`).
+  const [src] = useState(url);
   const [playing, setPlaying] = useState(false);
   const [info, setInfo] = useState("se încarcă");
   const playingRef = useRef(false);
@@ -570,7 +573,7 @@ function FileTrailer({
       <video
         ref={videoRef}
         className="tv-file-video"
-        src={url}
+        src={src}
         autoPlay
         muted={!sound}
         loop
@@ -614,23 +617,27 @@ function FileTrailer({
  */
 export function TvTrailer({
   fileUrl,
+  fileKey,
   ...youtube
 }: {
   fileUrl?: string | null;
+  /** Identificator stabil al fișierului (linkul semnat se poate schimba). */
+  fileKey?: string | null;
   videoId: string | null;
   stillUrl: string | null;
   sound: boolean;
   quality?: number;
   debug?: boolean;
 }) {
+  const key = fileKey ?? fileUrl ?? null;
   // fișierul pentru care am renunțat (nu a pornit): rămâne YouTube pentru el
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const onFail = useCallback(() => setFailedUrl(fileUrl ?? null), [fileUrl]);
+  const [failedKey, setFailedKey] = useState<string | null>(null);
+  const onFail = useCallback(() => setFailedKey(key), [key]);
 
-  if (fileUrl && failedUrl !== fileUrl) {
+  if (fileUrl && key && failedKey !== key) {
     return (
       <FileTrailer
-        key={fileUrl}
+        key={key}
         url={fileUrl}
         stillUrl={youtube.stillUrl}
         sound={youtube.sound}
