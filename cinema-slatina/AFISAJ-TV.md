@@ -89,8 +89,8 @@ săgeată: Sala Roșie arată spre stânga, Sala Albastră spre dreapta. Se schi
 din link:
 
 - `?dir=stanga` sau `?dir=dreapta` – direcția săgeții;
-- `?model=1` bandă sus (implicit), `?model=2` coloană laterală,
-  `?model=3` trailer pe tot ecranul;
+- modelul implicit e trailerul pe tot ecranul (`?model=3`); `?model=1` e
+  banda sus, `?model=2` coloana laterală;
 - `?sunet=1` – trailerul cu sunet.
 
 Se pot combina: `.../tv/albastra?model=3&dir=dreapta&sunet=1`.

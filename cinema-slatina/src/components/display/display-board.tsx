@@ -77,7 +77,7 @@ export function DisplayBoard({
   program,
   hallSlug,
   sound = false,
-  model = 1,
+  model = 3,
   direction = "left",
 }: {
   program: DisplayProgram;

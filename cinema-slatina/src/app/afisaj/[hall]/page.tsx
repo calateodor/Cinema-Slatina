@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
  * Parametri în link:
  * - `?sunet=1` pornește sunetul trailerului;
  * - `?model=1|2|3` alege aranjamentul (bandă sus, coloană laterală, trailer
- *   pe tot ecranul);
+ *   pe tot ecranul — cel implicit);
  * - `?dir=stanga|dreapta` schimbă direcția săgeții; fără el, Sala Roșie arată
  *   spre stânga, iar Sala Albastră spre dreapta.
  */
@@ -21,7 +21,8 @@ export default async function HallDisplayPage(props: PageProps<"/afisaj/[hall]">
   const program = await getDisplayProgram();
   if (!program.halls.some((h) => h.slug === hall)) notFound();
 
-  const model = search.model === "2" ? 2 : search.model === "3" ? 3 : 1;
+  // implicit modelul 3 (trailer pe tot ecranul), ales de Teo
+  const model = search.model === "1" ? 1 : search.model === "2" ? 2 : 3;
   const direction =
     search.dir === "dreapta"
       ? "right"
