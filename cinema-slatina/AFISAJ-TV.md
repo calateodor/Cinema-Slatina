@@ -106,6 +106,11 @@ așteaptă din nou. După trei poticniri (sau dacă în 2,5 minute nu apucă del
 să ruleze curat) pagina renunță la clip, rămâne imaginea filmului cu o mișcare
 lentă și reîncearcă peste 5 minute sau la filmul următor.
 
+Dacă redarea se poticnește des deși clipul e încărcat (cutia nu-l poate
+decoda la calitatea aceea), pagina coboară singură o treaptă de calitate
+(480 → 360 → 240), reîncarcă clipul și ține minte o zi treapta care merge pe
+televizorul respectiv.
+
 Pentru diagnostic, `?debug=1` scrie pe ecran ce face playerul (versiunea
 browserului, viteza rețelei, calitatea primită, fiecare poticnire). O poză cu
 ecranul după 1–2 minute spune de ce nu merge clipul pe cutia respectivă.

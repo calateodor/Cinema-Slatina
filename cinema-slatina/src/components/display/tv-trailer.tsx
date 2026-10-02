@@ -28,6 +28,20 @@ const WARMUP_LIMIT_MS = 150_000;
 /** După ce am renunțat, mai încercăm o dată după atâta timp. */
 const RETRY_MS = 300_000;
 
+/** Treptele de calitate pe care coborâm când cutia nu ține pasul. */
+const LADDER = [480, 360, 240];
+/** Atâtea poticniri (și ascunse) în acest interval și coborâm o treaptă. */
+const STEP_HICCUPS = 3;
+const STEP_WINDOW_MS = 40_000;
+/**
+ * Playerul stă cu puțin sub treapta cerută: la fix 480 de pixeli reali (sau o
+ * fărâmă peste, din rotunjiri) YouTube îl urcă la treapta următoare, 720p.
+ */
+const TIER_MARGIN = 0.94;
+/** Treapta care a mers pe acest televizor se ține minte o zi. */
+const STORE_KEY = "tv_trailer_calitate";
+const STORE_TTL_MS = 24 * 60 * 60_000;
+
 const STATE_NAMES: Record<number, string> = {
   [-1]: "NEPORNIT",
   0: "SFÂRȘIT",
@@ -43,7 +57,9 @@ const STATE_NAMES: Record<number, string> = {
  *
  * Cutiile de pe televizoare sunt slabe, așa că:
  * - playerul e ținut mic (cât pentru `quality` linii, în pixeli reali) și
- *   mărit prin transform: YouTube alege calitatea după mărimea playerului;
+ *   mărit prin transform: YouTube alege calitatea după mărimea playerului.
+ *   Dacă redarea se poticnește des (cutia nu poate decoda), coborâm singuri
+ *   o treaptă de calitate și ținem minte treapta care merge;
  * - pe ecran stă imaginea mare a filmului cât timp clipul rulează ascuns
  *   dedesubt și se încarcă; clipul se arată abia după ce a mers curat
  *   `GATE_MS` și are destul încărcat în față;
@@ -84,6 +100,12 @@ export function TvTrailer({
   /** Reluarea buclei, după sfârșitul clipului: nu e poticnire. */
   const loopingRef = useRef(false);
   const stallsRef = useRef<number[]>([]);
+  /** Toate poticnirile recente, și cele ascunse sub imagine. */
+  const hiccupsRef = useRef<number[]>([]);
+  /** Calitatea cerută acum (coboară pe trepte când cutia nu ține pasul). */
+  const levelRef = useRef(quality);
+  /** Redimensionează playerul după `levelRef` (pusă de efectul de mai jos). */
+  const fitRef = useRef<() => void>(() => {});
   const revealRef = useRef<number | undefined>(undefined);
   const retryRef = useRef<number | undefined>(undefined);
   const debugRef = useRef(debug);
@@ -135,16 +157,51 @@ export function TvTrailer({
     [note],
   );
 
+  /** Coboară o treaptă de calitate. Întoarce `false` dacă nu mai e unde. */
+  const stepDown = useCallback(() => {
+    const lower = LADDER.find((q) => q < levelRef.current);
+    if (!lower) return false;
+    levelRef.current = lower;
+    hiccupsRef.current = [];
+    stallsRef.current = [];
+    warmupStartRef.current = Date.now();
+    note(`se poticnește des → cobor la ${lower}p`);
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ q: lower, t: Date.now() }));
+    } catch {
+      // fără stocare: treapta se reînvață la următoarea pornire
+    }
+    fitRef.current();
+    // ce e deja încărcat e la calitatea veche: reîncărcăm clipul, ca noua
+    // treaptă să se aplice de la prima secundă
+    const id = currentIdRef.current;
+    if (id) {
+      startedRef.current = false;
+      playerRef.current?.loadVideoById(id);
+    }
+    return true;
+  }, [note]);
+
   /** Redarea s-a întrerupt. Întoarce `true` dacă tocmai am renunțat la clip. */
   const interrupted = useCallback(() => {
     healthySinceRef.current = 0;
     window.clearTimeout(revealRef.current);
-    // ascuns sub imagine nu se vede nimic: doar așteptăm din nou să meargă curat
-    if (!revealedRef.current) return false;
-    revealedRef.current = false;
-    setPlayingId(null);
     const now = Date.now();
-    warmupStartRef.current = now;
+    const wasRevealed = revealedRef.current;
+    if (wasRevealed) {
+      revealedRef.current = false;
+      setPlayingId(null);
+      warmupStartRef.current = now;
+    }
+    // „pauză” urmată imediat de „încărcare” e aceeași poticnire
+    const last = hiccupsRef.current[hiccupsRef.current.length - 1] ?? 0;
+    if (now - last > 1200) {
+      hiccupsRef.current = [...hiccupsRef.current.filter((t) => now - t < STEP_WINDOW_MS), now];
+      // se poticnește des, cu clipul încărcat: cutia nu-l poate decoda la calitatea asta
+      if (hiccupsRef.current.length >= STEP_HICCUPS && stepDown()) return false;
+    }
+    // ascuns sub imagine nu se vede nimic: doar așteptăm din nou să meargă curat
+    if (!wasRevealed) return false;
     stallsRef.current = [
       ...stallsRef.current.filter((t) => now - t < STALL_WINDOW_MS),
       now,
@@ -155,7 +212,7 @@ export function TvTrailer({
     if (stallsRef.current.length < VISIBLE_STALL_LIMIT) return false;
     giveUp("se poticnește și după ce s-a încărcat");
     return true;
-  }, [giveUp, note]);
+  }, [giveUp, note, stepDown]);
 
   useEffect(() => {
     debugRef.current = debug;
@@ -196,12 +253,21 @@ export function TvTrailer({
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
+    // pornim de la treapta care a mers ultima dată pe acest televizor
+    let level = quality;
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "null") as { q?: number; t?: number } | null;
+      if (saved?.q && saved.t && Date.now() - saved.t < STORE_TTL_MS && saved.q < quality) level = saved.q;
+    } catch {
+      // stocare indisponibilă sau valoare stricată: rămâne calitatea cerută
+    }
+    levelRef.current = level;
     const fit = () => {
       const iframe = mount.querySelector("iframe");
       if (!iframe) return;
       const dpr = window.devicePixelRatio || 1;
-      const width = Math.round((quality * 16) / 9 / dpr);
-      const height = Math.round(width * (9 / 16));
+      const height = Math.floor((levelRef.current * TIER_MARGIN) / dpr);
+      const width = Math.round((height * 16) / 9);
       const scale =
         Math.max(mount.clientWidth / width, mount.clientHeight / height) *
         OVERSCAN;
@@ -209,6 +275,7 @@ export function TvTrailer({
       iframe.style.height = `${height}px`;
       iframe.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(4)})`;
     };
+    fitRef.current = fit;
     fit();
     // iframe-ul apare după ce se încarcă scriptul YouTube
     const retry = window.setInterval(fit, 1000);
@@ -249,7 +316,7 @@ export function TvTrailer({
       if (cleanFor < GATE_MS || !buffered) {
         if (pollsRef.current % 5 === 0) {
           note(
-            `aștept: curat de ${Math.round(cleanFor / 1000)}s, încărcat +${Math.round(ahead)}s`,
+            `aștept: curat de ${Math.round(cleanFor / 1000)}s, încărcat +${Math.round(ahead)}s, calitate ${player.getPlaybackQuality?.() ?? "?"}`,
           );
         }
         return;
@@ -257,7 +324,7 @@ export function TvTrailer({
       revealedRef.current = true;
       warmupStartRef.current = 0;
       note(
-        `curat de ${Math.round(cleanFor / 1000)}s, încărcat +${Math.round(ahead)}s → arăt clipul`,
+        `curat de ${Math.round(cleanFor / 1000)}s, încărcat +${Math.round(ahead)}s, calitate ${player.getPlaybackQuality?.() ?? "?"} → arăt clipul`,
       );
       setPlayingId(id);
     }, 1000);
@@ -291,7 +358,7 @@ export function TvTrailer({
       if (cancelled || playerRef.current) return;
       const host = document.createElement("div");
       mount.appendChild(host);
-      note("creez playerul");
+      note(`creez playerul · cer ${levelRef.current}p`);
       playerRef.current = new YT.Player(host, {
         host: "https://www.youtube-nocookie.com",
         videoId,
@@ -312,6 +379,7 @@ export function TvTrailer({
         events: {
           onReady: (e: YTEvent) => {
             note("gata");
+            fitRef.current();
             e.target.unloadModule?.("captions");
             e.target.unloadModule?.("cc");
             if (soundRef.current) {
@@ -352,10 +420,10 @@ export function TvTrailer({
               e.target.seekTo(0, true);
               e.target.playVideo();
             } else if (e.data === BUFFERING) {
-              if (!loopingRef.current) interrupted();
+              if (!loopingRef.current && startedRef.current) interrupted();
             } else if (e.data === YT.PlayerState.PAUSED) {
               if (!currentIdRef.current) return;
-              if (!loopingRef.current && interrupted()) return;
+              if (!loopingRef.current && startedRef.current && interrupted()) return;
               // browserul a refuzat pornirea cu sunet: continuăm fără
               if (soundRef.current && !startedRef.current) e.target.mute();
               e.target.playVideo();

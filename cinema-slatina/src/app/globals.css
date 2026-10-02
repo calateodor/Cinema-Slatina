@@ -1046,14 +1046,15 @@
     overflow: hidden;
   }
   /* playerul YouTube stă centrat; mărimea (mică, pentru o rezoluție pe care
-     cutiile o duc) și mărirea până peste ramă le pune TvTrailer din JS.
-     Valorile de aici sunt doar rezerva până apucă scriptul. */
+     cutiile o duc) și mărirea până peste ramă le pune TvTrailer din JS. */
   .tv-yt iframe {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 124%;
-    height: 124%;
+    /* se naște mic (ascuns sub imaginea filmului): dacă ar porni mare,
+       YouTube ar începe cu 720p până apucă scriptul să-l micșoreze */
+    width: 426px;
+    height: 240px;
     transform: translate(-50%, -50%);
     transform-origin: center center;
     border: 0;
