@@ -115,36 +115,32 @@ Pentru diagnostic, `?debug=1` scrie pe ecran ce face playerul (versiunea
 browserului, viteza rețelei, calitatea primită, fiecare poticnire). O poză cu
 ecranul după 1–2 minute spune de ce nu merge clipul pe cutia respectivă.
 
-## Trailere ca fișiere (panoul local)
+## Trailere ca fișiere (butonul „Pune trailerele”)
 
 YouTube se poticnește pe cutiile slabe; un fișier MP4 (H.264) merge lin, pentru
-că cipul cutiei îl decodează hardware. Panoul de trailere trage clipurile de pe
-YouTube și le urcă, iar televizoarele sălilor le redau direct, fără playerul
-YouTube (deci fără titluri, iconițe sau poticniri). Unde un film nu are fișier,
-sau dacă fișierul nu pornește, se folosește YouTube ca până acum.
+că cipul cutiei îl decodează hardware. Televizoarele sălilor redau trailerul din
+fișier când există unul; altfel, sau dacă fișierul nu pornește, folosesc YouTube.
 
-Panoul rulează **pe calculatorul tău** (YouTube blochează serverele, iar yt-dlp
-stă aici): dublu-click pe `Trailere.bat` din folderul `Site Cinema`, sau
-`npm run trailere` în `cinema-slatina`. Se deschide `http://127.0.0.1:4310`.
+**Cum pui trailerele:** în administrare → **Filme**, sus, apeși
+**Pune trailerele**. Pentru fiecare film cu proiecții de azi încolo (inclusiv
+săptămâna pregătită) care are link YouTube dar nu are încă fișier, clipul se
+trage, se urcă și ajunge pe televizoare în cel mult un minut. Progresul se vede
+live în panou.
 
-1. Adaugi filmul în administrare, cu linkul de YouTube al trailerului.
-2. **Ia trailere** – doar pentru filmele în curs (cu proiecții de azi încolo,
-   în săptămâni publicate) care nu au încă fișier: trage
-   clipul (H.264, maxim 720p) în `trailere/` și îl urcă în Vercel Blob. Pe site
-   nu se schimbă nimic încă.
-3. **Updatează site** – verifică fișierele urcate (refuză un link care nu
-   răspunde) și le trece în baza de date. Televizoarele trec pe ele în cel mult
-   un minut.
+**Cine face treaba:** YouTube blochează serverele, așa că tragerea se face pe
+calculatorul lui Teo, de un agent care stă ascuns în fundal, în
+`D:\Cinema\LiveUpdates`, și pornește singur cu Windows-ul. Panoul arată dacă e
+pornit; dacă e oprit, cererea așteaptă și pornește singură când se deschide
+calculatorul. Clipurile se descarcă doar temporar și se șterg după urcare.
 
-Dacă schimbi linkul YouTube al unui film, fișierul vechi nu se mai folosește
-(e scos la „Updatează site”) și „Ia trailere” îl trage din nou.
+Fișierele sunt într-un Vercel Blob **privat**; site-ul semnează pentru
+televizoare linkuri valabile 3 zile, care se reînnoiesc singure. Pe Vercel e
+nevoie de variabila `BLOB_READ_WRITE_TOKEN` (pusă deja).
 
-**O singură dată:** ca să urce, panoul are nevoie de un Vercel Blob store.
-În Vercel: Storage → Create → Blob; copiază valoarea `BLOB_READ_WRITE_TOKEN`
-într-o linie nouă în `cinema-slatina/.env.local` (nu înlocui fișierul) și
-repornește panoul. Până atunci „Ia trailere” trage clipurile doar pe
-calculator.
+Dacă schimbi linkul YouTube al unui film, fișierul vechi nu se mai folosește;
+la următorul „Pune trailerele” se trage din nou.
 
-yt-dlp are nevoie de Node (îl are deja) și de ffmpeg. Dacă YouTube schimbă
-ceva și tragerea începe să dea 403, actualizează: `yt-dlp -U`.
-
+Detalii despre agent (pornire, oprire, jurnal): `D:\Cinema\LiveUpdates\CITESTE-MA.txt`.
+Codul lui e în `scripts/trailere-agent/agent.mts`; după o modificare,
+`npm run agent:build` îl reface în `D:\Cinema\LiveUpdatesgent.mjs`, apoi
+agentul trebuie repornit (`opreste-agent.bat`, apoi `porneste-agent.vbs`).

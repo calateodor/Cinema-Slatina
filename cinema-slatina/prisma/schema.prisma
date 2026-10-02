@@ -51,8 +51,8 @@ model Movie {
   posterUrl     String?
   backdropUrl   String?
   trailerUrl    String? // link YouTube
-  /// Fișierul MP4 al trailerului (în Vercel Blob), tras de pe computerul lui Teo
-  /// cu panoul de trailere; televizoarele îl redau direct, fără YouTube.
+  /// Fișierul MP4 al trailerului (Vercel Blob privat), pus de agentul de trailere
+  /// la „Pune trailerele” din administrare; televizoarele îl redau direct.
   trailerFileUrl    String?
   /// Link-ul YouTube din care a fost tras fișierul: dacă `trailerUrl` se
   /// schimbă, fișierul nu mai corespunde și nu se mai folosește.
@@ -240,3 +240,22 @@ model AuditLog {
 
   @@index([createdAt])
 }
+
+/// O cerere „Pune trailerele” din administrare. O preia agentul de pe
+/// calculatorul lui Teo (D:\Cinema\LiveUpdates): trage clipurile de pe
+/// YouTube, le urcă în Vercel Blob și le leagă de filme.
+model TrailerJob {
+  id         String    @id @default(cuid())
+  /// PENDING (așteaptă agentul) | RUNNING | DONE | FAILED
+  status     String    @default("PENDING")
+  requestedById String?
+  createdAt  DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+  /// Jurnalul agentului, rând cu rând, ca să se vadă progresul în administrare.
+  log        String    @default("")
+  summary    String?
+
+  @@index([status, createdAt])
+}
+

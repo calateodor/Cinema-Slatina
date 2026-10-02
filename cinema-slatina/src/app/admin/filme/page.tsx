@@ -1,13 +1,18 @@
 import { MovieManager, type AdminMovie } from "@/components/admin/movie-manager";
+import { TrailerPanel } from "@/components/admin/trailer-panel";
 import { PageTitle } from "@/components/staff/ui";
 import { db } from "@/lib/db";
 import { isTmdbConfigured } from "@/lib/tmdb";
+import { getTrailerStatus } from "@/server/actions/trailers";
 
 export default async function AdminMoviesPage() {
-  const rows = await db.movie.findMany({
-    orderBy: [{ isArchived: "asc" }, { comingSoon: "desc" }, { title: "asc" }],
-    include: { _count: { select: { screenings: true } } },
-  });
+  const [rows, trailers] = await Promise.all([
+    db.movie.findMany({
+      orderBy: [{ isArchived: "asc" }, { comingSoon: "desc" }, { title: "asc" }],
+      include: { _count: { select: { screenings: true } } },
+    }),
+    getTrailerStatus(),
+  ]);
 
   const movies: AdminMovie[] = rows.map((m) => ({
     id: m.id,
@@ -38,6 +43,7 @@ export default async function AdminMoviesPage() {
         title="Filme"
         description="Adaugă filme cu link de IMDb — descrierea tradusă, posterul și trailerul se completează singure."
       />
+      <TrailerPanel initial={trailers} />
       <MovieManager movies={movies} tmdbConfigured={isTmdbConfigured()} />
     </div>
   );

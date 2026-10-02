@@ -16,7 +16,7 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:tmdb": "tsx scripts/sync-tmdb.ts",
     "db:trailers": "tsx scripts/fix-trailers.ts",
-    "trailere": "tsx scripts/trailere-panou.mts",
+    "agent:build": "esbuild scripts/trailere-agent/agent.mts --bundle --platform=node --format=esm --target=node20 --outfile=D:/Cinema/LiveUpdates/agent.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\" --log-level=warning",
     "db:reset-program": "tsx scripts/reset-program.ts"
   },
   "dependencies": {
