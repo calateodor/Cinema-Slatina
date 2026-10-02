@@ -142,5 +142,5 @@ la următorul „Pune trailerele” se trage din nou.
 
 Detalii despre agent (pornire, oprire, jurnal): `D:\Cinema\LiveUpdates\CITESTE-MA.txt`.
 Codul lui e în `scripts/trailere-agent/agent.mts`; după o modificare,
-`npm run agent:build` îl reface în `D:\Cinema\LiveUpdatesgent.mjs`, apoi
+`npm run agent:build` îl reface în `D:\Cinema\LiveUpdates\agent.mjs`, apoi
 agentul trebuie repornit (`opreste-agent.bat`, apoi `porneste-agent.vbs`).
