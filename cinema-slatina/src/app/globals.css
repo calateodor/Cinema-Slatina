@@ -1064,6 +1064,26 @@
   .tv-cover {
     opacity: 1;
   }
+  /* imaginea filmului, când clipul nu poate rula: se apropie foarte lent */
+  .tv-kenburns {
+    animation: tv-kenburns 28s ease-in-out infinite alternate;
+  }
+  @keyframes tv-kenburns {
+    from { transform: scale(1); }
+    to { transform: scale(1.12) translate(-1.5%, -1%); }
+  }
+  /* jurnalul de diagnostic (?debug=1) */
+  .tv-debug {
+    position: absolute;
+    top: 14%;
+    left: 2.5vw;
+    max-width: 60vw;
+    padding: 1vh 1vw;
+    background: rgba(0, 0, 0, 0.82);
+    color: #7dffa0;
+    font: 1.25vw/1.35 monospace;
+    white-space: pre-wrap;
+  }
   .tv-cover-off {
     opacity: 0;
     transition: opacity 0.7s ease;

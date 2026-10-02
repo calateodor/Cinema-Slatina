@@ -96,3 +96,17 @@ din link:
   sunt slabe: dacă sacadează, coboară la 360; dacă merge lin, încearcă 720.
 
 Se pot combina: `.../tv/albastra?model=3&dir=dreapta&sunet=1`.
+
+### Cum se poartă trailerul pe cutiile slabe
+
+Cât timp clipul se încarcă, pe ecran stă imaginea mare a filmului; clipul
+rulează ascuns dedesubt și apare abia după ce a mers curat 10 secunde și are
+destul încărcat în față. Dacă se poticnește la vedere, imaginea îl acoperă și
+așteaptă din nou. După trei poticniri (sau dacă în 2,5 minute nu apucă deloc
+să ruleze curat) pagina renunță la clip, rămâne imaginea filmului cu o mișcare
+lentă și reîncearcă peste 5 minute sau la filmul următor.
+
+Pentru diagnostic, `?debug=1` scrie pe ecran ce face playerul (versiunea
+browserului, viteza rețelei, calitatea primită, fiecare poticnire). O poză cu
+ecranul după 1–2 minute spune de ce nu merge clipul pe cutia respectivă.
+

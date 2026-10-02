@@ -14,6 +14,10 @@ export type YTPlayer = {
   mute: () => void;
   unMute: () => void;
   unloadModule?: (name: string) => void;
+  getPlaybackQuality?: () => string;
+  getCurrentTime?: () => number;
+  getDuration?: () => number;
+  getVideoLoadedFraction?: () => number;
   destroy: () => void;
 };
 

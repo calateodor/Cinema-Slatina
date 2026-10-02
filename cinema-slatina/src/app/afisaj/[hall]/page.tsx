@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
  *   pe tot ecranul — cel implicit);
  * - `?calitate=360|480|720` alege rezoluția trailerului (implicit 480;
  *   cutiile de pe televizoare sunt slabe și la mai mult sacadează);
+ * - `?debug=1` scrie pe ecran ce face playerul (diagnostic pe cutie);
  * - `?dir=stanga|dreapta` schimbă direcția săgeții; fără el, Sala Roșie arată
  *   spre stânga, iar Sala Albastră spre dreapta.
  */
@@ -43,6 +44,7 @@ export default async function HallDisplayPage(props: PageProps<"/afisaj/[hall]">
       model={model}
       direction={direction}
       quality={quality}
+      debug={search.debug === "1"}
     />
   );
 }
