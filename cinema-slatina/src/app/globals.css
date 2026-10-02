@@ -1035,6 +1035,91 @@
     will-change: contents;
     backface-visibility: hidden;
   }
+  /* --- Televizoarele sălilor: indicatorul cu săgeată și trailerul --- */
+  /* strat care umple părintele (fără `inset`, vezi mai sus) */
+  .tv-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  /* playerul YouTube e cu 24% mai mare decât rama: bara de titlu, logo-ul
+     și butoanele cad în afară și sunt tăiate */
+  .tv-yt iframe {
+    position: absolute;
+    left: -12%;
+    top: -12%;
+    width: 124%;
+    height: 124%;
+    border: 0;
+    pointer-events: none;
+  }
+  /* cadrul filmului ținut peste clip cât YouTube își arată titlul: apare
+     pe loc, dispare lin */
+  .tv-cover {
+    opacity: 1;
+  }
+  .tv-cover-off {
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  /* săgeata: trei unghiuri care se aprind pe rând, în direcția de mers */
+  .tv-chev {
+    animation: tv-chev 1.5s ease-in-out infinite;
+  }
+  .tv-chev:nth-child(3) {
+    animation-delay: 0s;
+  }
+  .tv-chev:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .tv-chev:nth-child(1) {
+    animation-delay: 0.4s;
+  }
+  @keyframes tv-chev {
+    0%, 100% { opacity: 0.25; }
+    35% { opacity: 1; }
+  }
+  .tv-flip {
+    transform: scaleX(-1);
+  }
+  .tv-tilt {
+    transform: rotate(-6deg);
+  }
+  .tv-vert {
+    writing-mode: vertical-rl;
+  }
+  .tv-vert-up {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+  .tv-bottom-shade {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 58%;
+    background: linear-gradient(
+      to top,
+      rgba(10, 10, 11, 0.96) 0%,
+      rgba(10, 10, 11, 0.75) 42%,
+      rgba(10, 10, 11, 0) 100%
+    );
+  }
+  .tv-top-shade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 22%;
+    background: linear-gradient(to bottom, rgba(10, 10, 11, 0.7) 0%, rgba(10, 10, 11, 0) 100%);
+  }
+  .tv-row-now {
+    background: rgba(255, 222, 89, 0.12);
+    box-shadow: inset 0.35vw 0 0 #ffde59;
+  }
   .tv-live {
     animation: tv-live 1.6s ease-in-out infinite;
   }

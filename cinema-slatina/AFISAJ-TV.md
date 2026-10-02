@@ -20,8 +20,8 @@ Ce face pagina singură:
 - arată programul de azi; după ultimul film trece pe **PROGRAM MÂINE**;
 - filmul care rulează se luminează și primește banda galbenă „Rulează acum”;
   filmele terminate se sting (calculat din oră și durata filmului);
-- pe sală, trailerul e al filmului care urmează și rămâne până la 10 minute
-  după ce a început, apoi trece la următorul;
+- pe sală, trailerul e al filmului care rulează acum în sala respectivă
+  (între filme, al celui care urmează), fără titlul sau butoanele YouTube;
 - reia programul din site la fiecare minut (ce publică adminul apare singur)
   și se reîncarcă de tot o dată la 12 ore.
 
@@ -81,3 +81,16 @@ la repornire trebuie redeschis manual și rămâne bara de adresă.
   sacadat; lista de la casierie n-are această problemă.
 - **Ora e greșită pe televizor:** nu contează, pagina folosește ora
   României de pe server.
+
+## Televizoarele sălilor: săgeata și modelele
+
+Fiecare televizor de sală are un indicator mare, în culoarea sălii, cu o
+săgeată: Sala Roșie arată spre stânga, Sala Albastră spre dreapta. Se schimbă
+din link:
+
+- `?dir=stanga` sau `?dir=dreapta` – direcția săgeții;
+- `?model=1` bandă sus (implicit), `?model=2` coloană laterală,
+  `?model=3` trailer pe tot ecranul;
+- `?sunet=1` – trailerul cu sunet.
+
+Se pot combina: `.../tv/albastra?model=3&dir=dreapta&sunet=1`.

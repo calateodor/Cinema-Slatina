@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Pause, Play, Volume1, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type YTPlayer = {
+export type YTPlayer = {
   loadVideoById: (id: string) => void;
   playVideo: () => void;
   pauseVideo: () => void;
@@ -17,7 +17,7 @@ type YTPlayer = {
   destroy: () => void;
 };
 
-type YTEvent = { data: number; target: YTPlayer };
+export type YTEvent = { data: number; target: YTPlayer };
 
 type YTNamespace = {
   Player: new (el: HTMLElement, options: Record<string, unknown>) => YTPlayer;
@@ -34,7 +34,7 @@ declare global {
 let apiPromise: Promise<YTNamespace> | null = null;
 
 /** Scriptul YouTube se încarcă o singură dată, oricâte ecrane ar fi pe pagină. */
-function loadYouTubeApi(): Promise<YTNamespace> {
+export function loadYouTubeApi(): Promise<YTNamespace> {
   if (apiPromise) return apiPromise;
   apiPromise = new Promise((resolve) => {
     if (window.YT?.Player) {
