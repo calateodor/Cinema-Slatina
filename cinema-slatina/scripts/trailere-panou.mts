@@ -4,7 +4,8 @@
  *   npm run trailere        (sau dublu-click pe Trailere.bat)
  *
  * Două butoane, în ordine:
- *   1. „Ia trailere”     – pentru filmele din program care au link YouTube în
+ *   1. „Ia trailere”     – doar pentru filmele în curs (cu proiecții de azi
+ *                          încolo, în săptămâni publicate) care au link YouTube în
  *                          panoul de administrare: trage clipul cu yt-dlp
  *                          (H.264, max 720p) în `../trailere/` și îl urcă în
  *                          Vercel Blob. Nimic nu se schimbă încă pe site.
@@ -160,7 +161,12 @@ async function movies() {
       trailerUrl: true,
       trailerFileUrl: true,
       trailerFileSource: true,
-      screenings: { where: { startsAt: { gte: today }, isCancelled: false }, select: { id: true }, take: 1 },
+      // „în curs”: are proiecții de azi încolo, într-o săptămână publicată
+      screenings: {
+        where: { startsAt: { gte: today }, isCancelled: false, week: { isPublished: true } },
+        select: { id: true },
+        take: 1,
+      },
     },
     orderBy: { title: "asc" },
   });
@@ -184,10 +190,11 @@ function stageOf(m: Row, manifest: Manifest): { stage: Stage; text: string } {
   const err = lastError.get(m.slug);
   if (!m.videoId) return { stage: "fara-link", text: "linkul nu e de YouTube" };
   if (m.dbFile && m.dbSource === m.source) return { stage: "publicat", text: "publicat pe site" };
+  // doar filmele din curs: altfel nici nu se trag, nici nu se urcă
+  if (!m.inProgram) return { stage: "in-afara", text: "nu e în program, nu se urcă" };
   if (fresh && e.blobUrl) return { stage: "gata", text: "urcat, gata de publicat → apasă „Updatează site”" };
   if (fresh) return { stage: "local", text: "tras pe calculator, încă neurcat" };
   if (err) return { stage: "eroare", text: `eșuat: ${err}` };
-  if (!m.inProgram) return { stage: "in-afara", text: "nu e în program, nu se trage" };
   return { stage: "de-tras", text: "de tras" };
 }
 
@@ -262,7 +269,7 @@ async function actionUpdate(dry = false) {
 
   for (const m of list) {
     const e = manifest[m.slug];
-    const fresh = e && e.source === m.source && e.blobUrl;
+    const fresh = m.inProgram && e && e.source === m.source && e.blobUrl;
     if (fresh && !(m.dbFile === e.blobUrl && m.dbSource === m.source)) {
       if (!dry) {
         // nu publicăm un link care nu răspunde: televizorul ar rămâne fără clip

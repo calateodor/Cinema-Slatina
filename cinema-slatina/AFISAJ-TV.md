@@ -128,7 +128,8 @@ stă aici): dublu-click pe `Trailere.bat` din folderul `Site Cinema`, sau
 `npm run trailere` în `cinema-slatina`. Se deschide `http://127.0.0.1:4310`.
 
 1. Adaugi filmul în administrare, cu linkul de YouTube al trailerului.
-2. **Ia trailere** – pentru filmele din program care nu au încă fișier: trage
+2. **Ia trailere** – doar pentru filmele în curs (cu proiecții de azi încolo,
+   în săptămâni publicate) care nu au încă fișier: trage
    clipul (H.264, maxim 720p) în `trailere/` și îl urcă în Vercel Blob. Pe site
    nu se schimbă nimic încă.
 3. **Updatează site** – verifică fișierele urcate (refuză un link care nu
