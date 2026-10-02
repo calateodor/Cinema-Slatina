@@ -5,24 +5,39 @@ import Image from "next/image";
 import { loadYouTubeApi, type YTEvent, type YTPlayer } from "@/components/site/youtube-screen";
 import { cn } from "@/lib/utils";
 
-/** Cât ținem cadrul filmului peste clip după pornire, până dispare titlul YouTube. */
+/** Cât ținem cadrul filmului peste clip la pornire, până dispare titlul YouTube. */
 const REVEAL_MS = 3000;
+/** La fel, după o poticnire (încărcare): cât să dispară iconița playerului. */
+const RESUME_REVEAL_MS = 1800;
+/** Starea „se încarcă” a playerului YouTube (nu e în tipul nostru minimal). */
+const BUFFERING = 3;
+/** Cu cât e playerul mai mare decât rama: bara de titlu și butoanele cad în afară. */
+const OVERSCAN = 1.24;
 
 /**
  * Trailerul de pe televizoarele sălilor: rulează în buclă, fără nimic scris de
- * YouTube peste el. Titlul clipului, logo-ul și butoanele apar doar la pornire,
- * la pauză și la sfârșit; în acele momente peste player stă cadrul filmului,
- * iar marginile playerului (unde stă bara de titlu) sunt oricum tăiate.
+ * YouTube peste el. Titlul clipului, logo-ul și iconițele apar doar la pornire,
+ * la pauză, la încărcare și la sfârșit; în acele momente peste player stă
+ * cadrul filmului, iar marginile playerului sunt oricum tăiate.
+ *
+ * Cutiile de pe televizoare sunt slabe, iar YouTube alege calitatea după
+ * mărimea playerului. De aceea playerul e ținut mic (cât pentru `quality`
+ * linii, în pixeli reali ai ecranului) și mărit prin transform până umple
+ * rama: clipul vine la 480p în loc de 1080p și nu mai sacadează.
+ *
  * Umple părintele, care trebuie să fie poziționat și să taie surplusul.
  */
 export function TvTrailer({
   videoId,
   stillUrl,
   sound,
+  quality = 480,
 }: {
   videoId: string | null;
   stillUrl: string | null;
   sound: boolean;
+  /** Rezoluția cerută de la YouTube, în linii (360, 480, 720). */
+  quality?: number;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -47,6 +62,33 @@ export function TvTrailer({
       player.mute();
     }
   }, [sound]);
+
+  // Playerul mic, mărit prin transform cât să acopere rama (plus surplusul tăiat).
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+    const fit = () => {
+      const iframe = mount.querySelector("iframe");
+      if (!iframe) return;
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.round(((quality * 16) / 9) / dpr);
+      const height = Math.round(width * (9 / 16));
+      const scale = Math.max(mount.clientWidth / width, mount.clientHeight / height) * OVERSCAN;
+      iframe.style.width = `${width}px`;
+      iframe.style.height = `${height}px`;
+      iframe.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(4)})`;
+    };
+    fit();
+    // iframe-ul apare după ce se încarcă scriptul YouTube
+    const retry = window.setInterval(fit, 1000);
+    const stop = window.setTimeout(() => window.clearInterval(retry), 15_000);
+    window.addEventListener("resize", fit);
+    return () => {
+      window.clearInterval(retry);
+      window.clearTimeout(stop);
+      window.removeEventListener("resize", fit);
+    };
+  }, [quality, videoId]);
 
   useEffect(() => {
     currentIdRef.current = videoId;
@@ -100,17 +142,25 @@ export function TvTrailer({
           onStateChange: (e: YTEvent) => {
             window.clearTimeout(revealRef.current);
             if (e.data === YT.PlayerState.PLAYING) {
+              const resumed = startedRef.current;
               startedRef.current = true;
               // modulul de subtitrări se reîncarcă la fiecare clip
               e.target.unloadModule?.("captions");
               e.target.unloadModule?.("cc");
               const id = currentIdRef.current;
-              revealRef.current = window.setTimeout(() => setPlayingId(id), REVEAL_MS);
+              revealRef.current = window.setTimeout(
+                () => setPlayingId(id),
+                resumed ? RESUME_REVEAL_MS : REVEAL_MS,
+              );
             } else if (e.data === YT.PlayerState.ENDED) {
               // bucla: acoperim ecranul de final și o luăm de la capăt
+              startedRef.current = false;
               setPlayingId(null);
               e.target.seekTo(0, true);
               e.target.playVideo();
+            } else if (e.data === BUFFERING) {
+              // clipul s-a poticnit: cadrul filmului acoperă iconița playerului
+              setPlayingId(null);
             } else if (e.data === YT.PlayerState.PAUSED) {
               setPlayingId(null);
               if (!currentIdRef.current) return;

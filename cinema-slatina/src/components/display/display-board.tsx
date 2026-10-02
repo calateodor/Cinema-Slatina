@@ -79,12 +79,15 @@ export function DisplayBoard({
   sound = false,
   model = 3,
   direction = "left",
+  quality = 480,
 }: {
   program: DisplayProgram;
   hallSlug?: string;
   sound?: boolean;
   model?: HallModel;
   direction?: Direction;
+  /** Rezoluția trailerului cerută de la YouTube, în linii. */
+  quality?: number;
 }) {
   const router = useRouter();
   // pornește de la ora serverului, ca HTML-ul să fie identic la hidratare
@@ -113,7 +116,7 @@ export function DisplayBoard({
     // trailerul e al filmului care rulează acum în sală; între filme, al celui care urmează
     const featured =
       scoped.find((s) => statusOf(s, now) === "running") ?? scoped.find((s) => statusOf(s, now) === "upcoming");
-    const view: HallView = { hall, direction, featured, list: day.list, now, date: dayDate, isTomorrow: day.isTomorrow, sound };
+    const view: HallView = { hall, direction, featured, list: day.list, now, date: dayDate, isTomorrow: day.isTomorrow, sound, quality };
     if (model === 2) return <HallColumn {...view} />;
     if (model === 3) return <HallFullscreen {...view} />;
     return <HallBand {...view} />;
@@ -257,6 +260,7 @@ type HallView = {
   date: Date;
   isTomorrow: boolean;
   sound: boolean;
+  quality: number;
 };
 
 /** Rândul se așază dinspre partea în care arată săgeata. */
@@ -286,7 +290,7 @@ function Arrow({ direction, height }: { direction: Direction; height: number }) 
 }
 
 /** Trailerul filmului din prim-plan, fără nimic scris de YouTube peste el. */
-function Trailer({ screening, sound }: { screening?: DisplayScreening; sound: boolean }) {
+function Trailer({ screening, sound, quality }: { screening?: DisplayScreening; sound: boolean; quality: number }) {
   if (!screening) {
     return (
       <div className="tv-layer flex items-center justify-center bg-black">
@@ -299,6 +303,7 @@ function Trailer({ screening, sound }: { screening?: DisplayScreening; sound: bo
       videoId={youtubeId(screening.movie.trailerUrl)}
       stillUrl={screening.movie.backdropUrl ?? screening.movie.posterUrl}
       sound={sound}
+      quality={quality}
     />
   );
 }
@@ -399,7 +404,7 @@ function NowInfo({ screening, now }: { screening?: DisplayScreening; now: Date }
  * numele sălii uriașe (ca un indicator de aeroport); dedesubt trailerul și
  * programul sălii.
  */
-function HallBand({ hall, direction, featured, list, now, date, isTomorrow, sound }: HallView) {
+function HallBand({ hall, direction, featured, list, now, date, isTomorrow, sound, quality }: HallView) {
   return (
     <div className="tv-canva flex h-full w-full flex-col">
       <header
@@ -418,7 +423,7 @@ function HallBand({ hall, direction, featured, list, now, date, isTomorrow, soun
       <main className="grid min-h-0 flex-1 grid-cols-[60fr_40fr] gap-[2vw] px-[2vw] py-[2.5vh]">
         <section className="flex min-h-0 flex-col">
           <div className="tv-video-space overflow-hidden rounded-[1vw] bg-black shadow-[0_3vh_6vh_-2vh_rgba(0,0,0,0.8)]">
-            <Trailer screening={featured} sound={sound} />
+            <Trailer screening={featured} sound={sound} quality={quality} />
           </div>
           <NowInfo screening={featured} now={now} />
         </section>
@@ -433,7 +438,7 @@ function HallBand({ hall, direction, featured, list, now, date, isTomorrow, soun
  * sala, cu săgeata sus, numele pe verticală și ceasul jos; restul ecranului
  * e al trailerului și al programului.
  */
-function HallColumn({ hall, direction, featured, list, now, date, isTomorrow, sound }: HallView) {
+function HallColumn({ hall, direction, featured, list, now, date, isTomorrow, sound, quality }: HallView) {
   return (
     <div className="tv-canva flex h-full w-full" style={rowOf(direction)}>
       <aside
@@ -458,7 +463,7 @@ function HallColumn({ hall, direction, featured, list, now, date, isTomorrow, so
       <main className="grid min-h-0 flex-1 grid-cols-[62fr_38fr] gap-[1.8vw] px-[1.8vw] py-[3vh]">
         <section className="flex min-h-0 flex-col justify-center">
           <div className="tv-video-space overflow-hidden rounded-[1vw] bg-black shadow-[0_3vh_6vh_-2vh_rgba(0,0,0,0.8)]">
-            <Trailer screening={featured} sound={sound} />
+            <Trailer screening={featured} sound={sound} quality={quality} />
           </div>
           <NowInfo screening={featured} now={now} />
         </section>
@@ -472,11 +477,11 @@ function HallColumn({ hall, direction, featured, list, now, date, isTomorrow, so
  * Modelul 3 — „trailer pe tot ecranul”: clipul umple televizorul; jos, peste
  * un degradeu, indicatorul sălii, filmul care rulează și ce urmează.
  */
-function HallFullscreen({ hall, direction, featured, list, now, sound }: HallView) {
+function HallFullscreen({ hall, direction, featured, list, now, sound, quality }: HallView) {
   const upcoming = list.filter((s) => statusOf(s, now) === "upcoming" && s.id !== featured?.id).slice(0, 3);
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      <Trailer screening={featured} sound={sound} />
+      <Trailer screening={featured} sound={sound} quality={quality} />
       <span className="tv-top-shade" aria-hidden="true" />
       <span className="tv-bottom-shade" aria-hidden="true" />
 

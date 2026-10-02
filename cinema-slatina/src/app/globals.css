@@ -1045,14 +1045,17 @@
     height: 100%;
     overflow: hidden;
   }
-  /* playerul YouTube e cu 24% mai mare decât rama: bara de titlu, logo-ul
-     și butoanele cad în afară și sunt tăiate */
+  /* playerul YouTube stă centrat; mărimea (mică, pentru o rezoluție pe care
+     cutiile o duc) și mărirea până peste ramă le pune TvTrailer din JS.
+     Valorile de aici sunt doar rezerva până apucă scriptul. */
   .tv-yt iframe {
     position: absolute;
-    left: -12%;
-    top: -12%;
+    left: 50%;
+    top: 50%;
     width: 124%;
     height: 124%;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
     border: 0;
     pointer-events: none;
   }

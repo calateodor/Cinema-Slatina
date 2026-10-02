@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
  * - `?sunet=1` pornește sunetul trailerului;
  * - `?model=1|2|3` alege aranjamentul (bandă sus, coloană laterală, trailer
  *   pe tot ecranul — cel implicit);
+ * - `?calitate=360|480|720` alege rezoluția trailerului (implicit 480;
+ *   cutiile de pe televizoare sunt slabe și la mai mult sacadează);
  * - `?dir=stanga|dreapta` schimbă direcția săgeții; fără el, Sala Roșie arată
  *   spre stânga, iar Sala Albastră spre dreapta.
  */
@@ -23,6 +25,7 @@ export default async function HallDisplayPage(props: PageProps<"/afisaj/[hall]">
 
   // implicit modelul 3 (trailer pe tot ecranul), ales de Teo
   const model = search.model === "1" ? 1 : search.model === "2" ? 2 : 3;
+  const quality = search.calitate === "360" ? 360 : search.calitate === "720" ? 720 : 480;
   const direction =
     search.dir === "dreapta"
       ? "right"
@@ -39,6 +42,7 @@ export default async function HallDisplayPage(props: PageProps<"/afisaj/[hall]">
       sound={search.sunet === "1"}
       model={model}
       direction={direction}
+      quality={quality}
     />
   );
 }

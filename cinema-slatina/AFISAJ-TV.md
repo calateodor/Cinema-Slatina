@@ -91,6 +91,8 @@ din link:
 - `?dir=stanga` sau `?dir=dreapta` – direcția săgeții;
 - modelul implicit e trailerul pe tot ecranul (`?model=3`); `?model=1` e
   banda sus, `?model=2` coloana laterală;
-- `?sunet=1` – trailerul cu sunet.
+- `?sunet=1` – trailerul cu sunet;
+- `?calitate=360`, `480` (implicit) sau `720` – rezoluția trailerului. Cutiile
+  sunt slabe: dacă sacadează, coboară la 360; dacă merge lin, încearcă 720.
 
 Se pot combina: `.../tv/albastra?model=3&dir=dreapta&sunet=1`.
