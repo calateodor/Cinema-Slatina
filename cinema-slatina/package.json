@@ -16,12 +16,14 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:tmdb": "tsx scripts/sync-tmdb.ts",
     "db:trailers": "tsx scripts/fix-trailers.ts",
+    "trailere": "tsx scripts/trailere-panou.mts",
     "db:reset-program": "tsx scripts/reset-program.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -314,6 +314,7 @@ function Trailer({
   }
   return (
     <TvTrailer
+      fileUrl={screening.movie.trailerFileUrl}
       videoId={youtubeId(screening.movie.trailerUrl)}
       stillUrl={screening.movie.backdropUrl ?? screening.movie.posterUrl}
       sound={sound}

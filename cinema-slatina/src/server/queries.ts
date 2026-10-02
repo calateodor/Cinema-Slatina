@@ -420,6 +420,8 @@ export type DisplayScreening = {
     runtimeMin: number | null;
     ageRating: string | null;
     trailerUrl: string | null;
+    /** MP4-ul trailerului (Vercel Blob), doar dacă încă corespunde linkului YouTube. */
+    trailerFileUrl: string | null;
   };
 };
 
@@ -460,6 +462,8 @@ export async function getDisplayProgram(now: Date = new Date()): Promise<Display
             runtimeMin: true,
             ageRating: true,
             trailerUrl: true,
+            trailerFileUrl: true,
+            trailerFileSource: true,
           },
         },
       },
@@ -467,7 +471,19 @@ export async function getDisplayProgram(now: Date = new Date()): Promise<Display
   ]);
   return {
     halls,
-    screenings: rows.map((r) => ({ ...r, startsAt: r.startsAt.toISOString() })),
+    screenings: rows.map((r) => {
+      const { trailerFileSource, trailerFileUrl, ...movie } = r.movie;
+      return {
+        ...r,
+        startsAt: r.startsAt.toISOString(),
+        movie: {
+          ...movie,
+          // fișierul se folosește doar cât linkul YouTube e cel din care a fost tras
+          trailerFileUrl:
+            trailerFileUrl && trailerFileSource === movie.trailerUrl ? trailerFileUrl : null,
+        },
+      };
+    }),
     generatedAt: now.toISOString(),
   };
 }

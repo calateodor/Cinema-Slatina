@@ -51,6 +51,12 @@ model Movie {
   posterUrl     String?
   backdropUrl   String?
   trailerUrl    String? // link YouTube
+  /// Fișierul MP4 al trailerului (în Vercel Blob), tras de pe computerul lui Teo
+  /// cu panoul de trailere; televizoarele îl redau direct, fără YouTube.
+  trailerFileUrl    String?
+  /// Link-ul YouTube din care a fost tras fișierul: dacă `trailerUrl` se
+  /// schimbă, fișierul nu mai corespunde și nu se mai folosește.
+  trailerFileSource String?
   genres        String? // "Animație, Familie"
   runtimeMin    Int?
   releaseYear   Int?

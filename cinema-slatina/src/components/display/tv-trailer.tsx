@@ -71,7 +71,7 @@ const STATE_NAMES: Record<number, string> = {
  * `debug` scrie pe ecran ce face playerul, pentru diagnostic pe cutie.
  * Umple părintele, care trebuie să fie poziționat și să taie surplusul.
  */
-export function TvTrailer({
+function YouTubeTrailer({
   videoId,
   stillUrl,
   sound,
@@ -167,7 +167,10 @@ export function TvTrailer({
     warmupStartRef.current = Date.now();
     note(`se poticnește des → cobor la ${lower}p`);
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ q: lower, t: Date.now() }));
+      localStorage.setItem(
+        STORE_KEY,
+        JSON.stringify({ q: lower, t: Date.now() }),
+      );
     } catch {
       // fără stocare: treapta se reînvață la următoarea pornire
     }
@@ -196,7 +199,10 @@ export function TvTrailer({
     // „pauză” urmată imediat de „încărcare” e aceeași poticnire
     const last = hiccupsRef.current[hiccupsRef.current.length - 1] ?? 0;
     if (now - last > 1200) {
-      hiccupsRef.current = [...hiccupsRef.current.filter((t) => now - t < STEP_WINDOW_MS), now];
+      hiccupsRef.current = [
+        ...hiccupsRef.current.filter((t) => now - t < STEP_WINDOW_MS),
+        now,
+      ];
       // se poticnește des, cu clipul încărcat: cutia nu-l poate decoda la calitatea asta
       if (hiccupsRef.current.length >= STEP_HICCUPS && stepDown()) return false;
     }
@@ -256,8 +262,17 @@ export function TvTrailer({
     // pornim de la treapta care a mers ultima dată pe acest televizor
     let level = quality;
     try {
-      const saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "null") as { q?: number; t?: number } | null;
-      if (saved?.q && saved.t && Date.now() - saved.t < STORE_TTL_MS && saved.q < quality) level = saved.q;
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "null") as {
+        q?: number;
+        t?: number;
+      } | null;
+      if (
+        saved?.q &&
+        saved.t &&
+        Date.now() - saved.t < STORE_TTL_MS &&
+        saved.q < quality
+      )
+        level = saved.q;
     } catch {
       // stocare indisponibilă sau valoare stricată: rămâne calitatea cerută
     }
@@ -423,7 +438,8 @@ export function TvTrailer({
               if (!loopingRef.current && startedRef.current) interrupted();
             } else if (e.data === YT.PlayerState.PAUSED) {
               if (!currentIdRef.current) return;
-              if (!loopingRef.current && startedRef.current && interrupted()) return;
+              if (!loopingRef.current && startedRef.current && interrupted())
+                return;
               // browserul a refuzat pornirea cu sunet: continuăm fără
               if (soundRef.current && !startedRef.current) e.target.mute();
               e.target.playVideo();
@@ -476,4 +492,152 @@ export function TvTrailer({
       ) : null}
     </div>
   );
+}
+
+/** Cât așteptăm ca fișierul să înceapă să ruleze, înainte să trecem pe YouTube. */
+const FILE_START_LIMIT_MS = 25_000;
+
+/**
+ * Trailerul ca fișier MP4 (H.264), redat direct de browser: fără playerul
+ * YouTube, deci fără titluri, iconițe sau poticniri, și pe hardware slab
+ * (decodarea H.264 se face în cip). Imaginea filmului stă peste video până
+ * începe să ruleze. Dacă fișierul nu pornește, trecem pe YouTube.
+ */
+function FileTrailer({
+  url,
+  stillUrl,
+  sound,
+  debug,
+  onFail,
+}: {
+  url: string;
+  stillUrl: string | null;
+  sound: boolean;
+  debug: boolean;
+  onFail: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [info, setInfo] = useState("se încarcă");
+  const playingRef = useRef(false);
+
+  const markPlaying = useCallback((video: HTMLVideoElement) => {
+    if (playingRef.current) return;
+    playingRef.current = true;
+    setPlaying(true);
+    setInfo(`MP4 ${video.videoWidth}×${video.videoHeight} · rulează`);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) video.muted = !sound;
+  }, [sound]);
+
+  // Starea video-ului se citește activ. Elementul vine din HTML-ul de la
+  // server și începe să se încarce înainte ca React să-i asculte evenimentele:
+  // o eroare sau un „rulează” de dinainte de hidratare ar fi pierdute, iar pe o
+  // cutie lentă imaginea ar rămâne peste clip (sau fișierul stricat nu ar fi
+  // abandonat). De aceea, o dată la jumătate de secundă, verificăm direct.
+  useEffect(() => {
+    const started = Date.now();
+    const check = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      if (video.error) {
+        setInfo("EROARE la fișier → trec pe YouTube");
+        onFail();
+      } else if (!video.paused && video.currentTime > 0) {
+        markPlaying(video);
+      } else if (
+        !playingRef.current &&
+        Date.now() - started > FILE_START_LIMIT_MS
+      ) {
+        // nu pornește deloc (rețea căzută, format neacceptat)
+        setInfo("nu pornește → trec pe YouTube");
+        onFail();
+      }
+    };
+    const first = window.setTimeout(check, 0);
+    const poll = window.setInterval(check, 500);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(poll);
+    };
+  }, [onFail, markPlaying]);
+
+  return (
+    <div className="tv-layer bg-black">
+      <video
+        ref={videoRef}
+        className="tv-file-video"
+        src={url}
+        autoPlay
+        muted={!sound}
+        loop
+        playsInline
+        preload="auto"
+        onLoadedData={(e) => {
+          const video = e.currentTarget;
+          // browserul poate refuza pornirea cu sunet: continuăm fără
+          video.play().catch(() => {
+            video.muted = true;
+            video.play().catch(() => {});
+          });
+        }}
+        onPlaying={(e) => markPlaying(e.currentTarget)}
+        onError={() => {
+          setInfo("EROARE la fișier → trec pe YouTube");
+          onFail();
+        }}
+      />
+      <div className={cn("tv-layer", playing ? "tv-cover-off" : "tv-cover")}>
+        {stillUrl ? (
+          <Image
+            src={stillUrl}
+            alt=""
+            fill
+            sizes="100vw"
+            quality={90}
+            className="object-cover"
+          />
+        ) : null}
+      </div>
+      {debug ? <pre className="tv-debug">{`fișier MP4 · ${info}`}</pre> : null}
+    </div>
+  );
+}
+
+/**
+ * Trailerul de pe televizoarele sălilor. Dacă filmul are fișier MP4 (tras cu
+ * panoul de trailere), îl redăm direct; altfel, sau dacă fișierul nu pornește,
+ * folosim playerul YouTube, cu toate protecțiile lui pentru cutii slabe.
+ */
+export function TvTrailer({
+  fileUrl,
+  ...youtube
+}: {
+  fileUrl?: string | null;
+  videoId: string | null;
+  stillUrl: string | null;
+  sound: boolean;
+  quality?: number;
+  debug?: boolean;
+}) {
+  // fișierul pentru care am renunțat (nu a pornit): rămâne YouTube pentru el
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const onFail = useCallback(() => setFailedUrl(fileUrl ?? null), [fileUrl]);
+
+  if (fileUrl && failedUrl !== fileUrl) {
+    return (
+      <FileTrailer
+        key={fileUrl}
+        url={fileUrl}
+        stillUrl={youtube.stillUrl}
+        sound={youtube.sound}
+        debug={youtube.debug ?? false}
+        onFail={onFail}
+      />
+    );
+  }
+  return <YouTubeTrailer {...youtube} />;
 }

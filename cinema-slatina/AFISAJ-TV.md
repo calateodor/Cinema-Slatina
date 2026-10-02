@@ -115,3 +115,35 @@ Pentru diagnostic, `?debug=1` scrie pe ecran ce face playerul (versiunea
 browserului, viteza rețelei, calitatea primită, fiecare poticnire). O poză cu
 ecranul după 1–2 minute spune de ce nu merge clipul pe cutia respectivă.
 
+## Trailere ca fișiere (panoul local)
+
+YouTube se poticnește pe cutiile slabe; un fișier MP4 (H.264) merge lin, pentru
+că cipul cutiei îl decodează hardware. Panoul de trailere trage clipurile de pe
+YouTube și le urcă, iar televizoarele sălilor le redau direct, fără playerul
+YouTube (deci fără titluri, iconițe sau poticniri). Unde un film nu are fișier,
+sau dacă fișierul nu pornește, se folosește YouTube ca până acum.
+
+Panoul rulează **pe calculatorul tău** (YouTube blochează serverele, iar yt-dlp
+stă aici): dublu-click pe `Trailere.bat` din folderul `Site Cinema`, sau
+`npm run trailere` în `cinema-slatina`. Se deschide `http://127.0.0.1:4310`.
+
+1. Adaugi filmul în administrare, cu linkul de YouTube al trailerului.
+2. **Ia trailere** – pentru filmele din program care nu au încă fișier: trage
+   clipul (H.264, maxim 720p) în `trailere/` și îl urcă în Vercel Blob. Pe site
+   nu se schimbă nimic încă.
+3. **Updatează site** – verifică fișierele urcate (refuză un link care nu
+   răspunde) și le trece în baza de date. Televizoarele trec pe ele în cel mult
+   un minut.
+
+Dacă schimbi linkul YouTube al unui film, fișierul vechi nu se mai folosește
+(e scos la „Updatează site”) și „Ia trailere” îl trage din nou.
+
+**O singură dată:** ca să urce, panoul are nevoie de un Vercel Blob store.
+În Vercel: Storage → Create → Blob; copiază valoarea `BLOB_READ_WRITE_TOKEN`
+într-o linie nouă în `cinema-slatina/.env.local` (nu înlocui fișierul) și
+repornește panoul. Până atunci „Ia trailere” trage clipurile doar pe
+calculator.
+
+yt-dlp are nevoie de Node (îl are deja) și de ffmpeg. Dacă YouTube schimbă
+ceva și tragerea începe să dea 403, actualizează: `yt-dlp -U`.
+
