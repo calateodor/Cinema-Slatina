@@ -58,6 +58,31 @@ function fmtCountdown(ms: number) {
   const sec = total % 60;
   return h > 0 ? `${h}:${two(m)}:${two(sec)}` : `${two(m)}:${two(sec)}`;
 }
+/**
+ * Text în fontul ceasului. Fontul n-are Ă, Ș și Ț: le compunem din litera de
+ * bază plus semnul pus deasupra/dedesubt, ca să nu sară în alt font.
+ */
+const MARKS: Record<string, [string, "breve" | "comma"]> = {
+  Ă: ["A", "breve"],
+  Ș: ["S", "comma"],
+  Ț: ["T", "comma"],
+};
+function PosterText({ text }: { text: string }) {
+  return (
+    <>
+      {[...text].map((ch, i) => {
+        const mark = MARKS[ch];
+        return mark ? (
+          <span key={i} className={`tv-mark tv-mark-${mark[1]}`}>
+            {mark[0]}
+          </span>
+        ) : (
+          ch
+        );
+      })}
+    </>
+  );
+}
 const dateLabel = (date: Date) => `${formatWeekday(date).toUpperCase()}, ${formatDayMonth(date).toUpperCase()}`;
 const metaOf = (s: DisplayScreening) =>
   [s.is3D ? "3D" : "2D", s.isDubbed ? "Dublat" : "Subtitrat", s.movie.genres?.split(",")[0]?.trim(), `${runtimeOf(s)} min`]
@@ -128,16 +153,15 @@ export function DisplayBoard({
   return (
     <div className="tv-canva flex h-full w-full flex-col px-[1.4vw] py-[1.6vh]">
       <header className="grid grid-cols-[1fr_auto_1fr] items-center">
-        <p className="ticket tv-muted text-[1.7vw] leading-none tracking-[0.2em]">
-          {day.isTomorrow ? "PROGRAM MÂINE · " : ""}
-          {dateLabel(dayDate)}
+        <p className="poster-type text-[2.1vw] leading-none tracking-[0.04em]">
+          <PosterText text={`${day.isTomorrow ? "PROGRAM MÂINE · " : ""}${dateLabel(dayDate)}`} />
         </p>
-        <p className="poster-type text-[5.6vw] leading-none" aria-label="Ora curentă">
+        <p className="poster-type text-[3.9vw] leading-none" aria-label="Ora curentă">
           {formatTime(now)}
         </p>
         <span />
       </header>
-      <main className="min-h-0 flex-1 pb-[1.4vh] pt-[3vh]">
+      <main className="min-h-0 flex-1 pb-[1.4vh] pt-[3.4vh]">
         <CardGrid list={day.list} now={now} />
       </main>
     </div>
@@ -252,9 +276,9 @@ function FilmStatus({ screening: s, status, soon, now }: { screening: DisplayScr
   if (soon) {
     // o singură animație pe tot blocul, ca eticheta și timpul să clipească deodată
     return (
-      <div className="ticket tv-soon shrink-0 text-right leading-none">
-        <span className="block text-[1.25vw] tracking-[0.14em]">ÎNCEPE ÎN</span>
-        <Countdown until={start} now={now} className="tv-countdown mt-[0.5vh] text-[3vw] tabular-nums tracking-[0.04em]" />
+      <div className="ticket tv-soon shrink-0 rounded-[0.7vw] px-[0.7vw] pb-[0.5vh] pt-[0.7vh] text-center leading-none text-white">
+        <span className="block text-[1.15vw] tracking-[0.16em]">ÎNCEPE ÎN</span>
+        <Countdown until={start} now={now} className="tv-countdown mt-[0.3vh] text-[3vw] tabular-nums tracking-[0.04em]" />
       </div>
     );
   }
