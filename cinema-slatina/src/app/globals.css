@@ -1003,20 +1003,11 @@
      tehnicienii să știe că trebuie să urce la proiecție */
   .tv-soon {
     color: #ff3b3b;
+    /* contur alb în jurul literelor, din umbre (text-stroke ar subția literele) */
+    text-shadow:
+      0.12vw 0 0 #fff, -0.12vw 0 0 #fff, 0 0.12vw 0 #fff, 0 -0.12vw 0 #fff,
+      0.09vw 0.09vw 0 #fff, -0.09vw 0.09vw 0 #fff, 0.09vw -0.09vw 0 #fff, -0.09vw -0.09vw 0 #fff;
     animation: tv-soon 1s steps(1, end) infinite;
-  }
-  /* contur alb în jurul cardului care începe curând */
-  .tv-soon-ring {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: inherit;
-    pointer-events: none;
-    box-shadow:
-      0 0 0 0.28vw #ffffff,
-      0 0 1.2vw 0.2vw rgba(255, 255, 255, 0.35);
   }
   @keyframes tv-soon {
     0%, 100% { opacity: 1; }

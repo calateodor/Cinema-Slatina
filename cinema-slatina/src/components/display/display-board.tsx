@@ -189,7 +189,6 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
       ) : null}
       <div className="relative h-full rounded-[1vw]">
         {running ? <span className="tv-running" aria-hidden="true" /> : null}
-        {soon ? <span className="tv-soon-ring" aria-hidden="true" /> : null}
         <div className="relative flex h-full flex-col overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_4vh_-1.5vh_rgba(0,0,0,0.7)]">
           {/* Imaginea umple cardul până jos; peste ea, un gradient o topește
               în negrul cu detaliile. E cerută mare și puțin comprimată:
