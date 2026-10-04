@@ -137,7 +137,7 @@ export function DisplayBoard({
         </p>
         <span />
       </header>
-      <main className="min-h-0 flex-1 pt-[3vh]">
+      <main className="min-h-0 flex-1 pb-[1.4vh] pt-[3vh]">
         <CardGrid list={day.list} now={now} />
       </main>
     </div>
@@ -174,14 +174,22 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
   const running = status === "running";
   const firstGenre = s.movie.genres?.split(",")[0]?.trim();
   const image = s.movie.backdropUrl ?? s.movie.posterUrl;
+  const soon = status === "upcoming" && isSoon(s, now);
 
   return (
-    <li className={cn("relative min-h-0", running && "z-10")}>
+    <li className={cn("relative min-h-0", (running || soon) && "z-10")}>
       <span className="poster-type tv-tilt pointer-events-none absolute -top-[2.4vh] left-[0.4vw] z-20 text-[2.6vw] leading-none">
         {formatTime(startOf(s))}
       </span>
+      {/* 3D ca în afișul din Canva: în colțul din dreapta-jos, ieșit peste margine */}
+      {s.is3D ? (
+        <span className="poster-type tv-tilt pointer-events-none absolute -bottom-[2vh] -right-[0.5vw] z-20 text-[2.6vw] leading-none">
+          3D
+        </span>
+      ) : null}
       <div className="relative h-full rounded-[1vw]">
         {running ? <span className="tv-running" aria-hidden="true" /> : null}
+        {soon ? <span className="tv-soon-ring" aria-hidden="true" /> : null}
         <div className="relative flex h-full flex-col overflow-hidden rounded-[1vw] bg-[#101014] shadow-[0_2vh_4vh_-1.5vh_rgba(0,0,0,0.7)]">
           {/* Imaginea umple cardul până jos; peste ea, un gradient o topește
               în negrul cu detaliile. E cerută mare și puțin comprimată:
@@ -201,12 +209,9 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
             >
               {s.hall.name.toUpperCase()}
             </span>
-            {s.is3D ? (
-              <span className="poster-type tilt-strong absolute bottom-[0.4vh] right-[0.5vw] text-[2.8vw] leading-none">3D</span>
-            ) : null}
           </div>
 
-          <div className="relative flex min-h-0 flex-1 flex-col justify-end gap-[0.8vh] px-[0.9vw] pb-[1.2vh]">
+          <div className="relative flex min-h-0 flex-1 flex-col justify-end gap-[0.8vh] px-[0.9vw] pb-[3.2vh]">
             <p className="display line-clamp-2 text-[2.3vw] leading-[1.08] text-white [overflow-wrap:anywhere]">
               {s.movie.title}
             </p>
@@ -214,7 +219,7 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
               <p className="tv-muted line-clamp-2 min-w-0 text-[1.45vw] leading-tight">
                 {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
               </p>
-              <FilmStatus screening={s} status={status} now={now} />
+              <FilmStatus screening={s} status={status} soon={soon} now={now} />
             </div>
           </div>
         </div>
@@ -225,9 +230,13 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
 
 /** Cu cât filmul începe mai devreme de atât, timpul clipește roșu (pentru tehnicieni). */
 const SOON_MIN = 10;
+const isSoon = (s: DisplayScreening, now: Date) => {
+  const start = startOf(s);
+  return isToday(start, now) && start.getTime() - now.getTime() <= SOON_MIN * 60_000;
+};
 
 /** Dreapta-jos a cardului: cât mai e din film sau în cât începe. */
-function FilmStatus({ screening: s, status, now }: { screening: DisplayScreening; status: Status; now: Date }) {
+function FilmStatus({ screening: s, status, soon, now }: { screening: DisplayScreening; status: Status; soon: boolean; now: Date }) {
   if (status === "running") {
     return (
       <div className="ticket shrink-0 text-right leading-none">
@@ -241,14 +250,20 @@ function FilmStatus({ screening: s, status, now }: { screening: DisplayScreening
   }
   if (status !== "upcoming") return null;
   const start = startOf(s);
+  if (soon) {
+    // o singură animație pe tot blocul, ca eticheta și timpul să clipească deodată
+    return (
+      <div className="ticket tv-soon shrink-0 text-right leading-none">
+        <span className="block text-[1.25vw] tracking-[0.14em]">ÎNCEPE ÎN</span>
+        <Countdown until={start} now={now} className="tv-countdown mt-[0.5vh] text-[3vw] tabular-nums tracking-[0.04em]" />
+      </div>
+    );
+  }
   const today = isToday(start, now);
-  const soon = today && start.getTime() - now.getTime() <= SOON_MIN * 60_000;
   return (
     <div className="ticket shrink-0 text-right leading-none">
-      <span className={cn("block text-[1.25vw] tracking-[0.14em]", soon ? "tv-soon" : "tv-dim")}>ÎNCEPE ÎN</span>
-      {soon ? (
-        <Countdown until={start} now={now} className="tv-countdown tv-soon mt-[0.5vh] text-[3vw] tabular-nums tracking-[0.04em]" />
-      ) : (
+      <span className="tv-dim block text-[1.25vw] tracking-[0.14em]">ÎNCEPE ÎN</span>
+      {(
         <span className="mt-[0.5vh] block text-[2.7vw] tracking-[0.04em] text-brand-yellow">
           {today ? fmtMinutes(Math.max(1, minutesUntil(start, now))) : "MÂINE"}
         </span>

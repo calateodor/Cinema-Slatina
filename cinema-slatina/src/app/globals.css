@@ -997,13 +997,26 @@
   .tv-image-space {
     position: relative;
     width: 100%;
-    padding-top: 46%;
+    padding-top: 42%;
   }
   /* filmul care începe în cel mult 10 minute: timpul clipește roșu, ca
      tehnicienii să știe că trebuie să urce la proiecție */
   .tv-soon {
     color: #ff3b3b;
     animation: tv-soon 1s steps(1, end) infinite;
+  }
+  /* contur alb în jurul cardului care începe curând */
+  .tv-soon-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      0 0 0 0.28vw #ffffff,
+      0 0 1.2vw 0.2vw rgba(255, 255, 255, 0.35);
   }
   @keyframes tv-soon {
     0%, 100% { opacity: 1; }
