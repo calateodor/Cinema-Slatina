@@ -1071,6 +1071,31 @@
     will-change: contents;
     backface-visibility: hidden;
   }
+  /* Benzile cronometrului (vezi Countdown): o fereastră de o cifră și banda
+     59…00 care urcă în pași, doar prin transform. */
+  .tv-cd-win {
+    display: inline-block;
+    height: 1em;
+    overflow: hidden;
+    vertical-align: top;
+    line-height: 1;
+  }
+  .tv-cd-strip {
+    display: block;
+    animation-name: tv-cd;
+    animation-timing-function: steps(60, end);
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+  .tv-cd-strip > span {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+  @keyframes tv-cd {
+    from { transform: translateY(0); }
+    to { transform: translateY(-60em); }
+  }
   /* --- Televizoarele sălilor: indicatorul cu săgeată și trailerul --- */
   /* strat care umple părintele (fără `inset`, vezi mai sus) */
   .tv-layer {

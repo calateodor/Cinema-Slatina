@@ -295,25 +295,63 @@ function FilmStatus({ screening: s, status, soon, now }: { screening: DisplayScr
   );
 }
 
-/** Cronometru pe secunde până la momentul dat; are ceasul lui, ca restul
-    paginii să nu se redeseneze la fiecare secundă. */
+/** Cifrele 59…00, de sus în jos: banda pe care alunecă minutele și secundele. */
+const STRIP = Array.from({ length: 60 }, (_, i) => two(59 - i));
+
+/** O bandă de cifre care urcă un pas la fiecare `period / 60` secunde. */
+function DigitStrip({ period, phase }: { period: number; phase: number }) {
+  return (
+    <span className="tv-cd-win">
+      <span className="tv-cd-strip" style={{ animationDuration: `${period}s`, animationDelay: `-${phase}s` }}>
+        {STRIP.map((d) => (
+          <span key={d}>{d}</span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+type Phases = { minutes: number; seconds: number; hours: number } | "done";
+
+/**
+ * Cronometru până la momentul dat. Minutele și secundele nu sunt rescrise din
+ * JavaScript în fiecare secundă (pe cutiile slabe timerele întârzie și cifrele
+ * săreau): sunt două benzi de cifre mișcate de o animație CSS cu pași, pe care
+ * o rulează placa video. JavaScript doar le potrivește faza la pornire și le
+ * repornește la schimbarea orei sau la final.
+ */
 function Countdown({ until, now, className }: { until: Date; now: Date; className?: string }) {
-  // pornește de la ora serverului, ca HTML-ul să fie identic la hidratare
   const target = until.getTime();
-  const [left, setLeft] = useState(() => target - now.getTime());
+  // la hidratare: textul static, calculat cu ora serverului
+  const [initial] = useState(() => fmtCountdown(target - now.getTime()));
+  const [phases, setPhases] = useState<Phases | null>(null);
+  const [epoch, setEpoch] = useState(0);
+
   useEffect(() => {
-    // fiecare pas e programat imediat după trecerea secundei, nu din 1000 în
-    // 1000 ms: pe cutiile slabe intervalul fix întârzia și sărea cifre
-    let id = 0;
-    const tick = () => {
-      const ms = target - Date.now();
-      setLeft(ms);
-      id = window.setTimeout(tick, (((ms % 1000) + 1000) % 1000) + 40);
-    };
-    tick();
+    const rem = (target - Date.now()) / 1000;
+    if (rem <= 0) {
+      setPhases("done");
+      return;
+    }
+    setPhases({
+      hours: Math.floor(rem / 3600),
+      minutes: 3600 - (rem % 3600),
+      seconds: 60 - (rem % 60),
+    });
+    // repornește la schimbarea orei (când dispare/scade „1:”) sau la final
+    const id = window.setTimeout(() => setEpoch((e) => e + 1), (rem % 3600 || 3600) * 1000 + 30);
     return () => window.clearTimeout(id);
-  }, [target]);
-  return <span className={className}>{fmtCountdown(left)}</span>;
+  }, [target, epoch]);
+
+  if (phases === null) return <span className={className}>{initial}</span>;
+  if (phases === "done") return <span className={className}>00:00</span>;
+  return (
+    <span key={epoch} className={className}>
+      {phases.hours > 0 ? `${phases.hours}:` : null}
+      <DigitStrip period={3600} phase={phases.minutes} />:
+      <DigitStrip period={60} phase={phases.seconds} />
+    </span>
+  );
 }
 
 /* -------------------------- televizorul sălii -------------------------- */
