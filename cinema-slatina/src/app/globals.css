@@ -1001,28 +1001,38 @@
   }
   /* filmul care începe în cel mult 10 minute: timpul clipește roșu, ca
      tehnicienii să știe că trebuie să urce la proiecție */
+  /* Eticheta stă pe roșu închis; peste ea, un strat roșu aprins cu lumină
+     care se aprinde și se stinge. Se animă doar opacitatea stratului (o face
+     placa video): animarea fundalului și a umbrei redesena eticheta la
+     fiecare cadru și cutia rămânea în urmă cu cronometrul. */
   .tv-soon {
+    position: relative;
+    background: #6a0a14;
+    box-shadow: 0 0 0 0.18vw rgba(255, 255, 255, 0.45);
+    text-shadow: 0 0.15vw 0.3vw rgba(0, 0, 0, 0.35);
+  }
+  .tv-soon::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    content: "";
+    border-radius: inherit;
     background: #e3172b;
     box-shadow:
-      0 0 0 0.18vw rgba(255, 255, 255, 0.9),
+      0 0 0 0.18vw #ffffff,
       0 0 1.6vw 0.3vw rgba(255, 40, 60, 0.75);
-    text-shadow: 0 0.15vw 0.3vw rgba(0, 0, 0, 0.35);
+    will-change: opacity;
     animation: tv-soon 1s ease-in-out infinite;
   }
-  /* „bate” ca o lumină de alarmă: aprins, apoi se stinge pe jumătate */
+  .tv-soon > * {
+    position: relative;
+  }
+  /* „bate” ca o lumină de alarmă */
   @keyframes tv-soon {
-    0%, 45% {
-      background: #e3172b;
-      box-shadow:
-        0 0 0 0.18vw rgba(255, 255, 255, 0.9),
-        0 0 1.6vw 0.3vw rgba(255, 40, 60, 0.75);
-    }
-    55%, 100% {
-      background: #5a0710;
-      box-shadow:
-        0 0 0 0.18vw rgba(255, 255, 255, 0.35),
-        0 0 0 0 rgba(255, 40, 60, 0);
-    }
+    0%, 40% { opacity: 1; }
+    60%, 100% { opacity: 0; }
   }
   .tv-video-space {
     position: relative;

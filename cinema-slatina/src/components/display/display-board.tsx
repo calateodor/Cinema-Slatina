@@ -299,12 +299,20 @@ function FilmStatus({ screening: s, status, soon, now }: { screening: DisplayScr
     paginii să nu se redeseneze la fiecare secundă. */
 function Countdown({ until, now, className }: { until: Date; now: Date; className?: string }) {
   // pornește de la ora serverului, ca HTML-ul să fie identic la hidratare
-  const [left, setLeft] = useState(() => until.getTime() - now.getTime());
+  const target = until.getTime();
+  const [left, setLeft] = useState(() => target - now.getTime());
   useEffect(() => {
-    const tick = () => setLeft(until.getTime() - Date.now());
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [until]);
+    // fiecare pas e programat imediat după trecerea secundei, nu din 1000 în
+    // 1000 ms: pe cutiile slabe intervalul fix întârzia și sărea cifre
+    let id = 0;
+    const tick = () => {
+      const ms = target - Date.now();
+      setLeft(ms);
+      id = window.setTimeout(tick, (((ms % 1000) + 1000) % 1000) + 40);
+    };
+    tick();
+    return () => window.clearTimeout(id);
+  }, [target]);
   return <span className={className}>{fmtCountdown(left)}</span>;
 }
 
