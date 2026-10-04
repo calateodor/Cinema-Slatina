@@ -196,46 +196,64 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
           <span className="tv-fade" aria-hidden="true" />
           <div className="tv-image-space">
             <span
-              className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.7vw] py-[0.35vh] text-[0.9vw] leading-none tracking-[0.1em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
+              className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.9vw] py-[0.5vh] text-[1.5vw] leading-none tracking-[0.08em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
               style={{ backgroundColor: s.hall.colorHex }}
             >
               {s.hall.name.toUpperCase()}
             </span>
             {s.is3D ? (
-              <span className="poster-type tilt-strong absolute bottom-[0.6vh] right-[0.5vw] text-[2vw] leading-none">3D</span>
+              <span className="poster-type tilt-strong absolute bottom-[0.4vh] right-[0.5vw] text-[2.8vw] leading-none">3D</span>
             ) : null}
           </div>
 
-          <div className="relative flex min-h-0 flex-1 items-center justify-between gap-[0.8vw] px-[0.9vw] pb-[1.2vh]">
-            <div className="min-w-0">
-              <p className="display line-clamp-2 text-[1.3vw] leading-tight text-white [overflow-wrap:anywhere]">
-                {s.movie.title}
-              </p>
-              <p className="tv-muted mt-[0.5vh] text-[0.85vw] leading-snug">
+          <div className="relative flex min-h-0 flex-1 flex-col justify-end gap-[0.8vh] px-[0.9vw] pb-[1.2vh]">
+            <p className="display line-clamp-2 text-[2.3vw] leading-[1.08] text-white [overflow-wrap:anywhere]">
+              {s.movie.title}
+            </p>
+            <div className="flex items-end justify-between gap-[0.8vw]">
+              <p className="tv-muted line-clamp-2 min-w-0 text-[1.45vw] leading-tight">
                 {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
               </p>
+              <FilmStatus screening={s} status={status} now={now} />
             </div>
-
-            {running ? (
-              <div className="ticket shrink-0 text-right leading-none">
-                <span className="flex items-center justify-end gap-[0.4vw] text-[0.85vw] tracking-[0.18em] text-brand-yellow">
-                  <span className="tv-live size-[0.5vw] rounded-full bg-brand-yellow" />
-                  RULEAZĂ
-                </span>
-                <Countdown until={endOf(s)} now={now} className="tv-countdown mt-[0.6vh] text-[2.2vw] tabular-nums tracking-[0.06em] text-white" />
-              </div>
-            ) : status === "upcoming" ? (
-              <div className="ticket shrink-0 text-right leading-none">
-                <span className="tv-dim block text-[0.85vw] tracking-[0.18em]">ÎNCEPE ÎN</span>
-                <span className="mt-[0.6vh] block text-[1.8vw] tracking-[0.06em] text-brand-yellow">
-                  {isToday(startOf(s), now) ? fmtMinutes(Math.max(1, minutesUntil(startOf(s), now))) : "MÂINE"}
-                </span>
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
     </li>
+  );
+}
+
+/** Cu cât filmul începe mai devreme de atât, timpul clipește roșu (pentru tehnicieni). */
+const SOON_MIN = 10;
+
+/** Dreapta-jos a cardului: cât mai e din film sau în cât începe. */
+function FilmStatus({ screening: s, status, now }: { screening: DisplayScreening; status: Status; now: Date }) {
+  if (status === "running") {
+    return (
+      <div className="ticket shrink-0 text-right leading-none">
+        <span className="flex items-center justify-end gap-[0.4vw] text-[1.25vw] tracking-[0.14em] text-brand-yellow">
+          <span className="tv-live size-[0.7vw] rounded-full bg-brand-yellow" />
+          RULEAZĂ
+        </span>
+        <Countdown until={endOf(s)} now={now} className="tv-countdown mt-[0.5vh] text-[3vw] tabular-nums tracking-[0.04em] text-white" />
+      </div>
+    );
+  }
+  if (status !== "upcoming") return null;
+  const start = startOf(s);
+  const today = isToday(start, now);
+  const soon = today && start.getTime() - now.getTime() <= SOON_MIN * 60_000;
+  return (
+    <div className="ticket shrink-0 text-right leading-none">
+      <span className={cn("block text-[1.25vw] tracking-[0.14em]", soon ? "tv-soon" : "tv-dim")}>ÎNCEPE ÎN</span>
+      {soon ? (
+        <Countdown until={start} now={now} className="tv-countdown tv-soon mt-[0.5vh] text-[3vw] tabular-nums tracking-[0.04em]" />
+      ) : (
+        <span className="mt-[0.5vh] block text-[2.7vw] tracking-[0.04em] text-brand-yellow">
+          {today ? fmtMinutes(Math.max(1, minutesUntil(start, now))) : "MÂINE"}
+        </span>
+      )}
+    </div>
   );
 }
 
