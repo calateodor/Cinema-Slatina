@@ -1073,11 +1073,16 @@
   }
   /* Benzile cronometrului (vezi Countdown): o fereastră de o cifră și banda
      59…00 care urcă în pași, doar prin transform. */
+  .tv-cd {
+    display: inline-flex;
+    align-items: flex-start;
+    line-height: 1;
+    vertical-align: top;
+  }
   .tv-cd-win {
-    display: inline-block;
+    display: block;
     height: 1em;
     overflow: hidden;
-    vertical-align: top;
     line-height: 1;
   }
   .tv-cd-strip {

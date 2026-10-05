@@ -347,9 +347,15 @@ function Countdown({ until, now, className }: { until: Date; now: Date; classNam
   if (phases === "done") return <span className={className}>00:00</span>;
   return (
     <span key={epoch} className={className}>
-      {phases.hours > 0 ? `${phases.hours}:` : null}
-      <DigitStrip period={3600} phase={phases.minutes} />:
-      <DigitStrip period={60} phase={phases.seconds} />
+      {/* toate bucățile (ora, „:”, benzile) sunt cutii de câte 1em, așezate pe
+          același rând: pe cutii, textul simplu stătea pe linia de bază, iar
+          benzile mai sus, și cifrele nu se aliniau cu „:” */}
+      <span className="tv-cd">
+        {phases.hours > 0 ? <span className="tv-cd-win">{`${phases.hours}:`}</span> : null}
+        <DigitStrip period={3600} phase={phases.minutes} />
+        <span className="tv-cd-win">:</span>
+        <DigitStrip period={60} phase={phases.seconds} />
+      </span>
     </span>
   );
 }
