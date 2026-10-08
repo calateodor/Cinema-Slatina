@@ -33,6 +33,8 @@ cinema-slatina/screenshots/
 
 # materiale sursă mari
 *.mp4
+# …dar trailerele televizoarelor fac parte din site (le pune agentul)
+!cinema-slatina/public/trailere/*.mp4
 
 # unelte
 .vercel
