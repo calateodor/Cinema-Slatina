@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { PROGRAM_TAG } from "@/server/queries";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, hashPassword } from "@/lib/auth";
@@ -17,6 +18,8 @@ export type ActionResult<T = undefined> = {
 
 function revalidatePublic() {
   revalidatePath("/", "layout");
+  // programul televizoarelor e într-o copie separată: o golim pe loc
+  revalidateTag(PROGRAM_TAG, { expire: 0 });
 }
 
 async function audit(

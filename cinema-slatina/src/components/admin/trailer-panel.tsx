@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { getTrailerStatus, requestTrailers, type TrailerStatus } from "@/server/actions/trailers";
 
-/** Cât de des se reîmprospătează: des cât lucrează agentul, rar în rest. */
-const FAST_MS = 3_000;
-const SLOW_MS = 20_000;
+/** Cât de des se reîmprospătează cât lucrează agentul; în rest, doar la cerere
+    (fiecare reîmprospătare trezește baza de date gratuită). */
+const FAST_MS = 5_000;
 
 function ago(iso: string | null) {
   if (!iso) return "niciodată";
@@ -44,7 +44,10 @@ export function TrailerPanel({ initial }: { initial: TrailerStatus }) {
   }, []);
 
   useEffect(() => {
-    const id = window.setInterval(refresh, active ? FAST_MS : SLOW_MS);
+    if (!active) return;
+    const id = window.setInterval(() => {
+      if (!document.hidden) refresh();
+    }, FAST_MS);
     return () => window.clearInterval(id);
   }, [refresh, active]);
 
@@ -73,7 +76,7 @@ export function TrailerPanel({ initial }: { initial: TrailerStatus }) {
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Pentru filmele cu proiecții de azi încolo (inclusiv săptămâna pregătită): clipul se ia de pe
-            YouTube, din linkul filmului, și ajunge pe televizoarele sălilor în cel mult un minut.
+            YouTube, din linkul filmului, și se pune pe site. Durează câteva minute, pentru că site-ul se republică.
           </p>
         </div>
         <Button onClick={start} disabled={pending || active} className="shrink-0">
@@ -86,7 +89,7 @@ export function TrailerPanel({ initial }: { initial: TrailerStatus }) {
         {status.agent.online ? (
           <Badge variant="success">
             <MonitorCheck data-icon="inline-start" />
-            Calculatorul de trailere e pornit
+            Calculatorul de trailere a răspuns {ago(status.agent.lastSeen)}
           </Badge>
         ) : (
           <Badge variant="warning">

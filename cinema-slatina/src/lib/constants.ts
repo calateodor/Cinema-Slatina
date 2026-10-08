@@ -63,3 +63,6 @@ export const ADULT_AGE = 18;
 
 export const OTP_TTL_MINUTES = 10;
 export const OTP_MAX_ATTEMPTS = 5;
+
+/** Eticheta copiei cu cererile „Pune trailerele” care așteaptă (vezi /api/trailere). */
+export const TRAILER_JOBS_TAG = "trailer-jobs";

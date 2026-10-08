@@ -15,8 +15,11 @@ Aplicația folosește PostgreSQL. Cel mai simplu, direct din Vercel:
 
 1. Intră pe <https://vercel.com> și autentifică-te **cu contul de GitHub**
    (`calateodor`).
-2. În panoul Vercel: **Storage → Create Database → Prisma Postgres**
-   (sau **Neon**, merge la fel de bine). Alege regiunea **Frankfurt (eu-central)**.
+2. În panoul Vercel: **Storage → Create Database → Neon** (planul Free),
+   regiunea **Frankfurt (eu-central)**. Nu Prisma Postgres: planul lui gratuit
+   numără operațiile, iar pe 8 octombrie 2026 s-a blocat din cauza televizoarelor
+   și a agentului de trailere (vezi `AFISAJ-TV.md`). Migrările folosesc
+   `DATABASE_URL_UNPOOLED`, pe care Neon o adaugă singur.
 3. Vercel adaugă automat variabila `DATABASE_URL` în proiect.
 
 Dacă preferi altă bază Postgres, e suficient să pui tu `DATABASE_URL` la pasul 3.

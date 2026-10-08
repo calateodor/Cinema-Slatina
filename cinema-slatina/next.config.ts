@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
   },
   // Lista separată de filme dubla programul; fișele filmelor (/filme/[slug])
   // rămân, iar vechiul link duce la program.
+  // Trailerele televizoarelor: numele fișierului conține id-ul YouTube, deci
+  // conținutul nu se schimbă niciodată; cutiile și CDN-ul le pot păstra.
+  async headers() {
+    return [
+      {
+        source: "/trailere/:file*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/filme", destination: "/program", permanent: false },

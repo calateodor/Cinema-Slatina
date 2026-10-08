@@ -51,8 +51,8 @@ model Movie {
   posterUrl     String?
   backdropUrl   String?
   trailerUrl    String? // link YouTube
-  /// Fișierul MP4 al trailerului (Vercel Blob privat), pus de agentul de trailere
-  /// la „Pune trailerele” din administrare; televizoarele îl redau direct.
+  /// Fișierul MP4 al trailerului, pe site (/trailere/…), pus de agentul de
+  /// trailere la „Pune trailerele” din administrare; televizoarele îl redau direct.
   trailerFileUrl    String?
   /// Link-ul YouTube din care a fost tras fișierul: dacă `trailerUrl` se
   /// schimbă, fișierul nu mai corespunde și nu se mai folosește.

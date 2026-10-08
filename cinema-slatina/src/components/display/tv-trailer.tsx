@@ -496,6 +496,38 @@ function YouTubeTrailer({
 
 /** Cât așteptăm ca fișierul să înceapă să ruleze, înainte să trecem pe YouTube. */
 const FILE_START_LIMIT_MS = 25_000;
+/** Cât lăsăm descărcarea fișierului (prima dată pe cutie) înainte de YouTube. */
+const FILE_DOWNLOAD_LIMIT_MS = 240_000;
+/** Memoria de trailere a cutiei și câte fișiere păstrăm în ea. */
+const FILE_CACHE = "tv-trailere-v1";
+const FILE_CACHE_KEEP = 6;
+
+/**
+ * Adresa locală (blob:) a trailerului, din memoria cutiei. Prima dată fișierul
+ * se descarcă întreg și se pune în Cache Storage; de acolo înainte nu mai
+ * trece prin rețea, oricât rulează în buclă. Înainte, cutia îl cerea din nou
+ * la fiecare buclă (cam 30 MB la 2–3 minute) și a consumat tot traficul
+ * gratuit. Fără Cache Storage, întoarce adresa din rețea.
+ */
+async function localVideoUrl(url: string): Promise<{ src: string; fromCache: boolean; revoke?: () => void }> {
+  if (typeof caches === "undefined") return { src: url, fromCache: false };
+  const cache = await caches.open(FILE_CACHE);
+  let res = await cache.match(url);
+  const fromCache = Boolean(res);
+  if (!res) {
+    const fresh = await fetch(url);
+    if (!fresh.ok) throw new Error(`HTTP ${fresh.status}`);
+    await cache.put(url, fresh.clone());
+    res = fresh;
+    // păstrăm doar ultimele fișiere (cele mai vechi intrări ies primele)
+    const keys = await cache.keys();
+    for (const old of keys.slice(0, Math.max(0, keys.length - FILE_CACHE_KEEP))) {
+      if (old.url !== new URL(url, location.href).href) await cache.delete(old);
+    }
+  }
+  const objectUrl = URL.createObjectURL(await res.blob());
+  return { src: objectUrl, fromCache, revoke: () => URL.revokeObjectURL(objectUrl) };
+}
 
 /**
  * Trailerul ca fișier MP4 (H.264), redat direct de browser: fără playerul
@@ -517,12 +549,42 @@ function FileTrailer({
   onFail: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  // Linkul semnat se poate reînnoi la reîmprospătare; clipul rămâne pe primul,
-  // ca să nu repornească (componenta e recreată la alt fișier, prin `key`).
-  const [src] = useState(url);
+  // Clipul rămâne pe primul link (componenta e recreată la alt fișier, prin
+  // `key`). Sursa se pune abia după ce fișierul e în memoria cutiei.
+  const [first] = useState(url);
+  const [src, setSrc] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [info, setInfo] = useState("se încarcă");
+  const [info, setInfo] = useState("se descarcă în memoria cutiei");
   const playingRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let revoke: (() => void) | undefined;
+    const limit = window.setTimeout(() => {
+      if (!cancelled) {
+        setInfo("descărcarea durează prea mult → trec pe YouTube");
+        onFail();
+      }
+    }, FILE_DOWNLOAD_LIMIT_MS);
+    localVideoUrl(first)
+      .then((local) => {
+        window.clearTimeout(limit);
+        if (cancelled) return local.revoke?.();
+        revoke = local.revoke;
+        setInfo(local.fromCache ? "din memoria cutiei" : "descărcat în memoria cutiei");
+        setSrc(local.src);
+      })
+      .catch(() => {
+        // memoria nu merge (sau e plină): redăm direct din rețea
+        window.clearTimeout(limit);
+        if (!cancelled) setSrc(first);
+      });
+    return () => {
+      cancelled = true;
+      window.clearTimeout(limit);
+      revoke?.();
+    };
+  }, [first, onFail]);
 
   const markPlaying = useCallback((video: HTMLVideoElement) => {
     if (playingRef.current) return;
@@ -542,6 +604,7 @@ function FileTrailer({
   // cutie lentă imaginea ar rămâne peste clip (sau fișierul stricat nu ar fi
   // abandonat). De aceea, o dată la jumătate de secundă, verificăm direct.
   useEffect(() => {
+    if (!src) return;
     const started = Date.now();
     const check = () => {
       const video = videoRef.current;
@@ -566,14 +629,14 @@ function FileTrailer({
       window.clearTimeout(first);
       window.clearInterval(poll);
     };
-  }, [onFail, markPlaying]);
+  }, [src, onFail, markPlaying]);
 
   return (
     <div className="tv-layer bg-black">
       <video
         ref={videoRef}
         className="tv-file-video"
-        src={src}
+        src={src ?? undefined}
         autoPlay
         muted={!sound}
         loop

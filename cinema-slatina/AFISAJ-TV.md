@@ -124,23 +124,39 @@ fișier când există unul; altfel, sau dacă fișierul nu pornește, folosesc Y
 **Cum pui trailerele:** în administrare → **Filme**, sus, apeși
 **Pune trailerele**. Pentru fiecare film cu proiecții de azi încolo (inclusiv
 săptămâna pregătită) care are link YouTube dar nu are încă fișier, clipul se
-trage, se urcă și ajunge pe televizoare în cel mult un minut. Progresul se vede
-live în panou.
+trage, se comprimă pentru televizor (720p, ~1,5 Mbps) și se pune pe site, în
+`/trailere`, prin GitHub; site-ul se republică (câteva minute), apoi
+televizoarele îl iau. Progresul se vede live în panou. Trailerele filmelor
+scoase din program se șterg din site la următoarea apăsare.
 
 **Cine face treaba:** YouTube blochează serverele, așa că tragerea se face pe
 calculatorul lui Teo, de un agent care stă ascuns în fundal, în
-`D:\Cinema\LiveUpdates`, și pornește singur cu Windows-ul. Panoul arată dacă e
-pornit; dacă e oprit, cererea așteaptă și pornește singură când se deschide
-calculatorul. Clipurile se descarcă doar temporar și se șterg după urcare.
+`D:\Cinema\LiveUpdates`, și pornește singur cu Windows-ul. Agentul întreabă la
+30 de secunde site-ul (`/api/trailere`), **nu baza de date**; în bază scrie doar
+când lucrează și o dată la 3 ore (semnul de viață din panou). Clipurile se
+descarcă doar temporar; copia lui de site e în `D:\Cinema\LiveUpdates\site`.
 
-Fișierele sunt într-un Vercel Blob **privat**; site-ul semnează pentru
-televizoare linkuri valabile 3 zile, care se reînnoiesc singure. Pe Vercel e
-nevoie de variabila `BLOB_READ_WRITE_TOKEN` (pusă deja).
+**Pe cutie:** fiecare televizor descarcă un trailer o singură dată, îl
+păstrează în memoria lui (ultimele 6) și îl rulează de acolo în buclă.
 
-Dacă schimbi linkul YouTube al unui film, fișierul vechi nu se mai folosește;
-la următorul „Pune trailerele” se trage din nou.
+## Consumul pe planurile gratuite (de verificat la orice schimbare)
 
-Detalii despre agent (pornire, oprire, jurnal): `D:\Cinema\LiveUpdates\CITESTE-MA.txt`.
-Codul lui e în `scripts/trailere-agent/agent.mts`; după o modificare,
+Pe 8 octombrie 2026 site-ul a căzut: baza Prisma Postgres gratuită și-a
+terminat operațiile lunare (agentul o întreba la 10 secunde, televizoarele la
+un minut), iar Vercel Blob a depășit 10 GB de trafic în 4 zile (cutiile
+redescărcau trailerul la fiecare buclă). Acum:
+
+- baza e **Neon** (gratuit, Frankfurt), care numără orele în care baza e
+  trează, nu cererile; programul televizoarelor vine dintr-o copie Vercel
+  (golită la orice modificare din administrare, altfel citită cel mult o dată
+  la 30 de minute), deci baza poate dormi cea mai mare parte a zilei;
+- agentul întreabă site-ul (cam 86.000 de cereri pe lună din 1 milion);
+- trailerele vin de pe CDN-ul Vercel (100 GB/lună): 8 trailere × ~12 MB × 2
+  televizoare, o dată pe săptămână, înseamnă sub 1 GB pe lună.
+
+Orice timer, buclă sau descărcare nouă pe televizoare se calculează pe lună
+față de aceste limite înainte de a fi pusă pe site.
+
+Codul agentului e în `scripts/trailere-agent/agent.mts`; după o modificare,
 `npm run agent:build` îl reface în `D:\Cinema\LiveUpdates\agent.mjs`, apoi
 agentul trebuie repornit (`opreste-agent.bat`, apoi `porneste-agent.vbs`).

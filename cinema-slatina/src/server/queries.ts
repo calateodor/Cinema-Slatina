@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { buildCapacity, seatsTakenByScreening, type Capacity } from "@/lib/capacity";
 import { addDays, formatTime, nextWeekStartOf, todayStart, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
-import { signedTrailerUrl } from "@/lib/trailer-signing";
+import { unstable_cache } from "next/cache";
 
 export type ScreeningView = {
   id: string;
@@ -422,11 +422,11 @@ export type DisplayScreening = {
     ageRating: string | null;
     trailerUrl: string | null;
     /**
-     * Link semnat (temporar) către MP4-ul trailerului din Vercel Blob, doar dacă
-     * fișierul încă corespunde linkului YouTube; altfel `null`.
+     * Calea MP4-ului trailerului pe site (/trailere/…), doar dacă fișierul încă
+     * corespunde linkului YouTube; altfel `null`.
      */
     trailerFileUrl: string | null;
-    /** Identificator stabil al fișierului (linkul semnat se poate schimba). */
+    /** Identificator stabil al fișierului. */
     trailerFileKey: string | null;
   };
 };
@@ -438,61 +438,71 @@ export type DisplayProgram = {
   generatedAt: string;
 };
 
-export async function getDisplayProgram(now: Date = new Date()): Promise<DisplayProgram> {
-  const from = todayStart(now);
-  const to = addDays(from, 2);
-  const [halls, rows] = await Promise.all([
-    db.hall.findMany({
-      orderBy: { sortOrder: "asc" },
-      select: { slug: true, name: true, colorHex: true },
-    }),
-    db.screening.findMany({
-      where: {
-        startsAt: { gte: from, lt: to },
-        isCancelled: false,
-        week: { isPublished: true },
-      },
-      orderBy: [{ startsAt: "asc" }, { hall: { sortOrder: "asc" } }],
-      select: {
-        id: true,
-        startsAt: true,
-        is3D: true,
-        isDubbed: true,
-        hall: { select: { slug: true, name: true, colorHex: true } },
-        movie: {
-          select: {
-            title: true,
-            posterUrl: true,
-            backdropUrl: true,
-            genres: true,
-            runtimeMin: true,
-            ageRating: true,
-            trailerUrl: true,
-            trailerFileUrl: true,
-            trailerFileSource: true,
+/** Eticheta cache-ului cu programul televizoarelor (vezi `revalidateProgram`). */
+export const PROGRAM_TAG = "program";
+
+/**
+ * Programul televizoarelor, citit din bază cel mult o dată la jumătate de oră
+ * pentru toate televizoarele (copie păstrată de Vercel). Orice modificare din
+ * administrare golește copia pe loc, prin eticheta `program`. Fără ea, fiecare
+ * televizor întreba baza în fiecare minut, zi și noapte, iar baza gratuită nu
+ * mai apuca să se oprească.
+ */
+const loadDisplayRows = unstable_cache(
+  async (fromIso: string) => {
+    const from = new Date(fromIso);
+    const [halls, rows] = await Promise.all([
+      db.hall.findMany({
+        orderBy: { sortOrder: "asc" },
+        select: { slug: true, name: true, colorHex: true },
+      }),
+      db.screening.findMany({
+        where: {
+          startsAt: { gte: from, lt: addDays(from, 2) },
+          isCancelled: false,
+          week: { isPublished: true },
+        },
+        orderBy: [{ startsAt: "asc" }, { hall: { sortOrder: "asc" } }],
+        select: {
+          id: true,
+          startsAt: true,
+          is3D: true,
+          isDubbed: true,
+          hall: { select: { slug: true, name: true, colorHex: true } },
+          movie: {
+            select: {
+              title: true,
+              posterUrl: true,
+              backdropUrl: true,
+              genres: true,
+              runtimeMin: true,
+              ageRating: true,
+              trailerUrl: true,
+              trailerFileUrl: true,
+              trailerFileSource: true,
+            },
           },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
+    return { halls, rows: rows.map((r) => ({ ...r, startsAt: r.startsAt.toISOString() })) };
+  },
+  ["display-program"],
+  { revalidate: 1800, tags: [PROGRAM_TAG] },
+);
+
+export async function getDisplayProgram(now: Date = new Date()): Promise<DisplayProgram> {
+  const { halls, rows } = await loadDisplayRows(todayStart(now).toISOString());
   return {
     halls,
-    screenings: await Promise.all(
-      rows.map(async (r) => {
-        const { trailerFileSource, trailerFileUrl, ...movie } = r.movie;
-        // fișierul se folosește doar cât linkul YouTube e cel din care a fost tras
-        const file = trailerFileUrl && trailerFileSource === movie.trailerUrl ? trailerFileUrl : null;
-        return {
-          ...r,
-          startsAt: r.startsAt.toISOString(),
-          movie: {
-            ...movie,
-            trailerFileUrl: file ? await signedTrailerUrl(file) : null,
-            trailerFileKey: file,
-          },
-        };
-      }),
-    ),
+    screenings: rows.map((r) => {
+      const { trailerFileSource, trailerFileUrl, ...movie } = r.movie;
+      // fișierul (din /trailere, pe site) se folosește doar cât linkul YouTube
+      // e cel din care a fost tras
+      const file =
+        trailerFileUrl?.startsWith("/") && trailerFileSource === movie.trailerUrl ? trailerFileUrl : null;
+      return { ...r, movie: { ...movie, trailerFileUrl: file, trailerFileKey: file } };
+    }),
     generatedAt: now.toISOString(),
   };
 }
