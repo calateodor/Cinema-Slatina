@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { safeReload } from "@/components/display/safe-reload";
 
 /** Peste atât, televizorul reîncearcă singur pagina. */
 const RETRY_MS = 30_000;
@@ -9,11 +10,11 @@ const RETRY_MS = 30_000;
  * Dacă site-ul sau baza de date cad o vreme, televizorul nu rămâne blocat pe
  * „This page couldn't load” (cum s-a întâmplat pe 8 octombrie 2026, când
  * cineva trebuia să apese Reload cu mouse-ul): arată un ecran negru discret și
- * reîncarcă singur pagina la 30 de secunde, până merge din nou.
+ * reîncarcă singur pagina (doar când site-ul răspunde), până merge din nou.
  */
 export default function DisplayError() {
   useEffect(() => {
-    const id = window.setTimeout(() => window.location.reload(), RETRY_MS);
+    const id = window.setTimeout(safeReload, RETRY_MS);
     return () => window.clearTimeout(id);
   }, []);
 

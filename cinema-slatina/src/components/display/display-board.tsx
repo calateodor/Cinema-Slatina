@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TvTrailer } from "@/components/display/tv-trailer";
+import { safeReload, watchFrozenScreen } from "@/components/display/safe-reload";
 import { addDays, formatDayMonth, formatTime, formatWeekday, isToday } from "@/lib/dates";
 import { youtubeId } from "@/lib/format";
 import type { DisplayProgram, DisplayScreening } from "@/server/queries";
@@ -126,12 +127,14 @@ export function DisplayBoard({
     const first = window.setTimeout(() => setNow(new Date()), 0);
     const clock = window.setInterval(() => setNow(new Date()), CLOCK_MS);
     const refresh = window.setInterval(() => router.refresh(), REFRESH_MS);
-    const reload = window.setTimeout(() => window.location.reload(), RELOAD_MS);
+    const reload = window.setTimeout(safeReload, RELOAD_MS);
+    const stopWatch = watchFrozenScreen();
     return () => {
       window.clearTimeout(first);
       window.clearInterval(clock);
       window.clearInterval(refresh);
       window.clearTimeout(reload);
+      stopWatch();
     };
   }, [router]);
 

@@ -1063,13 +1063,11 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.55; }
   }
-  /* Cronometrul se redesenează la fiecare secundă: stă pe stratul lui, ca
-     redesenarea să nu atingă restul cardului (altfel cutia lăsa un chenar). */
+  /* Cronometrul: cifrele lui sunt benzi mișcate din CSS (vezi .tv-cd), deci nu
+     mai are nevoie de strat propriu; fiecare strat în plus încarcă placa video
+     a cutiei, iar pe 9 octombrie 2026 ecranul casieriei a înghețat. */
   .tv-countdown {
     display: inline-block;
-    transform: translateZ(0);
-    will-change: contents;
-    backface-visibility: hidden;
   }
   /* Benzile cronometrului (vezi Countdown): o fereastră de o cifră și banda
      59…00 care urcă în pași, doar prin transform. */
@@ -1090,7 +1088,6 @@
     animation-name: tv-cd;
     animation-timing-function: steps(60, end);
     animation-iteration-count: infinite;
-    will-change: transform;
   }
   .tv-cd-strip > span {
     display: block;
