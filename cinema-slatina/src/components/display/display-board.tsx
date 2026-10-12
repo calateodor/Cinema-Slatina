@@ -173,6 +173,41 @@ export function DisplayBoard({
 
 /* ------------------------------ casierie ------------------------------ */
 
+/** Câte carduri încap pe ecranul casieriei (4 × 2), ca în afișul din Canva. */
+const MAX_CARDS = 8;
+
+/**
+ * Împarte proiecțiile în carduri. Cât încap, fiecare film are cardul lui. Când
+ * sunt mai multe decât 8, filmele care rulează unul după altul în aceeași sală
+ * (cele mai lipite întâi) împart un card, pe jumătate — exact ca în afișul din
+ * Canva (de ex. LEGO 14:45 și Batman 15:30 în primul card).
+ */
+function toSlots(list: DisplayScreening[]): DisplayScreening[][] {
+  const slots = list.map((s) => [s]);
+  while (slots.length > MAX_CARDS) {
+    let best = -1;
+    let bestGap = Infinity;
+    for (let i = 0; i < slots.length; i++) {
+      if (slots[i].length > 1) continue;
+      const a = slots[i][0];
+      // următorul film din aceeași sală, încă singur pe card
+      const j = slots.findIndex((x, k) => k > i && x.length === 1 && x[0].hall.slug === a.hall.slug);
+      if (j < 0) continue;
+      const gap = startOf(slots[j][0]).getTime() - endOf(a).getTime();
+      if (gap < bestGap) {
+        bestGap = gap;
+        best = i;
+      }
+    }
+    if (best < 0) break;
+    const a = slots[best][0];
+    const j = slots.findIndex((x, k) => k > best && x.length === 1 && x[0].hall.slug === a.hall.slug);
+    slots[best] = [a, slots[j][0]];
+    slots.splice(j, 1);
+  }
+  return slots;
+}
+
 function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
   if (list.length === 0) {
     return (
@@ -183,20 +218,39 @@ function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
   }
   return (
     <ul className="grid h-full auto-rows-fr grid-cols-4 gap-x-[1.4vw] gap-y-[4.5vh]">
-      {list.map((s) => (
-        <FilmCard key={s.id} screening={s} now={now} />
-      ))}
+      {toSlots(list).map((slot) =>
+        slot.length === 1 ? (
+          <li key={slot[0].id} className={cn("relative min-h-0", isLit(slot[0], now) && "z-10")}>
+            <FilmCard screening={slot[0]} now={now} />
+          </li>
+        ) : (
+          <li key={slot[0].id} className={cn("relative flex min-h-0 flex-col gap-[3.4vh]", slot.some((x) => isLit(x, now)) && "z-10")}>
+            {slot.map((x) => (
+              <div key={x.id} className="relative min-h-0 flex-1">
+                <FilmCard screening={x} now={now} half />
+              </div>
+            ))}
+          </li>
+        ),
+      )}
     </ul>
   );
 }
+
+/** Cardul e luminat (rulează sau începe curând): stă deasupra vecinilor. */
+const isLit = (s: DisplayScreening, now: Date) => {
+  const status = statusOf(s, now);
+  return status === "running" || (status === "upcoming" && isSoon(s, now));
+};
 
 /**
  * Cardul lat al unui film: imaginea panoramică sus, cu ora galbenă înclinată
  * peste colț și sala în colțul opus, topită într-un gradient spre corpul
  * cardului; dedesubt titlul și starea. Filmul care rulează are tot conturul
  * galben, cu un halo care pulsează, și cronometrul cu cât mai e din film.
+ * `half`: jumătate de card (două filme în aceeași sală, unul după altul).
  */
-function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Date }) {
+function FilmCard({ screening: s, now, half = false }: { screening: DisplayScreening; now: Date; half?: boolean }) {
   const status = statusOf(s, now);
   const running = status === "running";
   const firstGenre = s.movie.genres?.split(",")[0]?.trim();
@@ -204,13 +258,23 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
   const soon = status === "upcoming" && isSoon(s, now);
 
   return (
-    <li className={cn("relative min-h-0", (running || soon) && "z-10")}>
-      <span className="poster-type tv-tilt pointer-events-none absolute -top-[2.4vh] left-[0.4vw] z-20 text-[2.6vw] leading-none">
+    <div className="relative h-full">
+      <span
+        className={cn(
+          "poster-type tv-tilt pointer-events-none absolute left-[0.4vw] z-20 leading-none",
+          half ? "-top-[2vh] text-[2.2vw]" : "-top-[2.4vh] text-[2.6vw]",
+        )}
+      >
         {formatTime(startOf(s))}
       </span>
       {/* 3D ca în afișul din Canva: în colțul din dreapta-jos, ieșit peste margine */}
       {s.is3D ? (
-        <span className="poster-type tv-tilt pointer-events-none absolute -bottom-[2vh] -right-[0.5vw] z-20 text-[2.6vw] leading-none">
+        <span
+          className={cn(
+            "poster-type tv-tilt pointer-events-none absolute -right-[0.5vw] z-20 leading-none",
+            half ? "-bottom-[1.6vh] text-[2.2vw]" : "-bottom-[2vh] text-[2.6vw]",
+          )}
+        >
           3D
         </span>
       ) : null}
@@ -228,29 +292,41 @@ function FilmCard({ screening: s, now }: { screening: DisplayScreening; now: Dat
             </div>
           )}
           <span className="tv-fade" aria-hidden="true" />
-          <div className="tv-image-space">
-            <span
-              className="ticket absolute right-[0.6vw] top-[0.6vw] rounded-full px-[0.9vw] py-[0.5vh] text-[1.5vw] leading-none tracking-[0.08em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]"
-              style={{ backgroundColor: s.hall.colorHex }}
-            >
-              {s.hall.name.toUpperCase()}
-            </span>
-          </div>
+          <span
+            className={cn(
+              "ticket absolute right-[0.6vw] top-[0.6vw] z-10 rounded-full leading-none tracking-[0.08em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]",
+              half ? "px-[0.7vw] py-[0.4vh] text-[1.15vw]" : "px-[0.9vw] py-[0.5vh] text-[1.5vw]",
+            )}
+            style={{ backgroundColor: s.hall.colorHex }}
+          >
+            {s.hall.name.toUpperCase()}
+          </span>
+          {half ? null : <div className="tv-image-space" />}
 
-          <div className="relative flex min-h-0 flex-1 flex-col justify-end gap-[0.8vh] px-[0.9vw] pb-[3.2vh]">
-            <p className="display line-clamp-2 text-[2.3vw] leading-[1.08] text-white [overflow-wrap:anywhere]">
+          <div
+            className={cn(
+              "relative flex min-h-0 flex-1 flex-col justify-end px-[0.9vw]",
+              half ? "gap-[0.4vh] pb-[2.4vh]" : "gap-[0.8vh] pb-[3.2vh]",
+            )}
+          >
+            <p
+              className={cn(
+                "display text-white [overflow-wrap:anywhere]",
+                half ? "line-clamp-1 text-[1.75vw] leading-[1.1]" : "line-clamp-2 text-[2.3vw] leading-[1.08]",
+              )}
+            >
               {s.movie.title}
             </p>
             <div className="flex items-end justify-between gap-[0.8vw]">
-              <p className="tv-muted line-clamp-2 min-w-0 text-[1.45vw] leading-tight">
+              <p className={cn("tv-muted min-w-0 leading-tight", half ? "line-clamp-1 text-[1.15vw]" : "line-clamp-2 text-[1.45vw]")}>
                 {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
               </p>
-              <FilmStatus screening={s} status={status} soon={soon} now={now} />
+              <FilmStatus screening={s} status={status} soon={soon} now={now} small={half} />
             </div>
           </div>
         </div>
       </div>
-    </li>
+    </div>
   );
 }
 
@@ -262,15 +338,30 @@ const isSoon = (s: DisplayScreening, now: Date) => {
 };
 
 /** Dreapta-jos a cardului: cât mai e din film sau în cât începe. */
-function FilmStatus({ screening: s, status, soon, now }: { screening: DisplayScreening; status: Status; soon: boolean; now: Date }) {
+function FilmStatus({
+  screening: s,
+  status,
+  soon,
+  now,
+  small = false,
+}: {
+  screening: DisplayScreening;
+  status: Status;
+  soon: boolean;
+  now: Date;
+  /** pe jumătatea de card: scris mai mic */
+  small?: boolean;
+}) {
+  const label = small ? "text-[1vw]" : "text-[1.25vw]";
+  const value = small ? "text-[2.2vw]" : "text-[3vw]";
   if (status === "running") {
     return (
       <div className="ticket shrink-0 text-right leading-none">
-        <span className="flex items-center justify-end gap-[0.4vw] text-[1.25vw] tracking-[0.14em] text-brand-yellow">
+        <span className={cn("flex items-center justify-end gap-[0.4vw] tracking-[0.14em] text-brand-yellow", label)}>
           <span className="tv-live size-[0.7vw] rounded-full bg-brand-yellow" />
           RULEAZĂ
         </span>
-        <Countdown until={endOf(s)} now={now} className="tv-countdown mt-[0.5vh] text-[3vw] tabular-nums tracking-[0.04em] text-white" />
+        <Countdown until={endOf(s)} now={now} className={cn("tv-countdown mt-[0.5vh] tabular-nums tracking-[0.04em] text-white", value)} />
       </div>
     );
   }
@@ -280,20 +371,18 @@ function FilmStatus({ screening: s, status, soon, now }: { screening: DisplayScr
     // o singură animație pe tot blocul, ca eticheta și timpul să clipească deodată
     return (
       <div className="ticket tv-soon shrink-0 rounded-[0.7vw] px-[0.7vw] pb-[0.5vh] pt-[0.7vh] text-center leading-none text-white">
-        <span className="block text-[1.15vw] tracking-[0.16em]">ÎNCEPE ÎN</span>
-        <Countdown until={start} now={now} className="tv-countdown mt-[0.3vh] text-[3vw] tabular-nums tracking-[0.04em]" />
+        <span className={cn("block tracking-[0.16em]", small ? "text-[0.95vw]" : "text-[1.15vw]")}>ÎNCEPE ÎN</span>
+        <Countdown until={start} now={now} className={cn("tv-countdown mt-[0.3vh] tabular-nums tracking-[0.04em]", value)} />
       </div>
     );
   }
   const today = isToday(start, now);
   return (
     <div className="ticket shrink-0 text-right leading-none">
-      <span className="tv-dim block text-[1.25vw] tracking-[0.14em]">ÎNCEPE ÎN</span>
-      {(
-        <span className="mt-[0.5vh] block text-[2.7vw] tracking-[0.04em] text-brand-yellow">
-          {today ? fmtMinutes(Math.max(1, minutesUntil(start, now))) : "MÂINE"}
-        </span>
-      )}
+      <span className={cn("tv-dim block tracking-[0.14em]", label)}>ÎNCEPE ÎN</span>
+      <span className={cn("mt-[0.5vh] block tracking-[0.04em] text-brand-yellow", small ? "text-[2vw]" : "text-[2.7vw]")}>
+        {today ? fmtMinutes(Math.max(1, minutesUntil(start, now))) : "MÂINE"}
+      </span>
     </div>
   );
 }
