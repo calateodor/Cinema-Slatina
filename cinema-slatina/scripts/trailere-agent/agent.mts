@@ -283,7 +283,9 @@ async function processJob(jobId: string) {
       await say(`⚙ ${m.title}: ${height}p, ${(statSync(raw).size / 1e6).toFixed(1)} MB — comprim pentru televizor…`);
       const small = path.join(TEMP, `${m.slug}-mic.mp4`);
       await compress(raw, small);
-      copyFileSync(small, dest);
+      // clipul de pe YouTube e deja H.264 de cel mult 720p: dacă e mai mic
+      // decât cel comprimat de noi, îl păstrăm pe el
+      copyFileSync(statSync(small).size < statSync(raw).size ? small : raw, dest);
       await say(`✓ ${m.title}: ${(statSync(dest).size / 1e6).toFixed(1)} MB`);
       ready.push(m);
     } catch (e) {
