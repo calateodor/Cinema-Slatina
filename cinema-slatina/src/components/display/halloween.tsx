@@ -18,7 +18,7 @@ export function seasonTheme(now: Date = new Date()): DisplayTheme | undefined {
  * Tot ce se mișcă e doar `transform`, pe care îl face placa video.
  */
 
-/** Păianjenii (negri și albi) care se lasă pe fir o dată la 20 de secunde, la o secundă unii de alții. */
+/** Păianjenii (negri și albi) care se lasă pe fir o dată la 10 secunde, la o secundă unii de alții. */
 export function HalloweenSpiders() {
   return (
     <div className="tv-layer pointer-events-none z-30" aria-hidden="true">

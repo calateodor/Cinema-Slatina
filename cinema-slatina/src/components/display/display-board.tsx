@@ -478,7 +478,7 @@ type HallView = {
 /** De Halloween, indicatorul sălii poartă tapetul cu dovleci, în culoarea sălii. */
 const hallTexture = (slug: string, theme?: DisplayTheme): CSSProperties =>
   theme === "halloween" && (slug === "rosie" || slug === "albastra")
-    ? { backgroundImage: `url("/teme/halloween/sala-${slug}.webp")`, backgroundSize: "26vw 26vw", backgroundRepeat: "repeat" }
+    ? { backgroundImage: `url("/teme/halloween/sala-${slug}.webp")`, backgroundSize: "52vw 52vw", backgroundRepeat: "repeat" }
     : {};
 
 /** Rândul se așază dinspre partea în care arată săgeata. */
