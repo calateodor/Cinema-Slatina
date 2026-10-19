@@ -972,12 +972,11 @@
   .bar-root {
     background: #0b0b0d;
   }
+  /* cele trei „ecrane” lipite unul de altul */
   .bar-panel {
     position: relative;
     overflow: hidden;
-    border-radius: 0.8vw;
     background: #7d1426;
-    box-shadow: 0 0 0 0.12vw rgba(255, 255, 255, 0.06);
   }
   .bar-hero {
     background:
@@ -1044,6 +1043,17 @@
     height: 100%;
     object-fit: contain;
     filter: drop-shadow(0 1vh 1.2vh rgba(0, 0, 0, 0.35));
+  }
+  /* sublinierea coloanei MARE: o tușă galbenă, ușor înclinată */
+  .bar-underline {
+    display: block;
+    height: 0.75vh;
+    margin: 0.5vh auto 0;
+    width: 86%;
+    border-radius: 999px;
+    background: #ffde59;
+    transform: rotate(-3deg);
+    box-shadow: 0 0.3vh 0 rgba(179, 23, 47, 0.35);
   }
   .bar-red {
     color: #b3172f;

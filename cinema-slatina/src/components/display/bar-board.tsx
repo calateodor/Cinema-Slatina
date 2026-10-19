@@ -13,7 +13,7 @@ import { BarKeepAlive } from "@/components/display/bar-keep-alive";
  */
 export function BarBoard({ variant = "ilustrat" }: { variant?: BarVariant }) {
   return (
-    <div className="bar-root flex h-full w-full gap-[0.7vw] p-[0.7vw]">
+    <div className="bar-root flex h-full w-full">
       <PopcornPanel variant={variant} />
       <NachosPanel variant={variant} />
       <DrinksPanel variant={variant} />
@@ -67,24 +67,35 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
             <img src="/bar/foto/popcorn.webp" alt="" className="bar-popcorn" />
           ) : null}
           <div className="min-w-0 flex-1">
-            <div className="flex justify-end gap-[0.4vw]">
-              {POPCORN.sizes.map((s) => (
-                <div key={s.label} className="w-[5.2vw] text-center">
-                  <span className="bar-badge ticket block rounded-full py-[0.5vh] text-[1.4vw] tracking-[0.1em]">{s.label}</span>
-                  <span className="bar-ink mt-[0.3vh] block text-[1.05vw] font-extrabold">{s.grams}</span>
-                </div>
-              ))}
+            <div className="flex items-end justify-end gap-[0.4vw]">
+              {POPCORN.sizes.map((s, k) => {
+                const big = k === POPCORN.sizes.length - 1;
+                return (
+                  <div key={s.label} className={`relative text-center ${big ? "w-[6.6vw]" : "w-[5vw]"}`}>
+                    <span
+                      className={`bar-badge ticket block rounded-full tracking-[0.1em] ${big ? "py-[0.6vh] text-[2vw]" : "py-[0.5vh] text-[1.35vw]"}`}
+                    >
+                      {s.label}
+                    </span>
+                    {big ? <span className="bar-underline" aria-hidden="true" /> : <span className="block h-[1.25vh]" aria-hidden="true" />}
+                    <span className={`bar-ink mt-[0.5vh] block font-extrabold ${big ? "text-[1.3vw]" : "text-[1.05vw]"}`}>{s.grams}</span>
+                  </div>
+                );
+              })}
             </div>
             <ul className="mt-[0.6vh] flex flex-col gap-[1vh]">
               {POPCORN.rows.map((r, i) => (
                 <li key={r.name}>
                   <span className="bar-ink block text-right text-[1.6vw] font-extrabold leading-none">{r.name}</span>
                   <span className="mt-[0.8vh] flex justify-end gap-[0.4vw]">
-                    {r.prices.map((p, j) => (
-                      <span key={p} className="w-[5.2vw] text-center">
-                        <Sticker value={String(p)} tone="red" size="text-[2.3vw]" tilt={tiltOf(i * 2 + j)} />
-                      </span>
-                    ))}
+                    {r.prices.map((p, j) => {
+                      const big = j === r.prices.length - 1;
+                      return (
+                        <span key={p} className={`text-center ${big ? "w-[6.6vw]" : "w-[5vw]"}`}>
+                          <Sticker value={String(p)} tone="red" size={big ? "text-[3vw]" : "text-[2.2vw]"} tilt={tiltOf(i * 2 + j)} />
+                        </span>
+                      );
+                    })}
                   </span>
                 </li>
               ))}
@@ -94,7 +105,7 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col px-[0.9vw] pb-[1.8vh] pt-[0.2vh]">
-        <h3 className="bar-title bar-tilt-title text-[2.3vw] leading-none text-white">GOURMET</h3>
+        <h3 className="bar-title bar-tilt-title self-center text-[2.3vw] leading-none text-white">GOURMET</h3>
         <ul className="mt-[0.8vh] grid min-h-0 flex-1 grid-cols-3 gap-[0.4vw]">
           {POPCORN.gourmet.map((g, i) => (
             <li key={g.name} className="flex min-h-0 flex-col items-center text-center">
@@ -211,7 +222,7 @@ function DrinksPanel({ variant }: { variant: BarVariant }) {
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col px-[0.9vw] pb-[1.6vh] pt-[0.2vh]">
-        <h3 className="bar-title bar-tilt-title text-[2.3vw] leading-none text-white">GUSTĂRI</h3>
+        <h3 className="bar-title bar-tilt-title self-center text-[2.3vw] leading-none text-white">GUSTĂRI</h3>
         <ul className="mt-[0.8vh] grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-x-[0.4vw] gap-y-[0.8vh]">
           {SNACKS.map((s, i) => (
             <li key={s.name} className={`flex min-h-0 flex-col items-center text-center ${s.image === "ochelari" ? "relative z-10" : ""}`}>
