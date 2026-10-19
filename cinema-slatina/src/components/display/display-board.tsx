@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { TvTrailer } from "@/components/display/tv-trailer";
 import { safeReload, watchFrozenScreen } from "@/components/display/safe-reload";
+import { HalloweenFrame, HalloweenSpiders } from "@/components/display/halloween";
 import { addDays, formatDayMonth, formatTime, formatWeekday, isToday } from "@/lib/dates";
 import { youtubeId } from "@/lib/format";
 import type { DisplayProgram, DisplayScreening } from "@/server/queries";
@@ -35,6 +36,8 @@ const RELOAD_MS = 12 * 60 * 60_000;
 type Status = "upcoming" | "running" | "ended";
 /** Aranjamentul televizorului de sală: 1 bandă sus, 2 coloană, 3 trailer pe tot ecranul. */
 export type HallModel = 1 | 2 | 3;
+/** Tema de sezon a afișajului. */
+export type DisplayTheme = "halloween";
 /** Încotro arată săgeata indicatorului. */
 export type Direction = "left" | "right";
 type Hall = { slug: string; name: string; colorHex: string };
@@ -107,6 +110,7 @@ export function DisplayBoard({
   direction = "left",
   quality = 480,
   debug = false,
+  theme,
 }: {
   program: DisplayProgram;
   hallSlug?: string;
@@ -117,6 +121,8 @@ export function DisplayBoard({
   quality?: number;
   /** Scrie pe ecran ce face playerul (diagnostic pe cutie). */
   debug?: boolean;
+  /** Tema de sezon (deocamdată doar „halloween”, de probă pe /halloween). */
+  theme?: DisplayTheme;
 }) {
   const router = useRouter();
   // pornește de la ora serverului, ca HTML-ul să fie identic la hidratare
@@ -147,14 +153,15 @@ export function DisplayBoard({
     // trailerul e al filmului care rulează acum în sală; între filme, al celui care urmează
     const featured =
       scoped.find((s) => statusOf(s, now) === "running") ?? scoped.find((s) => statusOf(s, now) === "upcoming");
-    const view: HallView = { hall, direction, featured, list: day.list, now, date: dayDate, isTomorrow: day.isTomorrow, sound, quality, debug };
+    const view: HallView = { hall, direction, featured, list: day.list, now, date: dayDate, isTomorrow: day.isTomorrow, sound, quality, debug, theme };
     if (model === 2) return <HallColumn {...view} />;
     if (model === 3) return <HallFullscreen {...view} />;
     return <HallBand {...view} />;
   }
 
   return (
-    <div className="tv-canva flex h-full w-full flex-col px-[1.4vw] py-[1.6vh]">
+    <div className={cn("tv-canva relative flex h-full w-full flex-col px-[1.4vw] py-[1.6vh]", theme === "halloween" && "tv-halloween")}>
+      {theme === "halloween" ? <HalloweenSpiders /> : null}
       <header className="grid grid-cols-[1fr_auto_1fr] items-center">
         <p className="poster-type text-[2.1vw] leading-none tracking-[0.04em]">
           <PosterText text={`${day.isTomorrow ? "PROGRAM MÂINE · " : ""}${dateLabel(dayDate)}`} />
@@ -465,6 +472,7 @@ type HallView = {
   sound: boolean;
   quality: number;
   debug: boolean;
+  theme?: DisplayTheme;
 };
 
 /** Rândul se așază dinspre partea în care arată săgeata. */
@@ -694,13 +702,14 @@ function HallColumn({ hall, direction, featured, list, now, date, isTomorrow, so
  * Modelul 3 — „trailer pe tot ecranul”: clipul umple televizorul; jos, peste
  * un degradeu, indicatorul sălii, filmul care rulează și ce urmează.
  */
-function HallFullscreen({ hall, direction, featured, list, now, sound, quality, debug }: HallView) {
+function HallFullscreen({ hall, direction, featured, list, now, sound, quality, debug, theme }: HallView) {
   const upcoming = list.filter((s) => statusOf(s, now) === "upcoming" && s.id !== featured?.id).slice(0, 3);
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
       <Trailer screening={featured} sound={sound} quality={quality} debug={debug} />
       <span className="tv-top-shade" aria-hidden="true" />
       <span className="tv-bottom-shade" aria-hidden="true" />
+      {theme === "halloween" ? <HalloweenFrame /> : null}
 
       <p
         className="poster-type absolute top-[3vh] text-[4.4vw] leading-none"

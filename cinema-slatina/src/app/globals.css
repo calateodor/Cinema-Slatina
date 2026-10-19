@@ -968,6 +968,66 @@
       radial-gradient(rgba(255, 205, 90, 0.16) 1px, transparent 1.7px) 0 0 / 12px 12px,
       #0a0a0b;
   }
+  /* --- Tema de Halloween (vezi components/display/halloween.tsx) --- */
+  /* fundalul cu dovleci, sub grila de puncte; plăcuța se repetă de 4 ori pe lățime */
+  .tv-canva.tv-halloween {
+    background:
+      radial-gradient(rgba(255, 205, 90, 0.16) 1px, transparent 1.7px) 0 0 / 12px 12px,
+      url("/teme/halloween/fundal.webp") 0 0 / 25vw 25vw repeat,
+      #2b1a4a;
+  }
+  /* Păianjenii: stau ascunși deasupra ecranului; o dată la 10 secunde coboară
+     repede pe fir, stau 2 secunde și urcă la loc. Doar transform. */
+  .tv-spider {
+    position: absolute;
+    top: 0;
+    height: 78vh;
+    width: auto;
+    transform: translateY(-105%);
+    animation: tv-spider 10s infinite;
+  }
+  .tv-spider-left {
+    left: 1vw;
+  }
+  .tv-spider-right {
+    right: 1vw;
+  }
+  @keyframes tv-spider {
+    0% { transform: translateY(-105%); animation-timing-function: ease-in-out; }
+    7% { transform: translateY(0); }
+    27% { transform: translateY(0); animation-timing-function: ease-in-out; }
+    34% { transform: translateY(-105%); }
+    100% { transform: translateY(-105%); }
+  }
+  /* Ghirlandele de pe marginile televizoarelor sălilor (plăcuțe care se repetă) */
+  .tv-hw-side {
+    position: absolute;
+    top: 0;
+    width: 7vw;
+    height: 100%;
+    background: url("/teme/halloween/margine-laterala.webp") 0 0 / 100% auto repeat-y;
+  }
+  .tv-hw-left {
+    left: 0;
+  }
+  .tv-hw-right {
+    right: 0;
+    transform: scaleX(-1);
+  }
+  .tv-hw-edge {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 14vh;
+    background: url("/teme/halloween/margine-sus.webp") 0 0 / auto 100% repeat-x;
+  }
+  .tv-hw-top {
+    top: 0;
+  }
+  .tv-hw-bottom {
+    bottom: 0;
+    transform: scaleY(-1);
+  }
   /* Filmul care rulează: tot conturul e galben, cu un halo în jurul lui care
      pulsează lent. Doar opacitate și box-shadow, fără blur sau rotiri —
      ieftin pentru cutiile de pe televizoare. */
