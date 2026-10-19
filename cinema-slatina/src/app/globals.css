@@ -968,6 +968,93 @@
       radial-gradient(rgba(255, 205, 90, 0.16) 1px, transparent 1.7px) 0 0 / 12px 12px,
       #0a0a0b;
   }
+  /* --- Meniul barului (vezi components/display/bar-board.tsx) --- */
+  .bar-root {
+    background: #0b0b0d;
+  }
+  .bar-panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.8vw;
+    background: #7d1426;
+    box-shadow: 0 0 0 0.12vw rgba(255, 255, 255, 0.06);
+  }
+  .bar-hero {
+    background:
+      radial-gradient(ellipse at 50% 42%, #a62036 0%, #7d1426 55%, #5c0d1b 100%);
+  }
+  .bar-white {
+    background: #fbf7f2;
+  }
+  /* curba dintre partea albă și cea vișinie, ca în referință */
+  .bar-curve {
+    position: absolute;
+    left: -10%;
+    bottom: -3.2vh;
+    width: 120%;
+    height: 6.4vh;
+    border-radius: 50%;
+    background: #7d1426;
+  }
+  .bar-title {
+    font-family: var(--font-sans), sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .bar-ink {
+    color: #2a0a10;
+  }
+  .bar-muted {
+    color: rgba(42, 10, 16, 0.55);
+  }
+  .bar-on-dark {
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .bar-price {
+    color: #b3172f;
+  }
+  .bar-price-dark {
+    color: #ffde59;
+  }
+  .bar-badge {
+    background: #7d1426;
+    color: #ffffff;
+  }
+  .bar-chip {
+    background: #fbf7f2;
+    box-shadow: 0 1vh 2.4vh -1vh rgba(0, 0, 0, 0.6);
+  }
+  .bar-dots {
+    border-bottom: 0.18vw dotted rgba(42, 10, 16, 0.3);
+    transform: translateY(-0.4vh);
+  }
+  .bar-rule {
+    border-top: 0.12vw dashed rgba(42, 10, 16, 0.22);
+  }
+  .bar-bullet::before {
+    content: "• ";
+    color: #b3172f;
+  }
+  /* imaginea produsului umple căsuța, întreagă, centrată */
+  .bar-product {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 1vh 1.2vh rgba(0, 0, 0, 0.35));
+  }
+  .bar-glow {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 222, 89, 0.28) 0%, rgba(255, 222, 89, 0) 70%);
+  }
+
   /* --- Tema de Halloween (vezi components/display/halloween.tsx) --- */
   /* fundalul cu dovleci, sub grila de puncte; plăcuța se repetă de 4 ori pe lățime */
   .tv-canva.tv-halloween {
