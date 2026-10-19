@@ -475,6 +475,12 @@ type HallView = {
   theme?: DisplayTheme;
 };
 
+/** De Halloween, indicatorul sălii poartă tapetul cu dovleci, în culoarea sălii. */
+const hallTexture = (slug: string, theme?: DisplayTheme): CSSProperties =>
+  theme === "halloween" && (slug === "rosie" || slug === "albastra")
+    ? { backgroundImage: `url("/teme/halloween/sala-${slug}.webp")`, backgroundSize: "13vw 13vw", backgroundRepeat: "repeat" }
+    : {};
+
 /** Rândul se așază dinspre partea în care arată săgeata. */
 const rowOf = (direction: Direction): CSSProperties => ({
   flexDirection: direction === "left" ? "row" : "row-reverse",
@@ -723,7 +729,7 @@ function HallFullscreen({ hall, direction, featured, list, now, sound, quality, 
         <div className="flex items-end justify-between gap-[2.5vw]" style={rowOf(direction)}>
           <div
             className="flex shrink-0 items-center gap-[1.6vw] rounded-[1.4vw] px-[2vw] py-[2vh] text-white shadow-[0_2vh_5vh_-1vh_rgba(0,0,0,0.8)]"
-            style={{ ...rowOf(direction), backgroundColor: hall.colorHex }}
+            style={{ ...rowOf(direction), backgroundColor: hall.colorHex, ...hallTexture(hall.slug, theme) }}
           >
             <Arrow direction={direction} height={9} />
             <h1 className="ticket text-[6vw] leading-none tracking-[0.12em]">{hall.name.toUpperCase()}</h1>
