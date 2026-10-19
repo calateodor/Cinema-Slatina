@@ -46,7 +46,7 @@ export const DRINKS = {
 };
 
 export const SNACKS = [
-  { name: "Chipsuri Viva", price: "10", image: "chipsuri" },
+  { name: "Chipsuri", price: "10", image: "chipsuri" },
   { name: "Viva Nuts", price: "10", image: "viva-nuts" },
   { name: "Olly Crispy", price: "10", image: "olly" },
   { name: "Wafer Rolls", price: "10", image: "wafer-rolls" },

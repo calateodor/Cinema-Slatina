@@ -57,7 +57,7 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
     <section className="bar-panel flex flex-1 flex-col">
       <div className="bar-white relative px-[1.2vw] pb-[5.2vh] pt-[2.4vh]">
         <span className="bar-curve" aria-hidden="true" />
-        <h2 className="bar-title bar-ink relative whitespace-nowrap text-[3.7vw] leading-none">
+        <h2 className="bar-title bar-ink relative whitespace-nowrap text-[4.07vw] leading-none">
           POP<span className="bar-red">CORN</span>
         </h2>
 
@@ -76,10 +76,10 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
                   const big = k === POPCORN.sizes.length - 1;
                   return (
                     <th key={s.label} className="px-[0.3vw] pb-[1vh] text-center align-bottom">
-                      <span className={`bar-red ticket block leading-none tracking-[0.12em] ${big ? "text-[2.1vw]" : "text-[1.3vw]"}`}>
+                      <span className={`bar-red ticket block leading-none tracking-[0.12em] ${big ? "text-[2.31vw]" : "text-[1.43vw]"}`}>
                         {s.label}
                       </span>
-                      <span className={`bar-ink block whitespace-nowrap font-extrabold leading-tight ${big ? "text-[2vw]" : "text-[1.5vw]"}`}>
+                      <span className={`bar-ink block whitespace-nowrap font-extrabold leading-tight ${big ? "text-[2.2vw]" : "text-[1.65vw]"}`}>
                         {s.grams}
                       </span>
                     </th>
@@ -90,10 +90,10 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
             <tbody>
               {POPCORN.rows.map((r, i) => (
                 <tr key={r.name} className="bar-row">
-                  <th className="bar-ink bar-halo py-[1.2vh] pr-[0.3vw] text-left text-[1.45vw] font-extrabold leading-tight">{r.name}</th>
+                  <th className="bar-ink bar-halo py-[1.2vh] pr-[0.3vw] text-left text-[1.59vw] font-extrabold leading-tight">{r.name}</th>
                   {r.prices.map((p, j) => (
                     <td key={j} className="px-[0.3vw] py-[1.2vh] text-center">
-                      <Sticker value={String(p)} tone="red" size="text-[2vw]" tilt={tiltOf(i * 2 + j)} />
+                      <Sticker value={String(p)} tone="red" size="text-[2.2vw]" tilt={tiltOf(i * 2 + j)} />
                     </td>
                   ))}
                 </tr>
@@ -104,16 +104,16 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col px-[0.9vw] pb-[1.8vh] pt-[0.2vh]">
-        <h3 className="bar-title bar-tilt-title self-center text-[2.3vw] leading-none text-white">GOURMET</h3>
+        <h3 className="bar-title bar-tilt-title self-center text-[2.53vw] leading-none text-white">GOURMET</h3>
         <ul className="mt-[0.8vh] grid min-h-0 flex-1 grid-cols-3 gap-[0.4vw]">
           {POPCORN.gourmet.map((g, i) => (
             <li key={g.name} className="flex min-h-0 flex-col items-center text-center">
               <div className="relative min-h-0 w-full flex-1">
                 <img src={productImage(g.image, variant)} alt="" className="bar-product" />
               </div>
-              <p className="mt-[0.6vh] text-[1.05vw] font-extrabold leading-tight text-white">{g.name}</p>
-              <p className="bar-gold text-[1.05vw] font-extrabold">{g.grams}</p>
-              <Sticker value={g.price} tone="gold" size="mt-[0.6vh] text-[2.2vw]" tilt={tiltOf(i)} />
+              <p className="mt-[0.6vh] text-[1.16vw] font-extrabold leading-tight text-white">{g.name}</p>
+              <p className="bar-gold text-[1.16vw] font-extrabold">{g.grams}</p>
+              <Sticker value={g.price} tone="gold" size="mt-[0.6vh] text-[2.42vw]" tilt={tiltOf(i)} />
             </li>
           ))}
         </ul>
@@ -140,7 +140,7 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
       {/* „ALEGE NACHOS”: alb cu contur închis pe umbra de sus; peste el, un
           contur galben care pulsează (strat separat, animat doar din opacitate) */}
       <div className="relative mt-[5vh] text-center">
-        <p className="bar-kicker ticket text-[3vw] leading-none tracking-[0.3em]">ALEGE</p>
+        <p className="bar-kicker ticket text-[3.3vw] leading-none tracking-[0.3em]">ALEGE</p>
         <h2 className="relative mt-[0.2vh] text-[6.6vw] leading-[0.95]">
           {/* glow-ul stă în spatele literelor: se vede doar în jurul lor */}
           <span className="bar-title bar-pulse-outline block" aria-hidden="true">
@@ -169,10 +169,10 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
         {NACHOS.portions.map((p, i) => (
           <li key={p.name} className="bar-chip flex items-center justify-between rounded-[0.9vw] py-[1vh] pl-[1vw] pr-[0.6vw]">
             <span>
-              <span className="bar-ink block text-[1.8vw] font-extrabold leading-tight">{p.name}</span>
-              <span className="bar-red block text-[1.15vw] font-extrabold">{p.grams}</span>
+              <span className="bar-ink block text-[1.98vw] font-extrabold leading-tight">{p.name}</span>
+              <span className="bar-red block text-[1.26vw] font-extrabold">{p.grams}</span>
             </span>
-            <Sticker value={p.price} tone="red" size="text-[3vw]" tilt={tiltOf(i + 1)} />
+            <Sticker value={p.price} tone="red" size="text-[3.3vw]" tilt={tiltOf(i + 1)} />
           </li>
         ))}
       </ul>
@@ -187,12 +187,12 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
           <img src="/bar/sosuri.webp" alt="" className="h-[8.5vh] w-auto shrink-0" />
         )}
         <span className="min-w-0 flex-1">
-          <span className="block text-[1.45vw] font-extrabold leading-tight text-white">Extra sos</span>
-          <span className="bar-gold block text-[1.05vw] font-bold leading-tight">
+          <span className="block text-[1.59vw] font-extrabold leading-tight text-white">Extra sos</span>
+          <span className="bar-gold block text-[1.16vw] font-bold leading-tight">
             {NACHOS.sauces.join(" · ")} · {NACHOS.extraSauce.grams}
           </span>
         </span>
-        <Sticker value={NACHOS.extraSauce.price} tone="gold" size="text-[2.4vw]" tilt={4} />
+        <Sticker value={NACHOS.extraSauce.price} tone="gold" size="text-[2.64vw]" tilt={4} />
       </div>
     </section>
   );
@@ -208,9 +208,9 @@ function DrinksPanel({ variant }: { variant: BarVariant }) {
         <span className="bar-curve" aria-hidden="true" />
         <img src={variant === "foto" ? "/bar/foto/cola.webp" : "/bar/cola.webp"} alt="" className="bar-cola" />
         <div className="relative pl-[8.4vw]">
-          <h2 className="bar-title bar-ink text-[2.7vw] leading-none">RĂCORITOARE</h2>
-          <Sticker value={soft.price} tone="red" size="mt-[1vh] text-[2.8vw]" tilt={-4} />
-          <ul className="bar-ink mt-[1.2vh] grid grid-cols-2 gap-x-[0.5vw] gap-y-[0.4vh] whitespace-nowrap text-[0.98vw] font-bold leading-tight">
+          <h2 className="bar-title bar-ink text-[2.55vw] leading-none">RĂCORITOARE</h2>
+          <Sticker value={soft.price} tone="red" size="mt-[1vh] text-[3.08vw]" tilt={-4} />
+          <ul className="bar-ink mt-[1.2vh] grid grid-cols-2 gap-x-[0.35vw] gap-y-[0.4vh] whitespace-nowrap text-[1.02vw] font-bold leading-tight">
             {soft.items.map((d) => (
               <li key={d} className="bar-bullet">{d}</li>
             ))}
@@ -219,15 +219,15 @@ function DrinksPanel({ variant }: { variant: BarVariant }) {
 
         <div className="bar-rule relative mt-[1.4vh] flex items-center justify-between gap-[0.6vw] pr-[0.4vw] pt-[1.2vh]">
           <span>
-            <span className="bar-ink block text-[1.45vw] font-extrabold leading-tight">{water.title}</span>
-            <span className="bar-ink block text-[1.1vw] font-bold">{water.items.join(" · ")}</span>
+            <span className="bar-ink block text-[1.59vw] font-extrabold leading-tight">{water.title}</span>
+            <span className="bar-ink block text-[1.21vw] font-bold">{water.items.join(" · ")}</span>
           </span>
-          <Sticker value={water.price} tone="red" size="text-[2.4vw]" tilt={4} />
+          <Sticker value={water.price} tone="red" size="text-[2.64vw]" tilt={4} />
         </div>
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col px-[0.9vw] pb-[1.6vh] pt-[0.2vh]">
-        <h3 className="bar-title bar-tilt-title self-center text-[2.3vw] leading-none text-white">GUSTĂRI</h3>
+        <h3 className="bar-title bar-tilt-title self-center text-[2.53vw] leading-none text-white">GUSTĂRI</h3>
         <ul className="mt-[0.8vh] grid min-h-0 flex-1 grid-cols-4 grid-rows-2 gap-x-[0.4vw] gap-y-[0.8vh]">
           {SNACKS.map((s, i) => (
             <li key={s.name} className={`flex min-h-0 flex-col items-center text-center ${s.image === "ochelari" ? "relative z-10" : ""}`}>
@@ -238,8 +238,8 @@ function DrinksPanel({ variant }: { variant: BarVariant }) {
                   className={s.image === "ochelari" ? "bar-product bar-glasses" : "bar-product"}
                 />
               </div>
-              <p className="mt-[0.3vh] text-[0.98vw] font-extrabold leading-tight text-white">{s.name}</p>
-              <Sticker value={s.price} tone="gold" size="mt-[0.3vh] text-[1.6vw]" tilt={tiltOf(i)} />
+              <p className="mt-[0.3vh] text-[1.08vw] font-extrabold leading-tight text-white">{s.name}</p>
+              <Sticker value={s.price} tone="gold" size="mt-[0.3vh] text-[1.76vw]" tilt={tiltOf(i)} />
             </li>
           ))}
         </ul>
