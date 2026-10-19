@@ -12,10 +12,23 @@ const ASSETS = "tv-fisiere-v1";
 const MAX_ASSETS = 300;
 
 self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener("activate", (event) =>
+  event.waitUntil(
+    (async () => {
+      // clipurile barului stau acum doar în tv-clipuri; scoatem copiile vechi de aici
+      const cache = await caches.open(ASSETS);
+      for (const req of await cache.keys()) {
+        if (new URL(req.url).pathname.endsWith(".mp4")) await cache.delete(req);
+      }
+      await self.clients.claim();
+    })(),
+  ),
+);
 
 /** Ce merită păstrat pentru când nu e rețea: codul paginii și imaginile ei. */
 function isAsset(url) {
+  // clipurile barului le ține pagina în tv-clipuri (vezi bar-clips.tsx)
+  if (url.pathname.endsWith(".mp4")) return false;
   return (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/posters/") ||
