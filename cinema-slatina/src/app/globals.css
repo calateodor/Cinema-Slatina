@@ -1045,6 +1045,84 @@
     object-fit: contain;
     filter: drop-shadow(0 1vh 1.2vh rgba(0, 0, 0, 0.35));
   }
+  .bar-gold {
+    color: #ffde59;
+  }
+  /* popcornul foto iese peste colțul din dreapta-sus al panoului */
+  .bar-popcorn {
+    position: absolute;
+    top: -1.4vh;
+    right: -0.6vw;
+    width: 10.5vw;
+    height: auto;
+    filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
+  }
+  .bar-cola {
+    position: absolute;
+    top: 1vh;
+    right: 0;
+    height: 25vh;
+    width: auto;
+    filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
+  }
+  /* fundalul de nachos: trei fotografii care trec una în alta (18 s, doar opacitate) */
+  .bar-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bar-fade-2 {
+    opacity: 0;
+    animation: bar-fade-2 18s infinite;
+  }
+  .bar-fade-3 {
+    opacity: 0;
+    animation: bar-fade-3 18s infinite;
+  }
+  @keyframes bar-fade-2 {
+    0%, 30% { opacity: 0; }
+    35%, 62% { opacity: 1; }
+    67%, 100% { opacity: 0; }
+  }
+  @keyframes bar-fade-3 {
+    0%, 62% { opacity: 0; }
+    67%, 95% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  /* umbră sus (sub titlu) și jos (sub prețuri), ca scrisul să se citească pe orice poză */
+  .bar-shade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 4, 8, 0.82) 0%,
+      rgba(20, 4, 8, 0.45) 26%,
+      rgba(20, 4, 8, 0) 42%,
+      rgba(20, 4, 8, 0) 52%,
+      rgba(20, 4, 8, 0.7) 78%,
+      rgba(20, 4, 8, 0.85) 100%
+    );
+  }
+  .bar-kicker {
+    color: #ffde59;
+    text-shadow: 0 0.3vh 1vh rgba(0, 0, 0, 0.8);
+  }
+  .bar-shout {
+    -webkit-text-stroke: 0.12vw #3a0711;
+    paint-order: stroke fill;
+    text-shadow:
+      0 0.4vh 0 #3a0711,
+      0 0.8vh 2.4vh rgba(0, 0, 0, 0.85);
+  }
+  .bar-sauce {
+    background: rgba(30, 5, 10, 0.72);
+  }
   .bar-glow {
     position: absolute;
     top: 10%;
