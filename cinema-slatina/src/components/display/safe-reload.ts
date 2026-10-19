@@ -114,6 +114,8 @@ export function watchNewVersion(): () => void {
  * „Webpage not available”, iar codul ei își revine singur când vine rețeaua.
  */
 export function registerTvBackup() {
+  // pe calculator (next dev) fișierele din /_next/static nu își schimbă numele
+  if (process.env.NODE_ENV !== "production") return;
   try {
     navigator.serviceWorker?.register("/afisaj-sw.js", { scope: "/afisaj" }).catch(() => {});
   } catch {

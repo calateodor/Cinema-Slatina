@@ -80,7 +80,7 @@ async function networkFirst(request, cacheName, key, waitMs) {
   });
 }
 
-/** Codul din /_next/static nu se schimbă niciodată sub același nume: întâi copia. */
+/** Codul din /_next/static/immutable nu se schimbă niciodată sub același nume: întâi copia. */
 async function cacheFirst(request) {
   const cache = await caches.open(ASSETS);
   const saved = await cache.match(request);
@@ -104,7 +104,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirst(req, PAGES, url.origin + url.pathname, PAGE_WAIT_MS));
     return;
   }
-  if (url.pathname.startsWith("/_next/static/")) {
+  if (url.pathname.startsWith("/_next/static/immutable/")) {
     event.respondWith(cacheFirst(req));
   } else if (isAsset(url)) {
     event.respondWith(networkFirst(req, ASSETS, req, 0));

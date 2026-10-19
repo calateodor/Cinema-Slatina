@@ -978,6 +978,11 @@
     overflow: hidden;
     background: #7d1426;
   }
+  /* banda din mijloc (nachos), puțin mai lată decât celelalte două */
+  .bar-mid {
+    flex: 0 0 36vw;
+    min-width: 0;
+  }
   .bar-hero {
     background:
       radial-gradient(ellipse at 50% 42%, #a62036 0%, #7d1426 55%, #5c0d1b 100%);

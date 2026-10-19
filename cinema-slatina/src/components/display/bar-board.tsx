@@ -139,7 +139,7 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
 
 function NachosPanel({ variant }: { variant: BarVariant }) {
   return (
-    <section className="bar-panel bar-hero relative flex flex-1 flex-col px-[1.2vw] pb-[2.2vh] pt-[2.6vh]">
+    <section className="bar-panel bar-hero bar-mid relative flex flex-col px-[1.2vw] pb-[2.2vh] pt-[2.6vh]">
       {variant === "foto" ? (
         // trei clipuri care trec unul în altul (doar opacitate), rulate din memorie
         <div className="tv-layer" aria-hidden="true">
@@ -223,7 +223,7 @@ function DrinksPanel({ variant }: { variant: BarVariant }) {
         <div className="relative pl-[8.4vw]">
           <h2 className="bar-title bar-ink text-[2.55vw] leading-none">RĂCORITOARE</h2>
           <Sticker value={soft.price} tone="red" size="mt-[1vh] text-[3.08vw]" tilt={-4} />
-          <ul className="bar-ink mt-[1.2vh] grid grid-cols-2 gap-x-[0.35vw] gap-y-[0.4vh] whitespace-nowrap text-[1.02vw] font-bold leading-tight">
+          <ul className="bar-ink mt-[1.2vh] grid grid-cols-2 gap-x-[0.3vw] gap-y-[0.4vh] whitespace-nowrap text-[0.96vw] font-bold leading-tight">
             {soft.items.map((d) => (
               <li key={d} className="bar-bullet">{d}</li>
             ))}
