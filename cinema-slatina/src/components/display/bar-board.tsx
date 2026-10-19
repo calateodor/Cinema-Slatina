@@ -57,33 +57,40 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
     <section className="bar-panel flex flex-1 flex-col">
       <div className="bar-white relative px-[1.2vw] pb-[5.2vh] pt-[2.4vh]">
         <span className="bar-curve" aria-hidden="true" />
-        {variant === "foto" ? <img src="/bar/foto/popcorn.webp" alt="" className="bar-popcorn" /> : null}
-        <div className="relative">
-          <h2 className="bar-title bar-ink text-[3.6vw] leading-[0.9]">POP</h2>
-          <h2 className="bar-title bar-red text-[3.6vw] leading-[0.9]">CORN</h2>
-        </div>
+        <h2 className="bar-title bar-ink relative whitespace-nowrap text-[3.7vw] leading-none">
+          POP<span className="bar-red">CORN</span>
+        </h2>
 
-        <div className="relative mt-[3vh] flex items-end justify-end gap-[0.4vw]">
-          {POPCORN.sizes.map((s) => (
-            <div key={s.label} className="w-[5.6vw] text-center">
-              <span className="bar-badge ticket block rounded-full py-[0.5vh] text-[1.45vw] tracking-[0.1em]">{s.label}</span>
-              <span className="bar-ink mt-[0.4vh] block text-[1.1vw] font-extrabold">{s.grams}</span>
-            </div>
-          ))}
-        </div>
-        <ul className="relative mt-[0.8vh] flex flex-col gap-[1.4vh]">
-          {POPCORN.rows.map((r, i) => (
-            <li key={r.name} className="flex items-center gap-[0.4vw]">
-              <span className="bar-ink text-[1.8vw] font-extrabold leading-none">{r.name}</span>
-              <span className="bar-dots flex-1" />
-              {r.prices.map((p, j) => (
-                <span key={p} className="w-[5.6vw] text-center">
-                  <Sticker value={String(p)} tone="red" size="text-[2.4vw]" tilt={tiltOf(i * 2 + j)} />
-                </span>
+        <div className="relative mt-[1.6vh] flex items-start gap-[0.6vw]">
+          {/* popcornul: în stânga, sub titlu, mare */}
+          {variant === "foto" ? (
+            <img src="/bar/foto/popcorn.webp" alt="" className="bar-popcorn" />
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <div className="flex justify-end gap-[0.4vw]">
+              {POPCORN.sizes.map((s) => (
+                <div key={s.label} className="w-[5.2vw] text-center">
+                  <span className="bar-badge ticket block rounded-full py-[0.5vh] text-[1.4vw] tracking-[0.1em]">{s.label}</span>
+                  <span className="bar-ink mt-[0.3vh] block text-[1.05vw] font-extrabold">{s.grams}</span>
+                </div>
               ))}
-            </li>
-          ))}
-        </ul>
+            </div>
+            <ul className="mt-[0.6vh] flex flex-col gap-[1vh]">
+              {POPCORN.rows.map((r, i) => (
+                <li key={r.name}>
+                  <span className="bar-ink block text-right text-[1.6vw] font-extrabold leading-none">{r.name}</span>
+                  <span className="mt-[0.8vh] flex justify-end gap-[0.4vw]">
+                    {r.prices.map((p, j) => (
+                      <span key={p} className="w-[5.2vw] text-center">
+                        <Sticker value={String(p)} tone="red" size="text-[2.3vw]" tilt={tiltOf(i * 2 + j)} />
+                      </span>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
 
       <div className="relative flex min-h-0 flex-1 flex-col px-[0.9vw] pb-[1.8vh] pt-[0.2vh]">
@@ -125,10 +132,11 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
       <div className="relative text-center">
         <p className="bar-kicker ticket text-[2.4vw] leading-none tracking-[0.34em]">ALEGE</p>
         <h2 className="relative mt-[0.4vh] text-[6.4vw] leading-[0.95]">
-          <span className="bar-title bar-shout block text-white">NACHOS</span>
+          {/* glow-ul stă în spatele literelor: se vede doar în jurul lor */}
           <span className="bar-title bar-pulse-outline block" aria-hidden="true">
             NACHOS
           </span>
+          <span className="bar-title bar-shout relative block text-white">NACHOS</span>
         </h2>
       </div>
 

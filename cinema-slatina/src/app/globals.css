@@ -1067,14 +1067,16 @@
     transform: rotate(-2deg);
     text-shadow: 0 0.5vh 0 rgba(0, 0, 0, 0.25);
   }
-  /* conturul galben al lui NACHOS: același text, doar contur, pulsează din opacitate */
+  /* glow-ul galben al lui NACHOS: același text, gros și estompat, în spatele
+     literelor; pulsează doar din opacitate */
   .bar-pulse-outline {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    color: transparent;
-    -webkit-text-stroke: 0.3vw #ffde59;
+    color: #ffde59;
+    -webkit-text-stroke: 0.9vw #ffde59;
+    filter: blur(0.35vw);
     animation: bar-pulse 1.6s ease-in-out infinite;
   }
   @keyframes bar-pulse {
@@ -1093,11 +1095,13 @@
   }
   /* popcornul foto iese peste colțul din dreapta-sus al panoului */
   .bar-popcorn {
-    position: absolute;
-    top: -0.6vh;
-    right: -1.4vw;
-    width: 19vw;
+    position: relative;
+    margin-left: -1.6vw;
+    margin-bottom: -4vh;
+    width: 17vw;
+    flex-shrink: 0;
     height: auto;
+    transform: rotate(-6deg);
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
   }
   .bar-cola {
