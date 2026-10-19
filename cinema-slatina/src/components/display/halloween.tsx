@@ -1,13 +1,24 @@
 /* eslint-disable @next/next/no-img-element -- imagini mici, fixe, fără optimizare */
 
+import type { DisplayTheme } from "@/components/display/display-board";
+
+/** Până când stă tema de Halloween pe televizoare (ora României). */
+const HALLOWEEN_UNTIL = new Date("2026-11-02T00:00:00+02:00");
+
+/** Tema de sezon a televizoarelor din /afisaj, după dată. */
+export function seasonTheme(now: Date = new Date()): DisplayTheme | undefined {
+  return now < HALLOWEEN_UNTIL ? "halloween" : undefined;
+}
+
 /**
- * Tema de Halloween a afișajului (deocamdată doar pe /halloween, de probă).
+ * Tema de Halloween a afișajului: pe /afisaj până pe 1 noiembrie inclusiv
+ * (vezi `seasonTheme`); pe /halloween se vede oricând, de probă.
  * Imaginile sunt pregătite din D:\Teo\Site Cinema\Halloween la mărimea
  * ecranului cutiilor, în public/teme/halloween (toate împreună sub 100 KB).
  * Tot ce se mișcă e doar `transform`, pe care îl face placa video.
  */
 
-/** Doi păianjeni (negri și albi) care se lasă pe fir o dată la 10 secunde. */
+/** Păianjenii (negri și albi) care se lasă pe fir o dată la 20 de secunde, la o secundă unii de alții. */
 export function HalloweenSpiders() {
   return (
     <div className="tv-layer pointer-events-none z-30" aria-hidden="true">

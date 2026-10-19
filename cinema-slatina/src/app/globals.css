@@ -976,27 +976,29 @@
       url("/teme/halloween/fundal.webp") 0 0 / 25vw 25vw repeat,
       #2b1a4a;
   }
-  /* Păianjenii: stau ascunși deasupra ecranului; o dată la 10 secunde coboară
-     repede pe fir, stau 2 secunde și urcă la loc. Doar transform. */
+  /* Păianjenii: stau ascunși deasupra ecranului; o dată la 20 de secunde
+     coboară repede pe fir (0,7 s), stau 2 secunde și urcă la loc. Cei albi
+     pornesc la o secundă după cei negri. Doar transform. */
   .tv-spider {
     position: absolute;
     top: 0;
-    height: 78vh;
+    height: 52vh;
     width: auto;
     transform: translateY(-105%);
-    animation: tv-spider 10s infinite;
+    animation: tv-spider 20s infinite;
   }
   .tv-spider-left {
     left: 1vw;
   }
   .tv-spider-right {
     right: 1vw;
+    animation-delay: 1s;
   }
   @keyframes tv-spider {
     0% { transform: translateY(-105%); animation-timing-function: ease-in-out; }
-    7% { transform: translateY(0); }
-    27% { transform: translateY(0); animation-timing-function: ease-in-out; }
-    34% { transform: translateY(-105%); }
+    3.5% { transform: translateY(0); }
+    13.5% { transform: translateY(0); animation-timing-function: ease-in-out; }
+    17% { transform: translateY(-105%); }
     100% { transform: translateY(-105%); }
   }
   /* Ghirlandele de pe marginile televizoarelor sălilor (plăcuțe care se repetă) */

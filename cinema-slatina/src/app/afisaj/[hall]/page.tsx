@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { DisplayBoard } from "@/components/display/display-board";
+import { seasonTheme } from "@/components/display/halloween";
 import { getDisplayProgram } from "@/server/queries";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function HallDisplayPage(props: PageProps<"/afisaj/[hall]">
       direction={direction}
       quality={quality}
       debug={search.debug === "1"}
+      theme={seasonTheme()}
     />
   );
 }
