@@ -57,10 +57,11 @@ export const SNACKS = [
 ];
 
 /**
- * Unde e imaginea unui produs în fiecare variantă. În varianta foto, ce nu are
- * încă fotografie cade pe decupajul din afiș.
+ * Unde e imaginea unui produs în fiecare variantă. În varianta foto sunt
+ * fotografiile de la producători și magazine (Auchan, eMAG, European Food,
+ * Trendyol), decupate; ce nu are fotografie cade pe decupajul din afiș.
  */
-const FOTO = new Set(["ochelari"]);
+const FOTO = new Set(["ochelari", "caramoon", "savour", "himalaya", "chipsuri", "viva-nuts", "olly", "wafer-rolls", "croissant", "pufu-king", "pernute"]);
 export function productImage(name: string, variant: BarVariant): string {
   return variant === "foto" && FOTO.has(name) ? `/bar/foto/${name}.webp` : `/bar/${name}.webp`;
 }
