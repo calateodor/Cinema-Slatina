@@ -107,3 +107,16 @@ export function watchNewVersion(): () => void {
     window.clearInterval(id);
   };
 }
+
+/**
+ * Pornește rezerva televizoarelor (public/afisaj-sw.js): dacă internetul cutiei
+ * cade la o reîncărcare, pagina vine din copia salvată pe cutie în loc de
+ * „Webpage not available”, iar codul ei își revine singur când vine rețeaua.
+ */
+export function registerTvBackup() {
+  try {
+    navigator.serviceWorker?.register("/afisaj-sw.js", { scope: "/afisaj" }).catch(() => {});
+  } catch {
+    // browserul cutiei nu știe; rămâne ca înainte
+  }
+}

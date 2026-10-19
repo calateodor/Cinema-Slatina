@@ -3,30 +3,30 @@
 /* eslint-disable @next/next/no-img-element -- cadre mici, fixe, pregătite pentru cutie */
 import { useEffect, useRef, useState } from "react";
 
-/** Clipurile de pe fundalul cu nachos (6 s fiecare, fără sunet, ~1 MB toate). */
-const CLIPS = ["/bar/foto/nachos-v1", "/bar/foto/nachos-v2", "/bar/foto/nachos-v3"];
 /** Cât durează trecerea de la un clip la următorul (trebuie să fie egal cu tranziția din .bar-clip). */
 const FADE_S = 0.8;
 
 /**
- * Fundalul panoului cu nachos: cele trei clipuri unul după altul, cu fade.
- * Fiecare clip e descărcat o singură dată la încărcarea paginii și rulează
- * din memorie (blob), deci repetarea nu mai cere nimic de la server. Până
- * se descarcă, sau dacă nu se pot reda, rămân primele cadre ca poze care
- * se schimbă una în alta (doar CSS).
+ * Fundal din clipuri scurte, fără sunet (nachos: trei, unul după altul, cu
+ * fade; popcorn: unul singur, în buclă). `clips` sunt căile fără extensie:
+ * `.mp4` e clipul, `.webp` primul lui cadru. Fiecare clip e descărcat o
+ * singură dată la încărcarea paginii și rulează din memorie (blob), deci
+ * repetarea nu mai cere nimic de la server. Până se descarcă, sau dacă nu se
+ * pot reda, rămân primele cadre ca poze care se schimbă una în alta (doar CSS).
  */
-export function NachosVideos() {
+export function BarClips({ clips }: { clips: string[] }) {
   const [urls, setUrls] = useState<string[] | null>(null);
   const [active, setActive] = useState(0);
   const [failed, setFailed] = useState(false);
   const videos = useRef<(HTMLVideoElement | null)[]>([]);
   const switching = useRef(false);
+  const single = clips.length === 1;
 
   useEffect(() => {
     let cancelled = false;
     let made: string[] = [];
     Promise.all(
-      CLIPS.map((c) =>
+      clips.map((c) =>
         fetch(`${c}.mp4`).then((r) => {
           if (!r.ok) throw new Error(String(r.status));
           return r.blob();
@@ -45,7 +45,7 @@ export function NachosVideos() {
       cancelled = true;
       made.forEach((u) => URL.revokeObjectURL(u));
     };
-  }, []);
+  }, [clips]);
 
   // pornește clipul activ de la început; anteriorul se termină singur în fade
   useEffect(() => {
@@ -59,10 +59,10 @@ export function NachosVideos() {
 
   const onTime = (i: number) => {
     const v = videos.current[i];
-    if (!v || i !== active || switching.current || !v.duration) return;
+    if (single || !v || i !== active || switching.current || !v.duration) return;
     if (v.currentTime >= v.duration - FADE_S) {
       switching.current = true;
-      setActive((i + 1) % CLIPS.length);
+      setActive((i + 1) % clips.length);
     }
   };
 
@@ -70,12 +70,11 @@ export function NachosVideos() {
   return (
     <>
       {/* rezerva: primele cadre, schimbate din opacitate */}
-      <img src={`${CLIPS[0]}.webp`} alt="" className="bar-bg" />
+      <img src={`${clips[0]}.webp`} alt="" className="bar-bg" />
       {!playing ? (
-        <>
-          <img src={`${CLIPS[1]}.webp`} alt="" className="bar-bg bar-fade-2" />
-          <img src={`${CLIPS[2]}.webp`} alt="" className="bar-bg bar-fade-3" />
-        </>
+        clips.slice(1, 3).map((c, k) => (
+          <img key={c} src={`${c}.webp`} alt="" className={`bar-bg bar-fade-${k + 2}`} />
+        ))
       ) : (
         urls.map((u, i) => (
           <video
@@ -84,8 +83,9 @@ export function NachosVideos() {
               videos.current[i] = el;
             }}
             src={u}
-            poster={`${CLIPS[i]}.webp`}
+            poster={`${clips[i]}.webp`}
             muted
+            loop={single}
             playsInline
             preload="auto"
             onTimeUpdate={() => onTime(i)}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { safeReload, watchFrozenScreen, watchNewVersion } from "@/components/display/safe-reload";
+import { safeReload, watchFrozenScreen, watchNewVersion, registerTvBackup } from "@/components/display/safe-reload";
 
 /** Meniul se schimbă rar: îl reîncărcăm o dată la 6 ore (prețuri noi) și doar când site-ul răspunde. */
 const RELOAD_MS = 6 * 60 * 60_000;
@@ -12,6 +12,7 @@ export function BarKeepAlive() {
     const reload = window.setTimeout(safeReload, RELOAD_MS);
     const stopWatch = watchFrozenScreen();
     const stopVersion = watchNewVersion();
+    registerTvBackup();
     return () => {
       window.clearTimeout(reload);
       stopWatch();
