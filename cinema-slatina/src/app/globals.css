@@ -1045,23 +1045,66 @@
     object-fit: contain;
     filter: drop-shadow(0 1vh 1.2vh rgba(0, 0, 0, 0.35));
   }
+  .bar-red {
+    color: #b3172f;
+  }
+  /* prețurile: etichete înclinate */
+  .bar-sticker {
+    padding: 0.35em 0.42em 0.22em;
+    border-radius: 0.28em;
+    box-shadow: 0 0.6vh 1.4vh -0.4vh rgba(0, 0, 0, 0.45);
+  }
+  .bar-sticker-red {
+    background: #b3172f;
+    color: #ffffff;
+  }
+  .bar-sticker-gold {
+    background: #ffde59;
+    color: #3a0711;
+  }
+  .bar-tilt-title {
+    display: inline-block;
+    transform: rotate(-2deg);
+    text-shadow: 0 0.5vh 0 rgba(0, 0, 0, 0.25);
+  }
+  /* conturul galben al lui NACHOS: același text, doar contur, pulsează din opacitate */
+  .bar-pulse-outline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    color: transparent;
+    -webkit-text-stroke: 0.3vw #ffde59;
+    animation: bar-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes bar-pulse {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 1; }
+  }
+  /* ochelarii 3D: mai mari, ies peste vecinul din stânga */
+  .bar-glasses {
+    top: -12%;
+    left: -55%;
+    width: 165%;
+    height: 125%;
+  }
   .bar-gold {
     color: #ffde59;
   }
   /* popcornul foto iese peste colțul din dreapta-sus al panoului */
   .bar-popcorn {
     position: absolute;
-    top: -1.4vh;
-    right: -0.6vw;
-    width: 10.5vw;
+    top: -0.6vh;
+    right: -1.4vw;
+    width: 19vw;
     height: auto;
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
   }
   .bar-cola {
     position: absolute;
-    top: 1vh;
-    right: 0;
-    height: 25vh;
+    top: 0.4vh;
+    right: -0.8vw;
+    height: 37vh;
     width: auto;
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
   }
