@@ -1044,6 +1044,19 @@
     object-fit: contain;
     filter: drop-shadow(0 1vh 1.2vh rgba(0, 0, 0, 0.35));
   }
+  /* tabelul de prețuri al popcornului */
+  .bar-table {
+    border-collapse: collapse;
+  }
+  .bar-row > * {
+    border-top: 0.12vw solid rgba(42, 10, 16, 0.14);
+  }
+  .bar-pill {
+    padding: 0.32em 0.4em 0.2em;
+    border-radius: 0.3em;
+    background: #b3172f;
+    color: #ffffff;
+  }
   /* sublinierea coloanei MARE: o tușă galbenă, ușor înclinată */
   .bar-underline {
     display: block;
@@ -1113,10 +1126,18 @@
   /* popcornul foto: mare, în stânga, peste spațiul alb de sub titlu
      (absolut, ca să nu împingă coloanele de prețuri) */
   .bar-popcorn {
+<<<<<<< Updated upstream
     position: absolute;
     top: -1vh;
     left: -2.8vw;
     width: 22vw;
+=======
+    position: relative;
+    margin-left: -1.8vw;
+    margin-bottom: -4vh;
+    width: 13.5vw;
+    flex-shrink: 0;
+>>>>>>> Stashed changes
     height: auto;
     transform: rotate(-6deg);
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));

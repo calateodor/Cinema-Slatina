@@ -66,41 +66,36 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
           {variant === "foto" ? (
             <img src="/bar/foto/popcorn.webp" alt="" className="bar-popcorn" />
           ) : null}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-end justify-end gap-[0.4vw]">
-              {POPCORN.sizes.map((s, k) => {
-                const big = k === POPCORN.sizes.length - 1;
-                return (
-                  <div key={s.label} className={`relative text-center ${big ? "w-[6.6vw]" : "w-[5vw]"}`}>
-                    <span
-                      className={`bar-badge ticket block rounded-full tracking-[0.1em] ${big ? "py-[0.6vh] text-[2vw]" : "py-[0.5vh] text-[1.35vw]"}`}
-                    >
-                      {s.label}
-                    </span>
-                    {big ? <span className="bar-underline" aria-hidden="true" /> : <span className="block h-[1.25vh]" aria-hidden="true" />}
-                    <span className={`bar-ink mt-[0.5vh] block font-extrabold ${big ? "text-[1.3vw]" : "text-[1.05vw]"}`}>{s.grams}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <ul className="mt-[0.6vh] flex flex-col gap-[1vh]">
-              {POPCORN.rows.map((r, i) => (
-                <li key={r.name}>
-                  <span className="bar-ink block text-right text-[1.6vw] font-extrabold leading-none">{r.name}</span>
-                  <span className="mt-[0.8vh] flex justify-end gap-[0.4vw]">
-                    {r.prices.map((p, j) => {
-                      const big = j === r.prices.length - 1;
-                      return (
-                        <span key={p} className={`text-center ${big ? "w-[6.6vw]" : "w-[5vw]"}`}>
-                          <Sticker value={String(p)} tone="red" size={big ? "text-[3vw]" : "text-[2.2vw]"} tilt={tiltOf(i * 2 + j)} />
-                        </span>
-                      );
-                    })}
-                  </span>
-                </li>
+          {/* tabel simplu: mărimile (cu gramaj) sus, sortimentele pe rânduri,
+              prețurile aliniate pe coloane și toate la fel de mari */}
+          <table className="bar-table min-w-0 flex-1">
+            <thead>
+              <tr>
+                <th />
+                {POPCORN.sizes.map((s) => (
+                  <th key={s.label} className="px-[0.35vw] pb-[1vh] text-center">
+                    <span className="bar-red ticket block text-[1.3vw] leading-none tracking-[0.14em]">{s.label}</span>
+                    <span className="bar-ink block whitespace-nowrap text-[1.75vw] font-extrabold leading-tight">{s.grams}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {POPCORN.rows.map((r) => (
+                <tr key={r.name} className="bar-row">
+                  <th className="bar-ink py-[1.1vh] pr-[0.4vw] text-left text-[1.45vw] font-extrabold leading-tight">{r.name}</th>
+                  {r.prices.map((p, j) => (
+                    <td key={j} className="px-[0.35vw] py-[1.1vh] text-center">
+                      <span className="bar-pill ticket inline-block whitespace-nowrap text-[1.9vw] leading-none">
+                        {p}
+                        <span className="ml-[0.15em] text-[0.5em]">LEI</span>
+                      </span>
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </ul>
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
 

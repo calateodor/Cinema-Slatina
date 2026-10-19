@@ -14,7 +14,7 @@ export const POPCORN = {
   ],
   rows: [
     { name: "Clasic", prices: [12, 24] },
-    { name: "Cu cașcaval", prices: [17, 34] },
+    { name: "Cașcaval", prices: [17, 34] },
   ],
   gourmet: [
     { name: "Caramel", grams: "70 g", price: "18", image: "caramoon" },
