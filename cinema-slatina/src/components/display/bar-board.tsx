@@ -202,7 +202,7 @@ function DrinksPanel({ variant }: { variant: BarVariant }) {
       <div className="bar-white relative px-[1.2vw] pb-[4.8vh] pt-[2.4vh]">
         <span className="bar-curve" aria-hidden="true" />
         <img src={variant === "foto" ? "/bar/foto/cola.webp" : "/bar/cola.webp"} alt="" className="bar-cola" />
-        <div className="relative pr-[8.2vw]">
+        <div className="relative pl-[8.4vw]">
           <h2 className="bar-title bar-ink text-[2.7vw] leading-none">RĂCORITOARE</h2>
           <Sticker value={soft.price} tone="red" size="mt-[1vh] text-[2.8vw]" tilt={-4} />
           <ul className="bar-ink mt-[1.2vh] grid grid-cols-2 gap-x-[0.5vw] gap-y-[0.4vh] whitespace-nowrap text-[0.98vw] font-bold leading-tight">

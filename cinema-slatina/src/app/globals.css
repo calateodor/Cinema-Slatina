@@ -1084,41 +1084,50 @@
     top: 0;
     left: 0;
     width: 100%;
-    color: #ffde59;
-    -webkit-text-stroke: 0.9vw #ffde59;
-    filter: blur(0.35vw);
+    /* fără -webkit-text-stroke: pe cutia TV conturul desena îmbinările
+       interne ale literelor (vârful lui A, bara lui A și H) */
+    color: transparent;
+    text-shadow:
+      0 0 0.5vw #ffde59,
+      0 0 1.2vw #ffde59,
+      0 0 2vw rgba(255, 222, 89, 0.8);
     animation: bar-pulse 1.6s ease-in-out infinite;
   }
   @keyframes bar-pulse {
     0%, 100% { opacity: 0.15; }
     50% { opacity: 1; }
   }
-  /* ochelarii 3D: mai mari, ies peste vecinul din stânga */
-  .bar-glasses {
-    top: -12%;
-    left: -55%;
-    width: 165%;
-    height: 125%;
+  /* ochelarii 3D: mai mari, dar centrați pe coloana lor. Selector dublu și
+     max-width: none, altfel max-width: 100% (din resetul Tailwind) taie
+     lățimea și rămâne doar deplasarea spre stânga: ochelarii descentrați */
+  .bar-product.bar-glasses {
+    top: -8%;
+    left: -9%;
+    width: 118%;
+    max-width: none;
+    height: 116%;
   }
   .bar-gold {
     color: #ffde59;
   }
-  /* popcornul foto iese peste colțul din dreapta-sus al panoului */
+  /* popcornul foto: mare, în stânga, peste spațiul alb de sub titlu
+     (absolut, ca să nu împingă coloanele de prețuri) */
   .bar-popcorn {
-    position: relative;
-    margin-left: -1.6vw;
-    margin-bottom: -4vh;
-    width: 17vw;
-    flex-shrink: 0;
+    position: absolute;
+    top: -1vh;
+    left: -2.8vw;
+    width: 22vw;
     height: auto;
     transform: rotate(-6deg);
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
   }
+  /* sticla stă în stânga, lângă „RĂCORITOARE 12 lei”, și se oprește
+     deasupra liniei apei, ca să nu pară că are prețul apei */
   .bar-cola {
     position: absolute;
     top: 0.4vh;
-    right: -0.8vw;
-    height: 37vh;
+    left: 0;
+    height: 29vh;
     width: auto;
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
   }
@@ -1170,10 +1179,19 @@
     color: #ffde59;
     text-shadow: 0 0.3vh 1vh rgba(0, 0, 0, 0.8);
   }
+  /* conturul închis e făcut din umbre în 8 direcții, nu din
+     -webkit-text-stroke: WebView-ul de pe cutie ignoră paint-order și
+     atunci conturul apare și pe îmbinările din interiorul literelor */
   .bar-shout {
-    -webkit-text-stroke: 0.12vw #3a0711;
-    paint-order: stroke fill;
     text-shadow:
+      0.12vw 0 0 #3a0711,
+      -0.12vw 0 0 #3a0711,
+      0 0.12vw 0 #3a0711,
+      0 -0.12vw 0 #3a0711,
+      0.085vw 0.085vw 0 #3a0711,
+      -0.085vw 0.085vw 0 #3a0711,
+      0.085vw -0.085vw 0 #3a0711,
+      -0.085vw -0.085vw 0 #3a0711,
       0 0.4vh 0 #3a0711,
       0 0.8vh 2.4vh rgba(0, 0, 0, 0.85);
   }
