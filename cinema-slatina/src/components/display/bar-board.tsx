@@ -61,35 +61,39 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
           POP<span className="bar-red">CORN</span>
         </h2>
 
-        <div className="relative mt-[1.6vh] flex items-start gap-[0.6vw]">
-          {/* popcornul: în stânga, sub titlu, mare */}
+        <div className="relative mt-[1.2vh] min-h-[22vh]">
+          {/* popcornul: mare, sub titlu, în spatele scrisului */}
           {variant === "foto" ? (
             <img src="/bar/foto/popcorn.webp" alt="" className="bar-popcorn" />
           ) : null}
           {/* tabel simplu: mărimile (cu gramaj) sus, sortimentele pe rânduri,
-              prețurile aliniate pe coloane și toate la fel de mari */}
-          <table className="bar-table min-w-0 flex-1">
+              prețurile ca etichete înclinate, toate la fel de mari */}
+          <table className="bar-table relative ml-auto w-[64%]">
             <thead>
               <tr>
                 <th />
-                {POPCORN.sizes.map((s) => (
-                  <th key={s.label} className="px-[0.35vw] pb-[1vh] text-center">
-                    <span className="bar-red ticket block text-[1.3vw] leading-none tracking-[0.14em]">{s.label}</span>
-                    <span className="bar-ink block whitespace-nowrap text-[1.75vw] font-extrabold leading-tight">{s.grams}</span>
-                  </th>
-                ))}
+                {POPCORN.sizes.map((s, k) => {
+                  const big = k === POPCORN.sizes.length - 1;
+                  return (
+                    <th key={s.label} className="px-[0.3vw] pb-[1vh] text-center align-bottom">
+                      <span className={`bar-red ticket block leading-none tracking-[0.12em] ${big ? "text-[2.1vw]" : "text-[1.3vw]"}`}>
+                        {s.label}
+                      </span>
+                      <span className={`bar-ink block whitespace-nowrap font-extrabold leading-tight ${big ? "text-[2vw]" : "text-[1.5vw]"}`}>
+                        {s.grams}
+                      </span>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
-              {POPCORN.rows.map((r) => (
+              {POPCORN.rows.map((r, i) => (
                 <tr key={r.name} className="bar-row">
-                  <th className="bar-ink py-[1.1vh] pr-[0.4vw] text-left text-[1.45vw] font-extrabold leading-tight">{r.name}</th>
+                  <th className="bar-ink bar-halo py-[1.2vh] pr-[0.3vw] text-left text-[1.45vw] font-extrabold leading-tight">{r.name}</th>
                   {r.prices.map((p, j) => (
-                    <td key={j} className="px-[0.35vw] py-[1.1vh] text-center">
-                      <span className="bar-pill ticket inline-block whitespace-nowrap text-[1.9vw] leading-none">
-                        {p}
-                        <span className="ml-[0.15em] text-[0.5em]">LEI</span>
-                      </span>
+                    <td key={j} className="px-[0.3vw] py-[1.2vh] text-center">
+                      <Sticker value={String(p)} tone="red" size="text-[2vw]" tilt={tiltOf(i * 2 + j)} />
                     </td>
                   ))}
                 </tr>
@@ -135,15 +139,21 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
 
       {/* „ALEGE NACHOS”: alb cu contur închis pe umbra de sus; peste el, un
           contur galben care pulsează (strat separat, animat doar din opacitate) */}
-      <div className="relative text-center">
-        <p className="bar-kicker ticket text-[2.4vw] leading-none tracking-[0.34em]">ALEGE</p>
-        <h2 className="relative mt-[0.4vh] text-[6.4vw] leading-[0.95]">
+      <div className="relative mt-[5vh] text-center">
+        <p className="bar-kicker ticket text-[3vw] leading-none tracking-[0.3em]">ALEGE</p>
+        <h2 className="relative mt-[0.2vh] text-[6.6vw] leading-[0.95]">
           {/* glow-ul stă în spatele literelor: se vede doar în jurul lor */}
           <span className="bar-title bar-pulse-outline block" aria-hidden="true">
             NACHOS
           </span>
-          <span className="bar-title bar-shout relative block text-white">NACHOS</span>
+          <span className="bar-title bar-shout bar-heavy relative block text-white">NACHOS</span>
         </h2>
+        {/* subliniere ca o tușă de pensulă galbenă */}
+        <svg className="bar-swoosh" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M8 24 C 70 10, 180 6, 292 16" stroke="#3a0711" strokeWidth="13" strokeLinecap="round" fill="none" />
+          <path d="M8 22 C 70 8, 180 4, 292 14" stroke="#ffde59" strokeWidth="9" strokeLinecap="round" fill="none" />
+          <path d="M40 27 C 110 18, 200 16, 270 22" stroke="#ffde59" strokeWidth="4" strokeLinecap="round" fill="none" />
+        </svg>
       </div>
 
       {variant === "foto" ? (

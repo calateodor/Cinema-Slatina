@@ -1051,6 +1051,13 @@
   .bar-row > * {
     border-top: 0.12vw solid rgba(42, 10, 16, 0.14);
   }
+  /* scrisul de peste popcorn: un halou alb, ca să se citească */
+  .bar-halo {
+    text-shadow:
+      0 0 0.4vw #fbf7f2,
+      0 0 0.4vw #fbf7f2,
+      0 0 0.8vw #fbf7f2;
+  }
   .bar-pill {
     padding: 0.32em 0.4em 0.2em;
     border-radius: 0.3em;
@@ -1123,13 +1130,12 @@
   .bar-gold {
     color: #ffde59;
   }
-  /* popcornul foto: mare, în stânga, sub titlu, lângă tabelul de prețuri */
+  /* popcornul foto: mare, în stânga sub titlu, în spatele tabelului de prețuri */
   .bar-popcorn {
-    position: relative;
-    margin-left: -1.8vw;
-    margin-bottom: -4vh;
-    width: 15vw;
-    flex-shrink: 0;
+    position: absolute;
+    top: -2vh;
+    left: -2.6vw;
+    width: 21vw;
     height: auto;
     transform: rotate(-6deg);
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
@@ -1180,9 +1186,9 @@
     height: 100%;
     background: linear-gradient(
       to bottom,
-      rgba(20, 4, 8, 0.82) 0%,
-      rgba(20, 4, 8, 0.45) 26%,
-      rgba(20, 4, 8, 0) 42%,
+      rgba(20, 4, 8, 0.8) 0%,
+      rgba(20, 4, 8, 0.6) 30%,
+      rgba(20, 4, 8, 0) 48%,
       rgba(20, 4, 8, 0) 52%,
       rgba(20, 4, 8, 0.7) 78%,
       rgba(20, 4, 8, 0.85) 100%
@@ -1207,6 +1213,33 @@
       -0.085vw -0.085vw 0 #3a0711,
       0 0.4vh 0 #3a0711,
       0 0.8vh 2.4vh rgba(0, 0, 0, 0.85);
+  }
+  /* NACHOS mai gros: un strat alb în jurul literelor (Sora are maximum 800),
+     apoi conturul închis */
+  .bar-heavy {
+    letter-spacing: -0.01em;
+    text-shadow:
+      0.07vw 0 0 #ffffff,
+      -0.07vw 0 0 #ffffff,
+      0 0.07vw 0 #ffffff,
+      0 -0.07vw 0 #ffffff,
+      0.19vw 0 0 #3a0711,
+      -0.19vw 0 0 #3a0711,
+      0 0.19vw 0 #3a0711,
+      0 -0.19vw 0 #3a0711,
+      0.14vw 0.14vw 0 #3a0711,
+      -0.14vw 0.14vw 0 #3a0711,
+      0.14vw -0.14vw 0 #3a0711,
+      -0.14vw -0.14vw 0 #3a0711,
+      0 0.6vh 0 #3a0711,
+      0 1vh 2.6vh rgba(0, 0, 0, 0.85);
+  }
+  .bar-swoosh {
+    display: block;
+    width: 78%;
+    height: 3.4vh;
+    margin: 0.4vh auto 0;
+    transform: rotate(-2deg);
   }
   .bar-sauce {
     background: rgba(30, 5, 10, 0.72);
