@@ -1123,21 +1123,13 @@
   .bar-gold {
     color: #ffde59;
   }
-  /* popcornul foto: mare, în stânga, peste spațiul alb de sub titlu
-     (absolut, ca să nu împingă coloanele de prețuri) */
+  /* popcornul foto: mare, în stânga, sub titlu, lângă tabelul de prețuri */
   .bar-popcorn {
-<<<<<<< Updated upstream
-    position: absolute;
-    top: -1vh;
-    left: -2.8vw;
-    width: 22vw;
-=======
     position: relative;
     margin-left: -1.8vw;
     margin-bottom: -4vh;
-    width: 13.5vw;
+    width: 15vw;
     flex-shrink: 0;
->>>>>>> Stashed changes
     height: auto;
     transform: rotate(-6deg);
     filter: drop-shadow(0 1.2vh 1.4vh rgba(0, 0, 0, 0.3));
