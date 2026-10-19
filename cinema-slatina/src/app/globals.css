@@ -1159,6 +1159,10 @@
     height: 100%;
     object-fit: cover;
   }
+  /* clipurile de nachos: trecerea de 0,8 s (FADE_S din nachos-videos.tsx) */
+  .bar-clip {
+    transition: opacity 0.8s ease-in-out;
+  }
   .bar-fade-2 {
     opacity: 0;
     animation: bar-fade-2 18s infinite;
