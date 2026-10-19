@@ -176,12 +176,14 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
         </div>
       )}
 
-      <ul className="relative flex w-full flex-col gap-[1.4vh]">
+      {/* porțiile fără cutie albă: scris alb direct pe clip, despărțit de o
+          linie galbenă, ca nachos să se vadă prin tot panoul */}
+      <ul className="relative flex w-full flex-col">
         {NACHOS.portions.map((p, i) => (
-          <li key={p.name} className="bar-chip flex items-center justify-between rounded-[0.9vw] py-[1vh] pl-[1vw] pr-[0.6vw]">
+          <li key={p.name} className="bar-portion flex items-center justify-between py-[0.9vh] pl-[0.4vw] pr-[0.6vw]">
             <span>
-              <span className="bar-ink block text-[1.98vw] font-extrabold leading-tight">{p.name}</span>
-              <span className="bar-red block text-[1.26vw] font-extrabold">{p.grams}</span>
+              <span className="bar-lift block text-[1.98vw] font-extrabold leading-tight text-white">{p.name}</span>
+              <span className="bar-gold bar-lift block text-[1.26vw] font-extrabold">{p.grams}</span>
             </span>
             <Sticker value={p.price} tone="red" size="text-[3.3vw]" tilt={tiltOf(i + 1)} />
           </li>
