@@ -72,3 +72,38 @@ export function watchFrozenScreen(): () => void {
     window.clearInterval(id);
   };
 }
+
+/** La ce interval verificăm dacă s-a publicat o versiune nouă a site-ului. */
+const VERSION_MS = 3 * 60_000;
+
+/**
+ * Reîncarcă televizorul când s-a publicat o versiune nouă (meniu, design).
+ * Întreabă /api/versiune (răspuns static din CDN, ~480 de cereri pe zi pe
+ * televizor, din 1 milion pe lună gratuit). Prima valoare primită e cea a
+ * paginii; când alta apare, reîncărcăm (doar dacă site-ul răspunde).
+ * Pe 19 octombrie 2026 meniul barului nu se actualiza pe televizor, iar Teo nu
+ * mai era la cinema ca să apese Reload.
+ */
+export function watchNewVersion(): () => void {
+  let mine: string | null = null;
+  let stopped = false;
+  const check = () => {
+    fetch("/api/versiune", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { v?: string } | null) => {
+        if (stopped || !data?.v) return;
+        if (mine === null) mine = data.v;
+        else if (data.v !== mine) {
+          stopped = true;
+          safeReload();
+        }
+      })
+      .catch(() => {});
+  };
+  check();
+  const id = window.setInterval(check, VERSION_MS);
+  return () => {
+    stopped = true;
+    window.clearInterval(id);
+  };
+}
