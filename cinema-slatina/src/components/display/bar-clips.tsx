@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
  * Versiunea clipurilor din public/bar/foto. Mărește-o când înlocuiești un clip:
  * cutiile descarcă o singură dată clipurile noi și le șterg pe cele vechi.
  */
-const CLIP_VERSION = 1;
+const CLIP_VERSION = 2;
 /** Unde țin cutiile clipurile, separat de trailere (tv-trailere-v1) și de rezervă (afisaj-sw.js). */
 const CLIP_CACHE = "tv-clipuri";
 /** Cât durează trecerea de la un clip la următorul (egal cu tranziția din .bar-clip). */
