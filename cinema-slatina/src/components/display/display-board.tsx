@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { TvTrailer } from "@/components/display/tv-trailer";
 import { safeReload, watchFrozenScreen, watchNewVersion, registerTvBackup } from "@/components/display/safe-reload";
 import { HalloweenFrame, HalloweenSpiders } from "@/components/display/halloween";
+import { syncTvClock, tvNow, tvNowMs, useTvClockOffset } from "@/components/display/tv-clock";
 import { addDays, formatDayMonth, formatTime, formatWeekday, isToday } from "@/lib/dates";
 import { youtubeId } from "@/lib/format";
 import type { DisplayProgram, DisplayScreening } from "@/server/queries";
@@ -127,17 +128,25 @@ export function DisplayBoard({
   const router = useRouter();
   // pornește de la ora serverului, ca HTML-ul să fie identic la hidratare
   const [now, setNow] = useState(() => new Date(program.generatedAt));
+  const clockOffset = useTvClockOffset();
+  // când aflăm ora serverului, ceasul de pe ecran se mută imediat, nu peste 5 s
+  useEffect(() => {
+    if (clockOffset !== 0) setNow(tvNow());
+  }, [clockOffset]);
 
   useEffect(() => {
-    // ora reală a cutiei, imediat după hidratare, apoi din 5 în 5 secunde
-    const first = window.setTimeout(() => setNow(new Date()), 0);
-    const clock = window.setInterval(() => setNow(new Date()), CLOCK_MS);
+    // ora reală, imediat după hidratare, apoi din 5 în 5 secunde; ceasul
+    // cutiei e corectat după ora serverului (tv-clock), nu luat ca atare
+    const stopSync = syncTvClock();
+    const first = window.setTimeout(() => setNow(tvNow()), 0);
+    const clock = window.setInterval(() => setNow(tvNow()), CLOCK_MS);
     const refresh = window.setInterval(() => router.refresh(), REFRESH_MS);
     const reload = window.setTimeout(safeReload, RELOAD_MS);
     const stopWatch = watchFrozenScreen();
     const stopVersion = watchNewVersion();
     registerTvBackup();
     return () => {
+      stopSync();
       window.clearTimeout(first);
       window.clearInterval(clock);
       window.clearInterval(refresh);
@@ -428,9 +437,10 @@ function Countdown({ until, now, className }: { until: Date; now: Date; classNam
   const [initial] = useState(() => fmtCountdown(target - now.getTime()));
   const [phases, setPhases] = useState<Phases | null>(null);
   const [epoch, setEpoch] = useState(0);
+  const clockOffset = useTvClockOffset();
 
   useEffect(() => {
-    const rem = (target - Date.now()) / 1000;
+    const rem = (target - tvNowMs()) / 1000;
     if (rem <= 0) {
       setPhases("done");
       return;
@@ -443,7 +453,7 @@ function Countdown({ until, now, className }: { until: Date; now: Date; classNam
     // repornește la schimbarea orei (când dispare/scade „1:”) sau la final
     const id = window.setTimeout(() => setEpoch((e) => e + 1), (rem % 3600 || 3600) * 1000 + 30);
     return () => window.clearTimeout(id);
-  }, [target, epoch]);
+  }, [target, epoch, clockOffset]);
 
   if (phases === null) return <span className={className}>{initial}</span>;
   if (phases === "done") return <span className={className}>00:00</span>;
