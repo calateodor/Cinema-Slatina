@@ -1178,28 +1178,6 @@
     height: 100%;
     object-fit: cover;
   }
-  /* clipurile de nachos: trecerea de 0,8 s (FADE_S din nachos-videos.tsx) */
-  .bar-clip {
-    transition: opacity 0.8s ease-in-out;
-  }
-  .bar-fade-2 {
-    opacity: 0;
-    animation: bar-fade-2 18s infinite;
-  }
-  .bar-fade-3 {
-    opacity: 0;
-    animation: bar-fade-3 18s infinite;
-  }
-  @keyframes bar-fade-2 {
-    0%, 30% { opacity: 0; }
-    35%, 62% { opacity: 1; }
-    67%, 100% { opacity: 0; }
-  }
-  @keyframes bar-fade-3 {
-    0%, 62% { opacity: 0; }
-    67%, 95% { opacity: 1; }
-    100% { opacity: 0; }
-  }
   /* umbră sus (sub titlu) și jos (sub prețuri), ca scrisul să se citească pe orice poză */
   .bar-shade {
     position: absolute;

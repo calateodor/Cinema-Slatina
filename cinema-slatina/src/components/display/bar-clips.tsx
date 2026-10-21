@@ -7,18 +7,16 @@ import { useEffect, useRef, useState } from "react";
  * Versiunea clipurilor din public/bar/foto. Mărește-o când înlocuiești un clip:
  * cutiile descarcă o singură dată clipurile noi și le șterg pe cele vechi.
  */
-const CLIP_VERSION = 2;
+const CLIP_VERSION = 3;
 /** Unde țin cutiile clipurile, separat de trailere (tv-trailere-v1) și de rezervă (afisaj-sw.js). */
 const CLIP_CACHE = "tv-clipuri";
-/** Cât durează trecerea de la un clip la următorul (egal cu tranziția din .bar-clip). */
-const FADE_MS = 800;
 /** Paza: la ce interval verificăm că clipul chiar merge, și după câte verificări îl repornim / renunțăm. */
 const WATCH_MS = 4000;
 const RESTART_AFTER = 2;
 const GIVE_UP_AFTER = 5;
 
 /**
- * Un clip, din memoria cutiei: prima dată îl descarcă și îl salvează în Cache
+ * Clipul, din memoria cutiei: prima dată îl descarcă și îl salvează în Cache
  * Storage; de atunci, la orice reîncărcare (și fără internet), vine de acolo,
  * fără nicio cerere la server. Întoarce adresa din memorie (blob).
  */
@@ -55,84 +53,41 @@ async function dropOldClips() {
 }
 
 /**
- * Fundal din clipuri scurte, fără sunet. `clips` sunt căile fără extensie:
- * `.mp4` e clipul, `.webp` primul lui cadru.
+ * Fundal dintr-un clip fără sunet care se repetă singur (bucla nativă a
+ * browserului). `clip` e calea fără extensie: `.mp4` e clipul, `.webp` primul
+ * lui cadru. Clipurile sunt făcute dinainte să se lege fără cusătură — la
+ * nachos, cele trei filmări și trecerile dintre ele sunt deja în același
+ * fișier —, așa că pagina nu schimbă nimic în timpul redării: un singur
+ * player per clip, fără fade-uri peste video. Pe cutie rulează astfel exact
+ * două clipuri (popcorn și nachos), 30 de cadre/s, fără B-frames.
  *
- * - Un clip (popcorn): un singur player, cu bucla nativă a browserului; clipul
- *   e făcut să se lege fără cusătură (capătul trece moale în început).
- * - Mai multe (nachos): doar două playere care se schimbă între ele — cel
- *   vizibil și cel care așteaptă clipul următor, gata încărcat. La capăt,
- *   următorul pornește și apare cu fade; cel vechi se oprește și primește
- *   clipul de după. Așa cutia nu decodează niciodată mai mult de două clipuri.
- *
- * Paza: dacă clipul vizibil stă pe loc, îl repornim; dacă tot nu merge,
- * rămân pozele (primele cadre). Când pagina e ascunsă, clipurile stau pe pauză.
+ * Paza: dacă clipul stă pe loc, îl repornim; dacă tot nu merge, rămâne poza
+ * (primul cadru). Când pagina e ascunsă, clipul stă pe pauză.
  */
-export function BarClips({ clips }: { clips: string[] }) {
-  const [ready, setReady] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const a = useRef<HTMLVideoElement>(null);
-  const b = useRef<HTMLVideoElement>(null);
-  const single = clips.length === 1;
+export function BarClip({ clip }: { clip: string }) {
+  const [playing, setPlaying] = useState(false);
+  const video = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    const v = video.current;
+    if (!v) return;
     let stopped = false;
-    let urls: string[] = [];
-    let timers: number[] = [];
+    let url = "";
     let watch = 0;
 
-    const players = () => [a.current, b.current].filter((v): v is HTMLVideoElement => v !== null);
-    let slot = 0; // playerul vizibil
-    let index = 0; // clipul din playerul vizibil
-    let switching = false;
-
-    const show = (s: number) => {
-      players().forEach((v, i) => {
-        v.style.opacity = i === s ? "1" : "0";
-      });
-    };
     const fail = () => {
       if (stopped) return;
       stopped = true;
-      players().forEach((v) => v.pause());
-      setFailed(true);
-    };
-    const start = (v: HTMLVideoElement) => {
-      v.currentTime = 0;
-      v.play().catch(fail);
+      window.clearInterval(watch);
+      v.pause();
+      setPlaying(false);
     };
 
-    // nachos: aproape de capăt, pornește clipul următor (deja încărcat în celălalt player)
-    const onTime = () => {
-      const v = players()[slot];
-      if (stopped || single || switching || !v || !v.duration) return;
-      if (v.currentTime < v.duration - FADE_MS / 1000) return;
-      switching = true;
-      const prev = slot;
-      slot = 1 - slot;
-      index = (index + 1) % urls.length;
-      start(players()[slot]);
-      show(slot);
-      // după fade, playerul vechi se oprește și își pregătește clipul de după
-      timers.push(
-        window.setTimeout(() => {
-          const old = players()[prev];
-          if (stopped || !old) return;
-          old.pause();
-          old.src = urls[(index + 1) % urls.length];
-          old.load();
-          switching = false;
-        }, FADE_MS + 100),
-      );
-    };
-
-    // paza: clipul vizibil trebuie să înainteze
+    // paza: clipul trebuie să înainteze
     let last = -1;
     let stuck = 0;
     const check = () => {
       if (stopped || document.hidden) return;
-      const v = players()[slot];
-      if (!v) return;
       if (!v.paused && v.currentTime !== last) {
         last = v.currentTime;
         stuck = 0;
@@ -144,85 +99,54 @@ export function BarClips({ clips }: { clips: string[] }) {
     };
 
     const onVisibility = () => {
-      const v = players()[slot];
-      if (stopped || !v) return;
-      if (document.hidden) players().forEach((p) => p.pause());
+      if (stopped) return;
+      if (document.hidden) v.pause();
       else v.play().catch(() => {});
     };
 
-    Promise.all(clips.map(loadClip))
+    loadClip(clip)
       .then((made) => {
         if (stopped) {
-          made.forEach((u) => URL.revokeObjectURL(u));
+          URL.revokeObjectURL(made);
           return;
         }
-        urls = made;
-        setReady(true);
-        const [first, second] = players();
-        if (!first) return;
-        first.src = urls[0];
-        if (!single && second) {
-          second.src = urls[1 % urls.length];
-          second.load();
-        }
-        show(0);
-        start(first);
+        url = made;
+        v.src = url;
+        v.play()
+          .then(() => {
+            if (!stopped) setPlaying(true);
+          })
+          .catch(fail);
         watch = window.setInterval(check, WATCH_MS);
         dropOldClips();
       })
       .catch(fail);
-
-    const listeners = players().map((v) => {
-      v.addEventListener("timeupdate", onTime);
-      v.addEventListener("ended", onTime);
-      return v;
-    });
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       stopped = true;
       window.clearInterval(watch);
-      timers.forEach((t) => window.clearTimeout(t));
-      timers = [];
-      listeners.forEach((v) => {
-        v.removeEventListener("timeupdate", onTime);
-        v.removeEventListener("ended", onTime);
-        v.pause();
-        v.removeAttribute("src");
-        v.load();
-      });
       document.removeEventListener("visibilitychange", onVisibility);
-      urls.forEach((u) => URL.revokeObjectURL(u));
+      v.pause();
+      v.removeAttribute("src");
+      v.load();
+      if (url) URL.revokeObjectURL(url);
     };
-  }, [clips, single]);
+  }, [clip]);
 
-  const playing = ready && !failed;
   return (
     <>
-      {/* rezerva: primele cadre; fără clipuri, se schimbă una în alta (doar CSS) */}
-      <img src={`${clips[0]}.webp`} alt="" className="bar-bg" />
-      {!playing
-        ? clips.slice(1, 3).map((c, k) => <img key={c} src={`${c}.webp`} alt="" className={`bar-bg bar-fade-${k + 2}`} />)
-        : null}
+      {/* rezerva: primul cadru, cât se încarcă sau dacă clipul nu merge */}
+      <img src={`${clip}.webp`} alt="" className="bar-bg" />
       <video
-        ref={a}
+        ref={video}
         muted
-        loop={single}
+        loop
         playsInline
         preload="auto"
-        className="bar-bg bar-clip"
-        style={{ opacity: 0, visibility: playing ? "visible" : "hidden" }}
+        className="bar-bg"
+        style={{ visibility: playing ? "visible" : "hidden" }}
       />
-      {!single ? (
-        <video
-          ref={b}
-          muted
-          playsInline
-          preload="auto"
-          className="bar-bg bar-clip"
-          style={{ opacity: 0, visibility: playing ? "visible" : "hidden" }}
-        />
-      ) : null}
     </>
   );
 }

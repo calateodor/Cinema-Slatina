@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element -- imagini mici, fixe, pregătite pentru cutie */
 import { DRINKS, NACHOS, POPCORN, SNACKS, productImage, type BarVariant } from "@/lib/bar-menu";
 import { BarKeepAlive } from "@/components/display/bar-keep-alive";
-import { BarClips } from "@/components/display/bar-clips";
+import { BarClip } from "@/components/display/bar-clips";
 
-/** Clipurile de fundal din varianta foto (fără extensie; vezi BarClips). */
-const NACHOS_CLIPS = ["/bar/foto/nachos-v1", "/bar/foto/nachos-v2", "/bar/foto/nachos-v3"];
-const POPCORN_CLIPS = ["/bar/foto/popcorn-v"];
+/** Clipurile de fundal din varianta foto (fără extensie; vezi BarClip). */
+const NACHOS_CLIP = "/bar/foto/nachos-loop";
+const POPCORN_CLIP = "/bar/foto/popcorn-v";
 
 /**
  * Meniul barului pe un singur televizor (1280×720 pe cutie): trei panouri
@@ -15,7 +15,7 @@ const POPCORN_CLIPS = ["/bar/foto/popcorn-v"];
  * iar gramajul apare doar la popcorn și la nachos. Doar CSS vechi (fără
  * color-mix, inset sau aspect-ratio); singurele animații sunt din opacitate
  * (fundalul de nachos și conturul titlului), pe care le face placa video;
- * în varianta foto, fundalurile de nachos și de popcorn sunt clipuri scurte (BarClips).
+ * în varianta foto, fundalurile de nachos și de popcorn sunt clipuri scurte (BarClip).
  */
 export function BarBoard({ variant = "ilustrat" }: { variant?: BarVariant }) {
   return (
@@ -65,7 +65,7 @@ function PopcornPanel({ variant }: { variant: BarVariant }) {
         {variant === "foto" ? (
           // popcorn în mișcare, sub un voal crem ca scrisul să se citească
           <div className="tv-layer" aria-hidden="true">
-            <BarClips clips={POPCORN_CLIPS} />
+            <BarClip clip={POPCORN_CLIP} />
             <span className="bar-veil" />
           </div>
         ) : null}
@@ -141,9 +141,9 @@ function NachosPanel({ variant }: { variant: BarVariant }) {
   return (
     <section className="bar-panel bar-hero bar-mid relative flex flex-col px-[1.2vw] pb-[2.2vh] pt-[2.6vh]">
       {variant === "foto" ? (
-        // trei clipuri care trec unul în altul (doar opacitate), rulate din memorie
+        // cele trei filmări cu nachos, într-un singur clip în buclă, rulat din memorie
         <div className="tv-layer" aria-hidden="true">
-          <BarClips clips={NACHOS_CLIPS} />
+          <BarClip clip={NACHOS_CLIP} />
           <span className="bar-shade" />
         </div>
       ) : null}
