@@ -5,7 +5,7 @@ export const CINEMA = {
   address: "Bulevardul Alexandru Ioan Cuza nr. 28, Slatina, județul Olt",
   phone: "0784 010 929",
   email: "cinemaslatina.ro@gmail.com",
-  hours: "Zilnic 14:00 – 22:00",
+  hours: "Zilnic 13:00 – 21:00",
   firstScreening: "Primul film la 15:00",
   reservationHours: "Între 15:00 și 21:00",
   mapsUrl:

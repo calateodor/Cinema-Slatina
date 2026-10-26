@@ -97,7 +97,7 @@ function PosterFooter({ weekStart }: { weekStart: Date }) {
         <p className={`display text-[clamp(0.95rem,2.7vw,1.7rem)] leading-[1.05] ${shadow}`}>
           PROGRAM
           <br />
-          14:00-22:00
+          13:00-21:00
         </p>
       </div>
       <p className={`display mt-2 text-[clamp(1.25rem,4.4vw,2.8rem)] leading-none ${shadow}`}>

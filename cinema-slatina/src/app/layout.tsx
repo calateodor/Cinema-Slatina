@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     template: '%s — Cinema "Eugen Ionescu" Slatina',
   },
   description:
-    'Programul săptămânii, filmele și rezervările gratuite la Cinema "Eugen Ionescu" din Slatina. Intrare liberă, zilnic 14:00 – 22:00.',
+    'Programul săptămânii, filmele și rezervările gratuite la Cinema "Eugen Ionescu" din Slatina. Intrare liberă, zilnic 13:00 – 21:00.',
   openGraph: {
     type: "website",
     locale: "ro_RO",
