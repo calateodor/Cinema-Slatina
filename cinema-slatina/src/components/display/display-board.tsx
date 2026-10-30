@@ -255,23 +255,6 @@ function toSlots(list: DisplayScreening[]): DisplayScreening[][] {
   return slots;
 }
 
-/**
- * Când sunt mai multe filme decât carduri (zilele cu program prelungit), cele
- * terminate ies primele de pe ecran, ca să rămână carduri întregi pentru ce
- * urmează. În zilele obișnuite (cel mult 8 filme) nu se schimbă nimic.
- */
-function withoutEnded(list: DisplayScreening[], now: Date): DisplayScreening[] {
-  let extra = list.length - MAX_CARDS;
-  if (extra <= 0) return list;
-  return list.filter((s) => {
-    if (extra > 0 && statusOf(s, now) === "ended") {
-      extra -= 1;
-      return false;
-    }
-    return true;
-  });
-}
-
 function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
   if (list.length === 0) {
     return (
@@ -280,14 +263,13 @@ function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
       </p>
     );
   }
-  const visible = withoutEnded(list, now);
-  // ziua cu program prelungit rămâne pe rânduri până mai sunt 8 filme de văzut
-  if (list.length > DENSE_FROM && visible.length > MAX_CARDS) {
-    // program prelungit: trei rânduri de carduri întregi, în ordinea orelor,
-    // cele în plus pe primele rânduri (13 → 5 sus, 4 la mijloc, 4 jos)
+  if (list.length > DENSE_FROM) {
+    // program prelungit: toată ziua pe trei rânduri de carduri întregi, în
+    // ordinea orelor, cele în plus pe primele rânduri (13 → 5 sus, 4 la
+    // mijloc, 4 jos); filmele terminate rămân la locul lor, ca la afiș
     return (
       <div className="flex h-full flex-col gap-y-[4.5vh]">
-        {rowsOf(visible, DENSE_ROWS).map((row) => (
+        {rowsOf(list, DENSE_ROWS).map((row) => (
           <ul
             key={row[0].id}
             className="grid min-h-0 flex-1 gap-x-[1.4vw]"
@@ -305,7 +287,7 @@ function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
   }
   return (
     <ul className="grid h-full auto-rows-fr grid-cols-4 gap-x-[1.4vw] gap-y-[4.5vh]">
-      {toSlots(visible).map((slot) =>
+      {toSlots(list).map((slot) =>
         slot.length === 1 ? (
           <li key={slot[0].id} className={cn("relative min-h-0", isLit(slot[0], now) && "z-10")}>
             <FilmCard screening={slot[0]} now={now} />
