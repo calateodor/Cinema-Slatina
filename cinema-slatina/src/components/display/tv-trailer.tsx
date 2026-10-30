@@ -500,7 +500,9 @@ const FILE_START_LIMIT_MS = 25_000;
 const FILE_DOWNLOAD_LIMIT_MS = 240_000;
 /** Memoria de trailere a cutiei și câte fișiere păstrăm în ea. */
 const FILE_CACHE = "tv-trailere-v1";
-const FILE_CACHE_KEEP = 6;
+// 8: o sală are până la 7 filme pe zi (program prelungit); cu mai puține, cutia
+// ar redescărca zilnic trailerul ieșit din memorie
+const FILE_CACHE_KEEP = 8;
 
 /**
  * Adresa locală (blob:) a trailerului, din memoria cutiei. Prima dată fișierul

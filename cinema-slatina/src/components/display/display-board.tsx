@@ -7,7 +7,7 @@ import { TvTrailer } from "@/components/display/tv-trailer";
 import { safeReload, watchFrozenScreen, watchNewVersion, registerTvBackup } from "@/components/display/safe-reload";
 import { HalloweenFrame, HalloweenSpiders } from "@/components/display/halloween";
 import { syncTvClock, tvNow, tvNowMs, useTvClockOffset } from "@/components/display/tv-clock";
-import { addDays, formatDayMonth, formatTime, formatWeekday, isToday } from "@/lib/dates";
+import { addDays, cinemaDayOf, formatDayMonth, formatTime, formatWeekday, isToday } from "@/lib/dates";
 import { youtubeId } from "@/lib/format";
 import type { DisplayProgram, DisplayScreening } from "@/server/queries";
 import { cn } from "@/lib/utils";
@@ -94,13 +94,21 @@ const metaOf = (s: DisplayScreening) =>
     .filter(Boolean)
     .join(" · ");
 
-/** Ziua afișată: azi, cât mai e ceva de văzut; după ultimul film, mâine. */
+/**
+ * Ziua afișată: azi, cât mai e ceva de văzut; după ultimul film, mâine.
+ * Ziua cinematografului se termină la 05:00, nu la miezul nopții (vezi
+ * `cinemaDayOf`): filmele de la 23:30 din nopțile cu program prelungit rămân
+ * pe ecran și după 00:00, cât rulează. „Mâine” se scrie doar când ziua
+ * afișată chiar e altă dată decât azi.
+ */
 function pickDay(screenings: DisplayScreening[], now: Date) {
-  const today = screenings.filter((s) => isToday(startOf(s), now));
-  const tomorrow = screenings.filter((s) => isToday(startOf(s), addDays(now, 1)));
+  const day = cinemaDayOf(now);
+  const today = screenings.filter((s) => isToday(cinemaDayOf(startOf(s)), day));
+  const tomorrow = screenings.filter((s) => isToday(cinemaDayOf(startOf(s)), addDays(day, 1)));
   const todayLeft = today.some((s) => statusOf(s, now) !== "ended");
   if (todayLeft || tomorrow.length === 0) return { list: today, isTomorrow: false };
-  return { list: tomorrow, isTomorrow: true };
+  // după 00:00, „mâine” e deja azi
+  return { list: tomorrow, isTomorrow: !isToday(startOf(tomorrow[0]), now) };
 }
 
 export function DisplayBoard({
@@ -194,6 +202,26 @@ export function DisplayBoard({
 
 /** Câte carduri încap pe ecranul casieriei (4 × 2), ca în afișul din Canva. */
 const MAX_CARDS = 8;
+/**
+ * Peste câte filme renunțăm la cardurile împărțite: cu 9–10 filme se împart
+ * doar unul-două carduri (aceeași sală, unul după altul), ca în afișul Canva;
+ * cu mai multe (weekend de Halloween, 13), perechile ar ieși amestecate, așa
+ * că toate stau pe trei rânduri de carduri întregi, în ordinea orelor.
+ */
+const DENSE_FROM = 10;
+const DENSE_ROWS = 3;
+
+/** Împarte lista pe `rows` rânduri, în ordine; rândurile de sus primesc cardurile în plus. */
+function rowsOf<T>(list: T[], rows: number): T[][] {
+  const out: T[][] = [];
+  let at = 0;
+  for (let r = 0; r < rows; r++) {
+    const size = Math.floor(list.length / rows) + (r < list.length % rows ? 1 : 0);
+    if (size > 0) out.push(list.slice(at, at + size));
+    at += size;
+  }
+  return out;
+}
 
 /**
  * Împarte proiecțiile în carduri. Cât încap, fiecare film are cardul lui. Când
@@ -227,6 +255,23 @@ function toSlots(list: DisplayScreening[]): DisplayScreening[][] {
   return slots;
 }
 
+/**
+ * Când sunt mai multe filme decât carduri (zilele cu program prelungit), cele
+ * terminate ies primele de pe ecran, ca să rămână carduri întregi pentru ce
+ * urmează. În zilele obișnuite (cel mult 8 filme) nu se schimbă nimic.
+ */
+function withoutEnded(list: DisplayScreening[], now: Date): DisplayScreening[] {
+  let extra = list.length - MAX_CARDS;
+  if (extra <= 0) return list;
+  return list.filter((s) => {
+    if (extra > 0 && statusOf(s, now) === "ended") {
+      extra -= 1;
+      return false;
+    }
+    return true;
+  });
+}
+
 function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
   if (list.length === 0) {
     return (
@@ -235,9 +280,32 @@ function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
       </p>
     );
   }
+  const visible = withoutEnded(list, now);
+  // ziua cu program prelungit rămâne pe rânduri până mai sunt 8 filme de văzut
+  if (list.length > DENSE_FROM && visible.length > MAX_CARDS) {
+    // program prelungit: trei rânduri de carduri întregi, în ordinea orelor,
+    // cele în plus pe primele rânduri (13 → 5 sus, 4 la mijloc, 4 jos)
+    return (
+      <div className="flex h-full flex-col gap-y-[4.5vh]">
+        {rowsOf(visible, DENSE_ROWS).map((row) => (
+          <ul
+            key={row[0].id}
+            className="grid min-h-0 flex-1 gap-x-[1.4vw]"
+            style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}
+          >
+            {row.map((x) => (
+              <li key={x.id} className={cn("relative min-h-0", isLit(x, now) && "z-10")}>
+                <FilmCard screening={x} now={now} mid />
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    );
+  }
   return (
     <ul className="grid h-full auto-rows-fr grid-cols-4 gap-x-[1.4vw] gap-y-[4.5vh]">
-      {toSlots(list).map((slot) =>
+      {toSlots(visible).map((slot) =>
         slot.length === 1 ? (
           <li key={slot[0].id} className={cn("relative min-h-0", isLit(slot[0], now) && "z-10")}>
             <FilmCard screening={slot[0]} now={now} />
@@ -269,7 +337,18 @@ const isLit = (s: DisplayScreening, now: Date) => {
  * galben, cu un halo care pulsează, și cronometrul cu cât mai e din film.
  * `half`: jumătate de card (două filme în aceeași sală, unul după altul).
  */
-function FilmCard({ screening: s, now, half = false }: { screening: DisplayScreening; now: Date; half?: boolean }) {
+function FilmCard({
+  screening: s,
+  now,
+  half = false,
+  mid = false,
+}: {
+  screening: DisplayScreening;
+  now: Date;
+  half?: boolean;
+  /** Card de mărime medie (trei rânduri, program prelungit): fără spațiul rezervat imaginii. */
+  mid?: boolean;
+}) {
   const status = statusOf(s, now);
   const running = status === "running";
   const firstGenre = s.movie.genres?.split(",")[0]?.trim();
@@ -314,30 +393,34 @@ function FilmCard({ screening: s, now, half = false }: { screening: DisplayScree
           <span
             className={cn(
               "ticket absolute right-[0.6vw] top-[0.6vw] z-10 rounded-full leading-none tracking-[0.08em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]",
-              half ? "px-[0.7vw] py-[0.4vh] text-[1.15vw]" : "px-[0.9vw] py-[0.5vh] text-[1.5vw]",
+              half || mid ? "px-[0.7vw] py-[0.4vh] text-[1.15vw]" : "px-[0.9vw] py-[0.5vh] text-[1.5vw]",
             )}
             style={{ backgroundColor: s.hall.colorHex }}
           >
             {s.hall.name.toUpperCase()}
           </span>
-          {half ? null : <div className="tv-image-space" />}
+          {half || mid ? null : <div className="tv-image-space" />}
 
           <div
             className={cn(
               "relative flex min-h-0 flex-1 flex-col justify-end px-[0.9vw]",
-              half ? "gap-[0.4vh] pb-[2.4vh]" : "gap-[0.8vh] pb-[3.2vh]",
+              half ? "gap-[0.4vh] pb-[2.4vh]" : mid ? "gap-[0.5vh] pb-[2.8vh]" : "gap-[0.8vh] pb-[3.2vh]",
             )}
           >
             <p
               className={cn(
                 "display text-white [overflow-wrap:anywhere]",
-                half ? "line-clamp-1 text-[1.75vw] leading-[1.1]" : "line-clamp-2 text-[2.3vw] leading-[1.08]",
+                half
+                  ? "line-clamp-1 text-[1.75vw] leading-[1.1]"
+                  : mid
+                    ? "line-clamp-2 text-[2vw] leading-[1.06]"
+                    : "line-clamp-2 text-[2.3vw] leading-[1.08]",
               )}
             >
               {s.movie.title}
             </p>
             <div className="flex items-end justify-between gap-[0.8vw]">
-              <p className={cn("tv-muted min-w-0 leading-tight", half ? "line-clamp-1 text-[1.15vw]" : "line-clamp-2 text-[1.45vw]")}>
+              <p className={cn("tv-muted min-w-0 leading-tight", half || mid ? "line-clamp-1 text-[1.15vw]" : "line-clamp-2 text-[1.45vw]")}>
                 {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
               </p>
               <FilmStatus screening={s} status={status} soon={soon} now={now} small={half} />

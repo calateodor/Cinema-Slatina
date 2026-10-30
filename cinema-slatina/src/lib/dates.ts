@@ -119,6 +119,17 @@ export function isSameCinemaDay(a: Date, b: Date): boolean {
   return dayKey(a) === dayKey(b);
 }
 
+/** Până la ce oră din noapte ține ziua de program (filmele de la 23:30 se termină după 00:00). */
+export const CINEMA_DAY_ENDS_HOUR = 5;
+
+/**
+ * Momentul mutat înapoi cu `CINEMA_DAY_ENDS_HOUR` ore: ziua lui e ziua de
+ * program în care cade. Ex.: sâmbătă la 01:00 e încă programul de vineri.
+ */
+export function cinemaDayOf(date: Date): Date {
+  return new Date(date.getTime() - CINEMA_DAY_ENDS_HOUR * 3_600_000);
+}
+
 export function isToday(date: Date, now: Date = new Date()): boolean {
   return isSameCinemaDay(date, now);
 }

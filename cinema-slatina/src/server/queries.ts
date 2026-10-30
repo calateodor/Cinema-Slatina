@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { buildCapacity, seatsTakenByScreening, type Capacity } from "@/lib/capacity";
-import { addDays, formatTime, nextWeekStartOf, todayStart, weekStartOf } from "@/lib/dates";
+import { addDays, cinemaDayOf, formatTime, nextWeekStartOf, todayStart, weekStartOf } from "@/lib/dates";
 import { SETTING_KEYS } from "@/lib/constants";
 import { unstable_cache } from "next/cache";
 
@@ -492,7 +492,8 @@ const loadDisplayRows = unstable_cache(
 );
 
 export async function getDisplayProgram(now: Date = new Date()): Promise<DisplayProgram> {
-  const { halls, rows } = await loadDisplayRows(todayStart(now).toISOString());
+  // de la începutul zilei de program (ține până la 05:00), ca filmele de după miezul nopții să rămână
+  const { halls, rows } = await loadDisplayRows(todayStart(cinemaDayOf(now)).toISOString());
   return {
     halls,
     screenings: rows.map((r) => {
