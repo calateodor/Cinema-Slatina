@@ -33,6 +33,15 @@ const DEFAULT_RUNTIME_MIN = 110;
 const REFRESH_MS = 60_000;
 const CLOCK_MS = 5_000;
 const RELOAD_MS = 12 * 60 * 60_000;
+/**
+ * Casieria se reîncarcă mai des. Pe 30 octombrie 2026 (13 filme, păianjeni de
+ * Halloween) ecranul a înghețat la 18:51, la o oră și jumătate după ultima
+ * încărcare, deși codul cutiei încă cerea programul în fiecare minut: placa
+ * video nu mai desena, iar paza (watchFrozenScreen) nu vede asta. O
+ * reîncărcare golește memoria plăcii; televizoarele sălilor rămân la 12 ore,
+ * ca să nu taie trailerele. Cost: ~13 imagini din CDN la fiecare (~1 MB).
+ */
+const CASHIER_RELOAD_MS = 40 * 60_000;
 
 type Status = "upcoming" | "running" | "ended";
 /** Aranjamentul televizorului de sală: 1 bandă sus, 2 coloană, 3 trailer pe tot ecranul. */
@@ -149,7 +158,7 @@ export function DisplayBoard({
     const first = window.setTimeout(() => setNow(tvNow()), 0);
     const clock = window.setInterval(() => setNow(tvNow()), CLOCK_MS);
     const refresh = window.setInterval(() => router.refresh(), REFRESH_MS);
-    const reload = window.setTimeout(safeReload, RELOAD_MS);
+    const reload = window.setTimeout(safeReload, hallSlug ? RELOAD_MS : CASHIER_RELOAD_MS);
     const stopWatch = watchFrozenScreen();
     const stopVersion = watchNewVersion();
     registerTvBackup();
@@ -162,7 +171,7 @@ export function DisplayBoard({
       stopWatch();
       stopVersion();
     };
-  }, [router]);
+  }, [router, hallSlug]);
 
   const hall = hallSlug ? program.halls.find((h) => h.slug === hallSlug) : undefined;
   const scoped = hall ? program.screenings.filter((s) => s.hall.slug === hall.slug) : program.screenings;
@@ -365,7 +374,7 @@ function FilmCard({
               în negrul cu detaliile. E cerută mare și puțin comprimată:
               cutiile raportează ecranul mai mic decât e. */}
           {image ? (
-            <Image src={image} alt="" fill sizes="60vw" quality={90} className="object-cover object-top" />
+            <Image src={image} alt="" fill sizes={mid ? "25vw" : "60vw"} quality={90} className="object-cover object-top" />
           ) : (
             <div className="tv-layer flex items-center justify-center bg-[#1a1308] p-[1vw] text-center">
               <span className="display text-[1.5vw] text-white">{s.movie.title}</span>
