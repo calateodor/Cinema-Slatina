@@ -2,17 +2,21 @@
 
 import type { DisplayTheme } from "@/components/display/display-board";
 
-/** Până când stă tema de Halloween pe televizoare (ora României). */
-const HALLOWEEN_UNTIL = new Date("2026-11-02T00:00:00+02:00");
+/**
+ * Până când stă tema de Halloween pe televizoare (ora României); `null` = fără
+ * sfârșit. Trebuia să se oprească pe 2 noiembrie 2026, dar Teo a cerut în aceeași
+ * zi să rămână: când vrea s-o scoată, aici se pune data.
+ */
+const HALLOWEEN_UNTIL: Date | null = null;
 
 /** Tema de sezon a televizoarelor din /afisaj, după dată. */
 export function seasonTheme(now: Date = new Date()): DisplayTheme | undefined {
-  return now < HALLOWEEN_UNTIL ? "halloween" : undefined;
+  return HALLOWEEN_UNTIL === null || now < HALLOWEEN_UNTIL ? "halloween" : undefined;
 }
 
 /**
- * Tema de Halloween a afișajului: pe /afisaj până pe 1 noiembrie inclusiv
- * (vezi `seasonTheme`); pe /halloween se vede oricând, de probă.
+ * Tema de Halloween a afișajului: pe /afisaj cât e pornită (vezi
+ * `seasonTheme`); pe /halloween se vede oricând, de probă.
  * Imaginile sunt pregătite din D:\Teo\Site Cinema\Halloween la mărimea
  * ecranului cutiilor, în public/teme/halloween (toate împreună sub 100 KB).
  * Tot ce se mișcă e doar `transform`, pe care îl face placa video.
