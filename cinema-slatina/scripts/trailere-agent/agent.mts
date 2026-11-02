@@ -257,14 +257,20 @@ async function processJob(jobId: string) {
 
   const movies = await currentMovies();
   const fileOf = (m: MovieRow) => `${m.slug}-${youtubeId(m.trailerUrl)}.mp4`;
-  const hasFile = (m: MovieRow) => m.trailerFileUrl === `/trailere/${fileOf(m)}` && m.trailerFileSource === m.trailerUrl;
+  await say("· aduc site-ul de pe GitHub…");
+  await syncRepo();
+
+  // fișierul trebuie să fie și în depozit: pe 30 oct. 2026 curățenia de mai
+  // jos a scos trailerele filmelor ieșite temporar din program (weekendul de
+  // Halloween), iar baza încă le trimitea acolo; pe 2 nov. au revenit fără clip
+  const hasFile = (m: MovieRow) =>
+    m.trailerFileUrl === `/trailere/${fileOf(m)}` &&
+    m.trailerFileSource === m.trailerUrl &&
+    existsSync(path.join(TRAILER_DIR, fileOf(m)));
   const todo = movies.filter((m) => youtubeId(m.trailerUrl) && !hasFile(m));
   const need = todo.length === 0 ? "niciunul nu are" : todo.length === 1 ? "unul are" : `${todo.length} au`;
   await say(`▶ ${movies.length === 1 ? "un film" : `${movies.length} filme`} în program, ${need} nevoie de trailer · yt-dlp ${yt.out.trim()}`);
   for (const m of movies) if (!youtubeId(m.trailerUrl)) await say(`· ${m.title}: linkul nu e de YouTube, îl sar`);
-
-  await say("· aduc site-ul de pe GitHub…");
-  await syncRepo();
 
   // 1. tragem și comprimăm ce lipsește (ce e deja în depozit doar legăm)
   mkdirSync(TEMP, { recursive: true });
