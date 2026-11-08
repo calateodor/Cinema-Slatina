@@ -17,7 +17,7 @@ export const POPCORN = {
     { name: "Cașcaval", prices: [17, 34] },
   ],
   gourmet: [
-    { name: "Caramel", grams: "70 g", price: "18", image: "caramoon" },
+    { name: "Caramel", grams: "70 g", price: "20", image: "caramoon" },
     { name: "Ciocolată, căpșuni, caramel", grams: "80 g", price: "25", image: "savour" },
     { name: "Caramel cu sare de Himalaya", grams: "125 g", price: "25", image: "himalaya" },
   ],
