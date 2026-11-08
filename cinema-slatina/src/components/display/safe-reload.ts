@@ -79,21 +79,24 @@ const VERSION_MS = 3 * 60_000;
 /**
  * Reîncarcă televizorul când s-a publicat o versiune nouă (meniu, design).
  * Întreabă /api/versiune (răspuns static din CDN, ~480 de cereri pe zi pe
- * televizor, din 1 milion pe lună gratuit). Prima valoare primită e cea a
- * paginii; când alta apare, reîncărcăm (doar dacă site-ul răspunde).
+ * televizor, din 1 milion pe lună gratuit) și o compară cu versiunea scrisă în
+ * codul paginii la build; când diferă, reîncărcăm (doar dacă site-ul răspunde).
  * Pe 19 octombrie 2026 meniul barului nu se actualiza pe televizor, iar Teo nu
  * mai era la cinema ca să apese Reload.
+ * Înainte, versiunea paginii era primul răspuns primit. Pe 8 noiembrie 2026
+ * cutia de la bar era fără internet și arăta copia salvată (prețul vechi la
+ * popcornul caramel): când revenea netul, primul răspuns era deja versiunea
+ * nouă, așa că nu s-ar fi reîncărcat decât peste 6 ore.
  */
 export function watchNewVersion(): () => void {
-  let mine: string | null = null;
+  const mine = process.env.PAGE_VERSION ?? "local";
   let stopped = false;
   const check = () => {
     fetch("/api/versiune", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { v?: string } | null) => {
         if (stopped || !data?.v) return;
-        if (mine === null) mine = data.v;
-        else if (data.v !== mine) {
+        if (data.v !== mine) {
           stopped = true;
           safeReload();
         }

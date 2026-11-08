@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Versiunea cu care s-a construit pagina, scrisă în codul televizoarelor
+  // (aceeași valoare o dă /api/versiune). Vezi `watchNewVersion`.
+  env: {
+    PAGE_VERSION: process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.VERCEL_DEPLOYMENT_ID ?? "local",
+  },
   images: {
     // 90 e pentru imaginile mari de pe afișajul televizoarelor
     qualities: [75, 90],
