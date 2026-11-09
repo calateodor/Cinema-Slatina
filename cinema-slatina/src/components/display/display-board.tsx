@@ -201,7 +201,7 @@ export function DisplayBoard({
         <span />
       </header>
       <main className="min-h-0 flex-1 pb-[1.4vh] pt-[3.4vh]">
-        <CardGrid list={day.list} now={now} />
+        <CardGrid list={day.list} now={now} halls={program.halls} />
       </main>
     </div>
   );
@@ -264,7 +264,55 @@ function toSlots(list: DisplayScreening[]): DisplayScreening[][] {
   return slots;
 }
 
-function CardGrid({ list, now }: { list: DisplayScreening[]; now: Date }) {
+/** Cel mult atâtea filme pe sală încap pe un rând al casieriei. */
+const MAX_PER_HALL_ROW = 6;
+
+/**
+ * Rândurile pe săli, ca în afișul din Canva din 9 noiembrie 2026 (cerut de
+ * Teo): „SALA ROȘIE” cu filmele ei în ordinea orelor, dedesubt „SALA
+ * ALBASTRĂ” cu ale ei. Întoarce null dacă vreo sală are prea multe filme
+ * pentru un rând (atunci rămâne grila veche).
+ */
+function hallRowsOf(list: DisplayScreening[], halls: Hall[]) {
+  const rows = halls
+    .map((hall) => ({ hall, list: list.filter((s) => s.hall.slug === hall.slug) }))
+    .filter((r) => r.list.length > 0);
+  if (rows.length === 0 || rows.some((r) => r.list.length > MAX_PER_HALL_ROW)) return null;
+  return rows;
+}
+
+function HallRows({ rows, now }: { rows: { hall: Hall; list: DisplayScreening[] }[]; now: Date }) {
+  // toate rândurile au aceleași coloane, ca filmele să stea unele sub altele
+  const cols = Math.max(4, ...rows.map((r) => r.list.length));
+  return (
+    <div className="flex h-full flex-col gap-y-[1.2vh]">
+      {rows.map(({ hall, list }) => (
+        <section key={hall.slug} className="flex min-h-0 flex-1 flex-col">
+          <h2
+            className="ticket mx-auto rounded-[0.4vw] px-[1.4vw] py-[0.6vh] text-[1.7vw] leading-none tracking-[0.1em] text-white shadow-[0_0.6vh_1.6vh_rgba(0,0,0,0.5)]"
+            style={{ backgroundColor: hall.colorHex }}
+          >
+            {hall.name.toUpperCase()}
+          </h2>
+          <ul
+            className="grid min-h-0 flex-1 gap-x-[1.4vw] pb-[1.6vh] pt-[3.6vh]"
+            style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+          >
+            {list.map((x) => (
+              <li key={x.id} className={cn("relative min-h-0", isLit(x, now) && "z-10")}>
+                <FilmCard screening={x} now={now} mid row />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function CardGrid({ list, now, halls }: { list: DisplayScreening[]; now: Date; halls: Hall[] }) {
+  const hallRows = hallRowsOf(list, halls);
+  if (hallRows) return <HallRows rows={hallRows} now={now} />;
   if (list.length === 0) {
     return (
       <p className="display tv-muted flex h-full items-center justify-center text-[2.4vw]">
@@ -333,12 +381,15 @@ function FilmCard({
   now,
   half = false,
   mid = false,
+  row = false,
 }: {
   screening: DisplayScreening;
   now: Date;
   half?: boolean;
   /** Card de mărime medie (trei rânduri, program prelungit): fără spațiul rezervat imaginii. */
   mid?: boolean;
+  /** Pe rândul sălii (`HallRows`): sala e scrisă deasupra rândului, nu pe card. */
+  row?: boolean;
 }) {
   const status = statusOf(s, now);
   const running = status === "running";
@@ -381,7 +432,7 @@ function FilmCard({
             </div>
           )}
           <span className="tv-fade" aria-hidden="true" />
-          <span
+          {row ? null : <span
             className={cn(
               "ticket absolute right-[0.6vw] top-[0.6vw] z-10 rounded-full leading-none tracking-[0.08em] text-white shadow-[0_0.3vh_1vh_rgba(0,0,0,0.5)]",
               half || mid ? "px-[0.7vw] py-[0.4vh] text-[1.15vw]" : "px-[0.9vw] py-[0.5vh] text-[1.5vw]",
@@ -389,7 +440,7 @@ function FilmCard({
             style={{ backgroundColor: s.hall.colorHex }}
           >
             {s.hall.name.toUpperCase()}
-          </span>
+          </span>}
           {half || mid ? null : <div className="tv-image-space" />}
 
           <div
@@ -412,7 +463,8 @@ function FilmCard({
             </p>
             <div className="flex items-end justify-between gap-[0.8vw]">
               <p className={cn("tv-muted min-w-0 leading-tight", half || mid ? "line-clamp-1 text-[1.15vw]" : "line-clamp-2 text-[1.45vw]")}>
-                {[s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
+                {/* pe rândul sălii cardul e îngust: doar dublat/subtitrat, restul nu încăpea */}
+                {row ? (s.isDubbed ? "Dublat" : "Subtitrat") : [s.isDubbed ? "Dublat" : "Subtitrat", firstGenre, `${runtimeOf(s)} min`].filter(Boolean).join(" · ")}
               </p>
               <FilmStatus screening={s} status={status} soon={soon} now={now} small={half} />
             </div>
