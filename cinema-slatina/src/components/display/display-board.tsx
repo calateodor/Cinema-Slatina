@@ -280,7 +280,8 @@ function hallRowsOf(list: DisplayScreening[], halls: Hall[]) {
 }
 
 function CardGrid({ list, now, halls }: { list: DisplayScreening[]; now: Date; halls: Hall[] }) {
-  const hallRows = list.length > MAX_CARDS ? hallRowsOf(list, halls) : null;
+  // și cu 4 + 4 filme: rândul de sus e Sala Roșie, cel de jos Sala Albastră, ca în Canva
+  const hallRows = hallRowsOf(list, halls);
   if (hallRows) {
     // aceleași coloane pe ambele rânduri, ca filmele să stea unele sub altele
     const cols = Math.max(...hallRows.map((r) => r.length));
